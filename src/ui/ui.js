@@ -17,6 +17,10 @@ requirejs(["vendor/mithril"], function(mIgnore) {
             if (!Archive.confirmClear()) return
             Archive.editorContents = Archive.textForLog(); 
         },
+        loadLog: function () {
+            if (!confirm("Replace all items with entered text for a log?")) return
+            Archive.items = JSON.parse(Archive.editorContents);
+        },
         eval: function () {
             Archive.editorContents = eval(Archive.editorContents) 
         },
@@ -27,9 +31,11 @@ requirejs(["vendor/mithril"], function(mIgnore) {
                 m("textarea", { value: Archive.editorContents, onchange: function (event) { Archive.editorContents = event.target.value } }),
                 m("br"),
                 m("button.ma1", { onclick: Archive.add }, "Add"),
-                m("button.ma1", { onclick: Archive.showLog }, "Show log"),
                 m("button.ma1", { onclick: Archive.clear }, "Clear"),
                 m("button.ma1", { onclick: Archive.eval }, "Eval"),
+                m("br"),
+                m("button.ma1", { onclick: Archive.showLog }, "Show log"),
+                m("button.ma1", { onclick: Archive.loadLog }, "Load log"),
             ])
         }
     }
