@@ -1,0 +1,18 @@
+{
+  "name": "twirlip7",
+  "version": "1.0.0",
+  "description": "Social Semantic Desktop",
+  "main": "server.js",
+  "scripts": {
+    "test": "npm run test",
+    "server": "node src/server.js"
+  },
+  "author": "Paul D. Fernhout",
+  "license": "GNU AGPL v3",
+  "dependencies": {
+    "express": "^4.15.2"
+  },
+  "devDependencies": {
+    "tachyons": "^4.7.0"
+  }
+}
