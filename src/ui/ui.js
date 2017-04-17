@@ -3,35 +3,41 @@ requirejs(["vendor/mithril"], function(mIgnore) {
 
     const Archive = {
         editorContents: "",
+        lastLoadedContents: "",
         items: [],
         previousNextIndex: 0,
 
+        setEditorContents(newContents) {
+            Archive.editorContents = newContents
+            Archive.lastLoadedContents = newContents
+        },
+
         add: function() {
             Archive.items.push(Archive.editorContents)
-            Archive.editorContents = ""
+            Archive.setEditorContents("")
         },
 
         confirmClear: function(promptText) {
             if (!Archive.editorContents) return true
-            if (Archive.editorContents === Archive.textForLog()) return true;
+            if (Archive.editorContents === Archive.lastLoadedContents) return true;
             if (!promptText) promptText = "You have unsaved editor changes; proceed?"
             return confirm(promptText)
         },
 
         clear: function() {
             if (!Archive.confirmClear()) return
-            Archive.editorContents = ""
+            Archive.setEditorContents("")
         },
 
         eval: function () {
-            Archive.editorContents = eval(Archive.editorContents) 
+            Archive.setEditorContents(Archive.editorContents + "\n" + eval(Archive.editorContents))
         },
 
         skip: function (offset) {
             if (!Archive.items.length) return
             Archive.previousNextIndex = (Archive.items.length + Archive.previousNextIndex + offset) % Archive.items.length
             console.log("Archive.previousNextIndex", Archive.previousNextIndex)
-            Archive.editorContents = Archive.items[Archive.previousNextIndex];
+            Archive.setEditorContents(Archive.items[Archive.previousNextIndex])
         },
 
         previous: function () { Archive.skip(-1) },
@@ -45,12 +51,14 @@ requirejs(["vendor/mithril"], function(mIgnore) {
         showLog: function () {
             console.log("items", Archive.items)
             if (!Archive.confirmClear()) return
-            Archive.editorContents = Archive.textForLog(); 
+            Archive.setEditorContents(Archive.textForLog()) 
         },
 
         loadLog: function () {
             if (!confirm("Replace all items with entered text for a log?")) return
-            Archive.items = JSON.parse(Archive.editorContents);
+            Archive.items = JSON.parse(Archive.editorContents)
+            // Update in case pasted contents
+            Archive.lastLoadedContents = Archive.editorContents
         },
 
         view: function() {
@@ -66,7 +74,7 @@ requirejs(["vendor/mithril"], function(mIgnore) {
                 m("button.ma1", { onclick: Archive.next }, "Next"),
                 m("br"),
                 m("button.ma1", { onclick: Archive.showLog }, "Show log"),
-                m("button.ma1", { onclick: Archive.loadLog }, "Load log"),
+                m("button.ma1", { onclick: Archive.loadLog }, "Load log")
             ])
         }
     }
