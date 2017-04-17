@@ -17,6 +17,9 @@ requirejs(["vendor/mithril"], function(mIgnore) {
             if (!Archive.confirmClear()) return
             Archive.editorContents = Archive.textForLog(); 
         },
+        eval: function () {
+            Archive.editorContents = eval(Archive.editorContents) 
+        },
         editorContents: "",
         view: function() {
             return m("main.ma2", [
@@ -26,6 +29,7 @@ requirejs(["vendor/mithril"], function(mIgnore) {
                 m("button.ma1", { onclick: Archive.add }, "Add"),
                 m("button.ma1", { onclick: Archive.showLog }, "Show log"),
                 m("button.ma1", { onclick: Archive.clear }, "Clear"),
+                m("button.ma1", { onclick: Archive.eval }, "Eval"),
             ])
         }
     }
