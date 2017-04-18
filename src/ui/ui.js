@@ -27,6 +27,7 @@ requirejs(["vendor/mithril"], function(mIgnore) {
         clear: function() {
             if (!Archive.confirmClear()) return
             Archive.setEditorContents("")
+            Archive.currentItemIndex = null
         },
 
         eval: function () {
@@ -91,7 +92,7 @@ requirejs(["vendor/mithril"], function(mIgnore) {
         skip: function (offset) {
             if (!Archive.items.length) return
             if (Archive.currentItemIndex === null) {
-                Archive.currentItemIndex = 0;
+                offset >= 0 ? Archive.currentItemIndex = 0 : Archive.currentItemIndex = Archive.items.length;
             } else {
                 Archive.currentItemIndex = (Archive.items.length + Archive.currentItemIndex + offset) % Archive.items.length
             }
@@ -122,13 +123,13 @@ requirejs(["vendor/mithril"], function(mIgnore) {
 
         view: function() {
             return m("main.ma2", [
-                m("h3.bw24.b--solid.b--blue", 
+                m("h4.bw24.b--solid.b--blue", 
                     "Current item " + 
                     (Archive.currentItemIndex === null ? "???" : Archive.currentItemIndex + 1) +
                     " of " + Archive.items.length
                 ),
                 m("input#fileInput", { "type" : "file" , "hidden" : true } ),
-                m("textarea", { value: Archive.editorContents, onchange: function (event) { Archive.editorContents = event.target.value } }),
+                m("textarea.w-90-ns.h5-ns", { value: Archive.editorContents, oninput: function (event) { Archive.editorContents = event.target.value; Archive.currentItemIndex = null } }),
                 m("br"),
                 m("button.ma1", { onclick: Archive.save }, "Save"),
                 m("button.ma1", { onclick: Archive.clear }, "Clear"),
