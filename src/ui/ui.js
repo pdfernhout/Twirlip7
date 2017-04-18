@@ -66,6 +66,28 @@ requirejs(["vendor/mithril"], function(mIgnore) {
             fileControl.click();
         },
 
+        exportText: function() {
+            const fileContents = Archive.editorContents
+            const provisionalFileName = fileContents.split("\n")[0]
+            Archive.saveToFile(provisionalFileName, fileContents)
+        },
+
+        saveToFile: function (provisionalFileName, fileContents) {
+            console.log("saveToFile")
+            const fileName = prompt("Please enter a file name for saving", provisionalFileName)
+            if (!fileName) return
+            
+            console.log("saving", fileName)
+            const downloadLink = document.createElement("a")
+            downloadLink.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(fileContents))
+            downloadLink.setAttribute("download", fileName)
+            downloadLink.style.display = "none"
+            document.body.appendChild(downloadLink)
+            downloadLink.click()
+            document.body.removeChild(downloadLink)
+            console.log("done saving", fileName)
+        },
+
         skip: function (offset) {
             if (!Archive.items.length) return
             Archive.previousNextIndex = (Archive.items.length + Archive.previousNextIndex + offset) % Archive.items.length
@@ -104,6 +126,7 @@ requirejs(["vendor/mithril"], function(mIgnore) {
                 m("button.ma1", { onclick: Archive.clear }, "Clear"),
                 m("button.ma1", { onclick: Archive.eval }, "Eval"),
                 m("button.ma1", { onclick: Archive.importText }, "Import"),
+                m("button.ma1", { onclick: Archive.exportText }, "Export"),
                 m("br"),
                 m("button.ma1", { onclick: Archive.previous }, "Previous"),
                 m("button.ma1", { onclick: Archive.next }, "Next"),
