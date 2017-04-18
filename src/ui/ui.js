@@ -12,9 +12,9 @@ requirejs(["vendor/mithril"], function(mIgnore) {
             Archive.lastLoadedContents = newContents
         },
 
-        add: function() {
+        save: function() {
             Archive.items.push(Archive.editorContents)
-            Archive.setEditorContents("")
+            Archive.previousNextIndex = Archive.items.length - 1;
         },
 
         confirmClear: function(promptText) {
@@ -122,7 +122,7 @@ requirejs(["vendor/mithril"], function(mIgnore) {
                 m("input#fileInput", { "type" : "file" , "hidden" : true } ),
                 m("textarea", { value: Archive.editorContents, onchange: function (event) { Archive.editorContents = event.target.value } }),
                 m("br"),
-                m("button.ma1", { onclick: Archive.add }, "Add"),
+                m("button.ma1", { onclick: Archive.save }, "Save"),
                 m("button.ma1", { onclick: Archive.clear }, "Clear"),
                 m("button.ma1", { onclick: Archive.eval }, "Eval"),
                 m("button.ma1", { onclick: Archive.importText }, "Import"),
