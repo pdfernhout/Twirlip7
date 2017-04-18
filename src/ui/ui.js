@@ -5,7 +5,7 @@ requirejs(["vendor/mithril"], function(mIgnore) {
         editorContents: "",
         lastLoadedContents: "",
         items: [],
-        previousNextIndex: 0,
+        currentItemIndex: null,
 
         setEditorContents(newContents) {
             Archive.editorContents = newContents
@@ -14,7 +14,7 @@ requirejs(["vendor/mithril"], function(mIgnore) {
 
         save: function() {
             Archive.items.push(Archive.editorContents)
-            Archive.previousNextIndex = Archive.items.length - 1;
+            Archive.currentItemIndex = Archive.items.length - 1;
         },
 
         confirmClear: function(promptText) {
@@ -90,9 +90,12 @@ requirejs(["vendor/mithril"], function(mIgnore) {
 
         skip: function (offset) {
             if (!Archive.items.length) return
-            Archive.previousNextIndex = (Archive.items.length + Archive.previousNextIndex + offset) % Archive.items.length
-            console.log("Archive.previousNextIndex", Archive.previousNextIndex)
-            Archive.setEditorContents(Archive.items[Archive.previousNextIndex])
+            if (Archive.currentItemIndex === null) {
+                Archive.currentItemIndex = 0;
+            } else {
+                Archive.currentItemIndex = (Archive.items.length + Archive.currentItemIndex + offset) % Archive.items.length
+            }
+            Archive.setEditorContents(Archive.items[Archive.currentItemIndex])
         },
 
         previous: function () { Archive.skip(-1) },
@@ -112,14 +115,18 @@ requirejs(["vendor/mithril"], function(mIgnore) {
         loadLog: function () {
             if (Archive.items.length && !confirm("Replace all items with entered text for a log?")) return
             Archive.items = JSON.parse(Archive.editorContents)
-            Archive.previousNextIndex = 0
+            Archive.currentItemIndex = null
             // Update lastLoadedContents in case pasted in contents to avoid warning later since data was processed as intended
             Archive.lastLoadedContents = Archive.editorContents
         },
 
         view: function() {
             return m("main.ma2", [
-                m("h1.title.bw24.b--solid.b--blue", "Item count " + Archive.items.length),
+                m("h3.bw24.b--solid.b--blue", 
+                    "Current item " + 
+                    (Archive.currentItemIndex === null ? "???" : Archive.currentItemIndex + 1) +
+                    " of " + Archive.items.length
+                ),
                 m("input#fileInput", { "type" : "file" , "hidden" : true } ),
                 m("textarea", { value: Archive.editorContents, onchange: function (event) { Archive.editorContents = event.target.value } }),
                 m("br"),
