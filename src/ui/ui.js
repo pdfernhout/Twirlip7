@@ -110,9 +110,10 @@ requirejs(["vendor/mithril"], function(mIgnore) {
         },
 
         loadLog: function () {
-            if (!confirm("Replace all items with entered text for a log?")) return
+            if (Archive.items.length && !confirm("Replace all items with entered text for a log?")) return
             Archive.items = JSON.parse(Archive.editorContents)
-            // Update in case pasted contents
+            Archive.previousNextIndex = 0
+            // Update lastLoadedContents in case pasted in contents to avoid warning later since data was processed as intended
             Archive.lastLoadedContents = Archive.editorContents
         },
 
