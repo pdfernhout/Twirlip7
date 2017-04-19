@@ -1,5 +1,36 @@
 requirejs(["vendor/mithril"], function(mIgnore) {
+    "use strict";
+
     const root = document.body
+
+    function getSelection(id) {
+        const textArea = document.getElementById(id)
+        const start = textArea.selectionStart
+        const end = textArea.selectionEnd
+        const text = textArea.value.substring(start, end)
+        return {
+            start,
+            end,
+            text
+        }
+    }
+
+    function selectRange(id, start, end) {
+        const textArea = document.getElementById(id)
+        textArea.focus()
+        textArea.selectionStart = start
+        textArea.selectionEnd = end
+    }
+
+    function evalOrError(text) {
+        let result;
+        try {
+            result = eval(text)
+        } catch (error) {
+            result = error;                
+        }
+        return result;
+    }
 
     const Archive = {
         editorContents: "",
@@ -30,8 +61,27 @@ requirejs(["vendor/mithril"], function(mIgnore) {
             Archive.currentItemIndex = null
         },
 
-        eval: function () {
-            Archive.setEditorContents(Archive.editorContents + "\n" + eval(Archive.editorContents))
+        doIt: function () {
+            const selection = getSelection("editor")
+            try {
+                eval(selection.text)
+            } catch (error) {
+                alert("Eval error:\n" + error)
+            }
+        },
+
+        printIt: function () {
+            const selection = getSelection("editor")
+            const contents = Archive.editorContents
+            const evalResult = "" + evalOrError(selection.text)
+            Archive.editorContents = contents.substring(0, selection.end) + evalResult + contents.substring(selection.end)
+            setTimeout(() => selectRange("editor", selection.end, selection.end + evalResult.length), 0)
+        },
+
+        inspectIt: function () {
+            const selection = getSelection("editor")
+            const evalResult = evalOrError(selection.text)
+            console.dir(evalResult)
         },
 
         importText: function() {
@@ -129,13 +179,16 @@ requirejs(["vendor/mithril"], function(mIgnore) {
                     " of " + Archive.items.length
                 ),
                 m("input#fileInput", { "type" : "file" , "hidden" : true } ),
-                m("textarea.w-90-ns.h5-ns", { value: Archive.editorContents, oninput: function (event) { Archive.editorContents = event.target.value; Archive.currentItemIndex = null } }),
+                m("textarea.w-90-ns.h5-ns#editor", { value: Archive.editorContents, oninput: function (event) { Archive.editorContents = event.target.value; Archive.currentItemIndex = null } }),
                 m("br"),
                 m("button.ma1", { onclick: Archive.save }, "Save"),
                 m("button.ma1", { onclick: Archive.clear }, "Clear"),
-                m("button.ma1", { onclick: Archive.eval }, "Eval"),
                 m("button.ma1", { onclick: Archive.importText }, "Import"),
                 m("button.ma1", { onclick: Archive.exportText }, "Export"),
+                m("br"),
+                m("button.ma1", { onclick: Archive.doIt }, "Do it"),
+                m("button.ma1", { onclick: Archive.printIt }, "Print it"),
+                m("button.ma1", { onclick: Archive.inspectIt }, "Inspect it"),
                 m("br"),
                 m("button.ma1", { onclick: Archive.previous }, "Previous"),
                 m("button.ma1", { onclick: Archive.next }, "Next"),
