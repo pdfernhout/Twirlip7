@@ -3,11 +3,20 @@ requirejs(["vendor/mithril"], function(mIgnore) {
 
     const root = document.body
 
-    function getSelection(id) {
+    function getSelection(id, returnAllForNoSelection) {
         const textArea = document.getElementById(id)
         const start = textArea.selectionStart
         const end = textArea.selectionEnd
         const text = textArea.value.substring(start, end)
+        if (returnAllForNoSelection) {
+            if (start === end) {
+                return {
+                    start: 0,
+                    end: textArea.value.length,
+                    text: textArea.value
+                }
+            }
+        }
         return {
             start,
             end,
@@ -62,7 +71,7 @@ requirejs(["vendor/mithril"], function(mIgnore) {
         },
 
         doIt: function () {
-            const selection = getSelection("editor")
+            const selection = getSelection("editor", true)
             try {
                 eval(selection.text)
             } catch (error) {
@@ -71,7 +80,7 @@ requirejs(["vendor/mithril"], function(mIgnore) {
         },
 
         printIt: function () {
-            const selection = getSelection("editor")
+            const selection = getSelection("editor", true)
             const contents = Archive.editorContents
             const evalResult = "" + evalOrError(selection.text)
             Archive.editorContents = contents.substring(0, selection.end) + evalResult + contents.substring(selection.end)
@@ -79,7 +88,7 @@ requirejs(["vendor/mithril"], function(mIgnore) {
         },
 
         inspectIt: function () {
-            const selection = getSelection("editor")
+            const selection = getSelection("editor", true)
             const evalResult = evalOrError(selection.text)
             console.dir(evalResult)
         },
