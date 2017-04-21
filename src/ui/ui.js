@@ -1,35 +1,7 @@
-define(["vendor/mithril", "Filer"], function(mIgnore, Filer) {
+define(["vendor/mithril", "Filer", "Selecter"], function(mIgnore, Filer, Selecter) {
     "use strict";
 
     const root = document.body
-
-    function getSelection(id, returnAllForNoSelection) {
-        const textArea = document.getElementById(id)
-        const start = textArea.selectionStart
-        const end = textArea.selectionEnd
-        const text = textArea.value.substring(start, end)
-        if (returnAllForNoSelection) {
-            if (start === end) {
-                return {
-                    start: 0,
-                    end: textArea.value.length,
-                    text: textArea.value
-                }
-            }
-        }
-        return {
-            start,
-            end,
-            text
-        }
-    }
-
-    function selectRange(id, start, end) {
-        const textArea = document.getElementById(id)
-        textArea.focus()
-        textArea.selectionStart = start
-        textArea.selectionEnd = end
-    }
 
     function evalOrError(text) {
         let result;
@@ -71,7 +43,7 @@ define(["vendor/mithril", "Filer"], function(mIgnore, Filer) {
         },
 
         doIt: function () {
-            const selection = getSelection("editor", true)
+            const selection = Selecter.getSelection("editor", true)
             try {
                 eval(selection.text)
             } catch (error) {
@@ -80,15 +52,15 @@ define(["vendor/mithril", "Filer"], function(mIgnore, Filer) {
         },
 
         printIt: function () {
-            const selection = getSelection("editor", true)
+            const selection = Selecter.getSelection("editor", true)
             const contents = Archive.editorContents
             const evalResult = "" + evalOrError(selection.text)
             Archive.editorContents = contents.substring(0, selection.end) + evalResult + contents.substring(selection.end)
-            setTimeout(() => selectRange("editor", selection.end, selection.end + evalResult.length), 0)
+            setTimeout(() => Selecter.selectRange("editor", selection.end, selection.end + evalResult.length), 0)
         },
 
         inspectIt: function () {
-            const selection = getSelection("editor", true)
+            const selection = Selecter.getSelection("editor", true)
             const evalResult = evalOrError(selection.text)
             console.dir(evalResult)
         },
