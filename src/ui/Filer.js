@@ -5,7 +5,7 @@ define([], function() {
         // Requires fileInput node somewhere:
         // m("input#fileInput", { "type" : "file" , "hidden" : true } )
 
-        loadFromFile: function (callback) {
+        loadFromFile(callback) {
             const fileControl = document.getElementById("fileInput")
             fileControl.addEventListener("change", function (event) {
                 if (event.target.files.length < 1) return
@@ -26,7 +26,7 @@ define([], function() {
             fileControl.click()
         },
 
-        saveToFile: function (provisionalFileName, fileContents) {
+        saveToFile(provisionalFileName, fileContents) {
             console.log("saveToFile")
             const fileName = prompt("Please enter a file name for saving", provisionalFileName)
             if (!fileName) return
