@@ -2,32 +2,35 @@ define(["FileUtils", "SelectionUtils", "EvalUtils"], function(FileUtils, Selecti
     "use strict"
 
     const Archive = {
+        items: [],
+    }
+
+    const Workspace = {
         editorContents: "",
         lastLoadedContents: "",
-        items: [],
         currentItemIndex: null,
 
         setEditorContents(newContents) {
-            Archive.editorContents = newContents
-            Archive.lastLoadedContents = newContents
+            Workspace.editorContents = newContents
+            Workspace.lastLoadedContents = newContents
         },
 
         save: function() {
-            Archive.items.push(Archive.editorContents)
-            Archive.currentItemIndex = Archive.items.length - 1
+            Archive.items.push(Workspace.editorContents)
+            Workspace.currentItemIndex = Archive.items.length - 1
         },
 
         confirmClear: function(promptText) {
-            if (!Archive.editorContents) return true
-            if (Archive.editorContents === Archive.lastLoadedContents) return true
+            if (!Workspace.editorContents) return true
+            if (Workspace.editorContents === Workspace.lastLoadedContents) return true
             if (!promptText) promptText = "You have unsaved editor changes; proceed?"
             return confirm(promptText)
         },
 
         clear: function() {
-            if (!Archive.confirmClear()) return
-            Archive.setEditorContents("")
-            Archive.currentItemIndex = null
+            if (!Workspace.confirmClear()) return
+            Workspace.setEditorContents("")
+            Workspace.currentItemIndex = null
         },
 
         doIt: function () {
@@ -41,9 +44,9 @@ define(["FileUtils", "SelectionUtils", "EvalUtils"], function(FileUtils, Selecti
 
         printIt: function () {
             const selection = SelectionUtils.getSelection("editor", true)
-            const contents = Archive.editorContents
+            const contents = Workspace.editorContents
             const evalResult = "" + EvalUtils.evalOrError(selection.text)
-            Archive.editorContents = contents.substring(0, selection.end) + evalResult + contents.substring(selection.end)
+            Workspace.editorContents = contents.substring(0, selection.end) + evalResult + contents.substring(selection.end)
             setTimeout(() => SelectionUtils.selectRange("editor", selection.end, selection.end + evalResult.length), 0)
         },
 
@@ -54,36 +57,36 @@ define(["FileUtils", "SelectionUtils", "EvalUtils"], function(FileUtils, Selecti
         },
 
         importText: function() {
-            if (!Archive.confirmClear()) return
+            if (!Workspace.confirmClear()) return
             FileUtils.loadFromFile((fileName, fileContents) => {
                 if (fileContents) {
                     console.log("updating editor")
                     const newContent = fileName + "\n---------------------------------------\n" + fileContents
-                    Archive.setEditorContents(newContent)
+                    Workspace.setEditorContents(newContent)
                     m.redraw()
                 }
             })
         },
 
         exportText: function() {
-            const fileContents = Archive.editorContents
+            const fileContents = Workspace.editorContents
             const provisionalFileName = fileContents.split("\n")[0]
             FileUtils.saveToFile(provisionalFileName, fileContents)
         },
 
         skip: function (offset) {
             if (!Archive.items.length) return
-            if (Archive.currentItemIndex === null) {
-                offset >= 0 ? Archive.currentItemIndex = 0 : Archive.currentItemIndex = Archive.items.length
+            if (Workspace.currentItemIndex === null) {
+                offset >= 0 ? Workspace.currentItemIndex = 0 : Workspace.currentItemIndex = Archive.items.length
             } else {
-                Archive.currentItemIndex = (Archive.items.length + Archive.currentItemIndex + offset) % Archive.items.length
+                Workspace.currentItemIndex = (Archive.items.length + Workspace.currentItemIndex + offset) % Archive.items.length
             }
-            Archive.setEditorContents(Archive.items[Archive.currentItemIndex])
+            Workspace.setEditorContents(Archive.items[Workspace.currentItemIndex])
         },
 
-        previous: function () { Archive.skip(-1) },
+        previous: function () { Workspace.skip(-1) },
 
-        next: function () { Archive.skip(1) },
+        next: function () { Workspace.skip(1) },
 
         textForLog: function() {
             return JSON.stringify(Archive.items, null, 4)
@@ -91,45 +94,45 @@ define(["FileUtils", "SelectionUtils", "EvalUtils"], function(FileUtils, Selecti
 
         showLog: function () {
             console.log("items", Archive.items)
-            if (!Archive.confirmClear()) return
-            Archive.setEditorContents(Archive.textForLog()) 
+            if (!Workspace.confirmClear()) return
+            Workspace.setEditorContents(Workspace.textForLog()) 
         },
 
         loadLog: function () {
             if (Archive.items.length && !confirm("Replace all items with entered text for a log?")) return
-            Archive.items = JSON.parse(Archive.editorContents)
-            Archive.currentItemIndex = null
+            Archive.items = JSON.parse(Workspace.editorContents)
+            Workspace.currentItemIndex = null
             // Update lastLoadedContents in case pasted in contents to avoid warning later since data was processed as intended
-            Archive.lastLoadedContents = Archive.editorContents
+            Workspace.lastLoadedContents = Workspace.editorContents
         },
 
         view: function() {
             return m("main.ma2", [
                 m("h4.bw24.b--solid.b--blue", 
                     "Current item " + 
-                    (Archive.currentItemIndex === null ? "???" : Archive.currentItemIndex + 1) +
+                    (Workspace.currentItemIndex === null ? "???" : Workspace.currentItemIndex + 1) +
                     " of " + Archive.items.length
                 ),
                 m("input#fileInput", { "type" : "file" , "hidden" : true } ),
-                m("textarea.w-90-ns.h5-ns#editor", { value: Archive.editorContents, oninput: function (event) { Archive.editorContents = event.target.value; Archive.currentItemIndex = null } }),
+                m("textarea.w-90-ns.h5-ns#editor", { value: Workspace.editorContents, oninput: function (event) { Workspace.editorContents = event.target.value; Workspace.currentItemIndex = null } }),
                 m("br"),
-                m("button.ma1", { onclick: Archive.save }, "Save"),
-                m("button.ma1", { onclick: Archive.clear }, "Clear"),
-                m("button.ma1", { onclick: Archive.importText }, "Import"),
-                m("button.ma1", { onclick: Archive.exportText }, "Export"),
+                m("button.ma1", { onclick: Workspace.save }, "Save"),
+                m("button.ma1", { onclick: Workspace.clear }, "Clear"),
+                m("button.ma1", { onclick: Workspace.importText }, "Import"),
+                m("button.ma1", { onclick: Workspace.exportText }, "Export"),
                 m("br"),
-                m("button.ma1", { onclick: Archive.doIt }, "Do it"),
-                m("button.ma1", { onclick: Archive.printIt }, "Print it"),
-                m("button.ma1", { onclick: Archive.inspectIt }, "Inspect it"),
+                m("button.ma1", { onclick: Workspace.doIt }, "Do it"),
+                m("button.ma1", { onclick: Workspace.printIt }, "Print it"),
+                m("button.ma1", { onclick: Workspace.inspectIt }, "Inspect it"),
                 m("br"),
-                m("button.ma1", { onclick: Archive.previous }, "Previous"),
-                m("button.ma1", { onclick: Archive.next }, "Next"),
+                m("button.ma1", { onclick: Workspace.previous }, "Previous"),
+                m("button.ma1", { onclick: Workspace.next }, "Next"),
                 m("br"),
-                m("button.ma1", { onclick: Archive.showLog }, "Show log"),
-                m("button.ma1", { onclick: Archive.loadLog }, "Load log")
+                m("button.ma1", { onclick: Workspace.showLog }, "Show log"),
+                m("button.ma1", { onclick: Workspace.loadLog }, "Load log")
             ])
         }
     }
 
-    return Archive
+    return Workspace
 })
