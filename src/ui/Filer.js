@@ -19,7 +19,7 @@ define([], function() {
                 reader.onerror = function(event) {
                     console.error("File could not be read! Code " + event.target.error.code)
                     callback(null, null)
-                };
+                }
                 
                 reader.readAsText(file)
             }, false)

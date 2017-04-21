@@ -1,16 +1,16 @@
 define(["vendor/mithril", "Filer", "Selecter"], function(mIgnore, Filer, Selecter) {
-    "use strict";
+    "use strict"
 
     const root = document.body
 
     function evalOrError(text) {
-        let result;
+        let result
         try {
             result = eval(text)
         } catch (error) {
-            result = error;                
+            result = error                
         }
-        return result;
+        return result
     }
 
     const Archive = {
@@ -26,12 +26,12 @@ define(["vendor/mithril", "Filer", "Selecter"], function(mIgnore, Filer, Selecte
 
         save: function() {
             Archive.items.push(Archive.editorContents)
-            Archive.currentItemIndex = Archive.items.length - 1;
+            Archive.currentItemIndex = Archive.items.length - 1
         },
 
         confirmClear: function(promptText) {
             if (!Archive.editorContents) return true
-            if (Archive.editorContents === Archive.lastLoadedContents) return true;
+            if (Archive.editorContents === Archive.lastLoadedContents) return true
             if (!promptText) promptText = "You have unsaved editor changes; proceed?"
             return confirm(promptText)
         },
@@ -70,7 +70,7 @@ define(["vendor/mithril", "Filer", "Selecter"], function(mIgnore, Filer, Selecte
             Filer.loadFromFile((fileName, fileContents) => {
                 if (fileContents) {
                     console.log("updating editor")
-                    const newContent = fileName + "\n---------------------------------------\n" + fileContents;
+                    const newContent = fileName + "\n---------------------------------------\n" + fileContents
                     Archive.setEditorContents(newContent)
                     m.redraw()
                 }
@@ -86,7 +86,7 @@ define(["vendor/mithril", "Filer", "Selecter"], function(mIgnore, Filer, Selecte
         skip: function (offset) {
             if (!Archive.items.length) return
             if (Archive.currentItemIndex === null) {
-                offset >= 0 ? Archive.currentItemIndex = 0 : Archive.currentItemIndex = Archive.items.length;
+                offset >= 0 ? Archive.currentItemIndex = 0 : Archive.currentItemIndex = Archive.items.length
             } else {
                 Archive.currentItemIndex = (Archive.items.length + Archive.currentItemIndex + offset) % Archive.items.length
             }

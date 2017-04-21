@@ -1,1 +1,1 @@
-requirejs(["ui"]);
+requirejs(["ui"])
