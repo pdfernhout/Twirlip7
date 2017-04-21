@@ -1,4 +1,4 @@
-requirejs(["vendor/mithril"], function(mIgnore) {
+define(["vendor/mithril"], function(mIgnore) {
     "use strict";
 
     const root = document.body
