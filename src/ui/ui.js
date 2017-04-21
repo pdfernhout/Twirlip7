@@ -1,17 +1,7 @@
-define(["vendor/mithril", "Filer", "Selecter"], function(mIgnore, Filer, Selecter) {
+define(["vendor/mithril", "Filer", "Selecter", "Evaler"], function(mIgnore, Filer, Selecter, Evaler) {
     "use strict"
 
     const root = document.body
-
-    function evalOrError(text) {
-        let result
-        try {
-            result = eval(text)
-        } catch (error) {
-            result = error                
-        }
-        return result
-    }
 
     const Archive = {
         editorContents: "",
@@ -45,7 +35,7 @@ define(["vendor/mithril", "Filer", "Selecter"], function(mIgnore, Filer, Selecte
         doIt: function () {
             const selection = Selecter.getSelection("editor", true)
             try {
-                eval(selection.text)
+                Evaler.eval(selection.text)
             } catch (error) {
                 alert("Eval error:\n" + error)
             }
@@ -54,14 +44,14 @@ define(["vendor/mithril", "Filer", "Selecter"], function(mIgnore, Filer, Selecte
         printIt: function () {
             const selection = Selecter.getSelection("editor", true)
             const contents = Archive.editorContents
-            const evalResult = "" + evalOrError(selection.text)
+            const evalResult = "" + Evaler.evalOrError(selection.text)
             Archive.editorContents = contents.substring(0, selection.end) + evalResult + contents.substring(selection.end)
             setTimeout(() => Selecter.selectRange("editor", selection.end, selection.end + evalResult.length), 0)
         },
 
         inspectIt: function () {
             const selection = Selecter.getSelection("editor", true)
-            const evalResult = evalOrError(selection.text)
+            const evalResult = Evaler.evalOrError(selection.text)
             console.dir(evalResult)
         },
 
