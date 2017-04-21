@@ -1,29 +1,29 @@
 define([], function() {
-    "use strict";
+    "use strict"
 
     const Filer = {
         // Requires fileInput node somewhere:
         // m("input#fileInput", { "type" : "file" , "hidden" : true } )
 
         loadFromFile: function (callback) {
-            const fileControl = document.getElementById("fileInput");
+            const fileControl = document.getElementById("fileInput")
             fileControl.addEventListener("change", function (event) {
-                if (event.target.files.length < 1) return;
-                const file = event.target.files[0];
-                const reader = new FileReader();
+                if (event.target.files.length < 1) return
+                const file = event.target.files[0]
+                const reader = new FileReader()
                 reader.onload = function(event) {
-                    const contents = event.target.result;
-                    callback(file.name, contents);
-                };
+                    const contents = event.target.result
+                    callback(file.name, contents)
+                }
                 
                 reader.onerror = function(event) {
-                    console.error("File could not be read! Code " + event.target.error.code);
-                    callback(null, null);
+                    console.error("File could not be read! Code " + event.target.error.code)
+                    callback(null, null)
                 };
                 
-                reader.readAsText(file);
-            }, false);
-            fileControl.click();
+                reader.readAsText(file)
+            }, false)
+            fileControl.click()
         },
 
         saveToFile: function (provisionalFileName, fileContents) {
