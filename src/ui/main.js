@@ -1,6 +1,6 @@
-requirejs(["vendor/mithril", "ui"], function(mDiscardAsMadeGlobal, Archive) {
+requirejs(["vendor/mithril", "WorkspaceView"], function(mDiscardAsMadeGlobal, WorkspaceView) {
     "use strict"
     
     const root = document.body
-    m.mount(root, Archive)
+    m.mount(root, WorkspaceView)
 })
