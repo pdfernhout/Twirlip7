@@ -1,7 +1,7 @@
 define([], function() {
     "use strict"
 
-    const Filer = {
+    const FileUtils = {
         // Requires fileInput node somewhere:
         // m("input#fileInput", { "type" : "file" , "hidden" : true } )
 
@@ -43,5 +43,5 @@ define([], function() {
         }
     }
 
-    return Filer
+    return FileUtils
 })

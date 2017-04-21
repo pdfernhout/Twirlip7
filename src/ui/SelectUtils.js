@@ -1,7 +1,7 @@
 define([], function() {
     "use strict"
 
-    const Selecter = {
+    const SelectionUtils = {
         
         getSelection(id, returnAllForNoSelection) {
             const textArea = document.getElementById(id)
@@ -32,5 +32,5 @@ define([], function() {
         }
     }
 
-    return Selecter
+    return SelectionUtils
 })

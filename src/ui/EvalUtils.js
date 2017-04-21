@@ -1,7 +1,7 @@
 define([], function() {
     "use strict"
 
-    const Evaler = {
+    const EvalUtils = {
         
         evalOrError(text) {
             let result
@@ -18,5 +18,5 @@ define([], function() {
         }
     }
 
-    return Evaler
+    return EvalUtils
 })

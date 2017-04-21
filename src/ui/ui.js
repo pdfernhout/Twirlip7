@@ -1,4 +1,4 @@
-define(["Filer", "Selecter", "Evaler"], function(Filer, Selecter, Evaler) {
+define(["FileUtils", "SelectionUtils", "EvalUtils"], function(FileUtils, SelectionUtils, EvalUtils) {
     "use strict"
 
     const Archive = {
@@ -31,31 +31,31 @@ define(["Filer", "Selecter", "Evaler"], function(Filer, Selecter, Evaler) {
         },
 
         doIt: function () {
-            const selection = Selecter.getSelection("editor", true)
+            const selection = SelectionUtils.getSelection("editor", true)
             try {
-                Evaler.eval(selection.text)
+                EvalUtils.eval(selection.text)
             } catch (error) {
                 alert("Eval error:\n" + error)
             }
         },
 
         printIt: function () {
-            const selection = Selecter.getSelection("editor", true)
+            const selection = SelectionUtils.getSelection("editor", true)
             const contents = Archive.editorContents
-            const evalResult = "" + Evaler.evalOrError(selection.text)
+            const evalResult = "" + EvalUtils.evalOrError(selection.text)
             Archive.editorContents = contents.substring(0, selection.end) + evalResult + contents.substring(selection.end)
-            setTimeout(() => Selecter.selectRange("editor", selection.end, selection.end + evalResult.length), 0)
+            setTimeout(() => SelectionUtils.selectRange("editor", selection.end, selection.end + evalResult.length), 0)
         },
 
         inspectIt: function () {
-            const selection = Selecter.getSelection("editor", true)
-            const evalResult = Evaler.evalOrError(selection.text)
+            const selection = SelectionUtils.getSelection("editor", true)
+            const evalResult = EvalUtils.evalOrError(selection.text)
             console.dir(evalResult)
         },
 
         importText: function() {
             if (!Archive.confirmClear()) return
-            Filer.loadFromFile((fileName, fileContents) => {
+            FileUtils.loadFromFile((fileName, fileContents) => {
                 if (fileContents) {
                     console.log("updating editor")
                     const newContent = fileName + "\n---------------------------------------\n" + fileContents
@@ -68,7 +68,7 @@ define(["Filer", "Selecter", "Evaler"], function(Filer, Selecter, Evaler) {
         exportText: function() {
             const fileContents = Archive.editorContents
             const provisionalFileName = fileContents.split("\n")[0]
-            Filer.saveToFile(provisionalFileName, fileContents)
+            FileUtils.saveToFile(provisionalFileName, fileContents)
         },
 
         skip: function (offset) {
