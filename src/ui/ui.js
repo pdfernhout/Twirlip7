@@ -1,7 +1,5 @@
-define(["vendor/mithril", "Filer", "Selecter", "Evaler"], function(mIgnore, Filer, Selecter, Evaler) {
+define(["Filer", "Selecter", "Evaler"], function(Filer, Selecter, Evaler) {
     "use strict"
-
-    const root = document.body
 
     const Archive = {
         editorContents: "",
@@ -133,5 +131,5 @@ define(["vendor/mithril", "Filer", "Selecter", "Evaler"], function(mIgnore, File
         }
     }
 
-    m.mount(root, Archive)
+    return Archive
 })
