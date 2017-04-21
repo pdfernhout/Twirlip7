@@ -41,73 +41,71 @@ requirejs(["vendor/mithril"], function(mIgnore) {
         return result;
     }
 
-    class Archive {
-        constructor() {
-            this.editorContents = "";
-            this.lastLoadedContents = "";
-            this.items = [];
-            this.currentItemIndex = null;
-        }
+    const Archive = {
+        editorContents: "",
+        lastLoadedContents: "",
+        items: [],
+        currentItemIndex: null,
 
         setEditorContents(newContents) {
-            this.editorContents = newContents
-            this.lastLoadedContents = newContents
-        }
+            Archive.editorContents = newContents
+            Archive.lastLoadedContents = newContents
+        },
 
-        save() {
-            this.items.push(this.editorContents)
-            this.currentItemIndex = this.items.length - 1;
-        }
+        save: function() {
+            Archive.items.push(Archive.editorContents)
+            Archive.currentItemIndex = Archive.items.length - 1;
+        },
 
-        confirmClear(promptText) {
-            if (!this.editorContents) return true
-            if (this.editorContents === this.lastLoadedContents) return true;
+        confirmClear: function(promptText) {
+            if (!Archive.editorContents) return true
+            if (Archive.editorContents === Archive.lastLoadedContents) return true;
             if (!promptText) promptText = "You have unsaved editor changes; proceed?"
             return confirm(promptText)
-        }
+        },
 
-        clear() {
-            if (!this.confirmClear()) return
-            this.setEditorContents("")
-            this.currentItemIndex = null
-        }
+        clear: function() {
+            if (!Archive.confirmClear()) return
+            Archive.setEditorContents("")
+            Archive.currentItemIndex = null
+        },
 
-        doIt() {
+        doIt: function () {
             const selection = getSelection("editor", true)
             try {
                 eval(selection.text)
             } catch (error) {
                 alert("Eval error:\n" + error)
             }
-        }
+        },
 
-        printIt() {
+        printIt: function () {
             const selection = getSelection("editor", true)
-            const contents = this.editorContents
+            const contents = Archive.editorContents
             const evalResult = "" + evalOrError(selection.text)
-            this.editorContents = contents.substring(0, selection.end) + evalResult + contents.substring(selection.end)
+            Archive.editorContents = contents.substring(0, selection.end) + evalResult + contents.substring(selection.end)
             setTimeout(() => selectRange("editor", selection.end, selection.end + evalResult.length), 0)
-        }
+        },
 
-        inspectIt() {
+        inspectIt: function () {
             const selection = getSelection("editor", true)
             const evalResult = evalOrError(selection.text)
             console.dir(evalResult)
-        }
+        },
 
-        importText() {
-            if (!this.confirmClear()) return
-            this.loadFromFile((fileName, fileContents) => {
+        importText: function() {
+            if (!Archive.confirmClear()) return
+            Archive.loadFromFile((fileName, fileContents) => {
                 if (fileContents) {
                     console.log("updating editor")
                     const newContent = fileName + "\n---------------------------------------\n" + fileContents;
-                    this.setEditorContents(newContent)
+                    Archive.setEditorContents(newContent)
                     m.redraw()
                 }
             })
-        }
+        },
 
-        loadFromFile(callback) {
+        loadFromFile: function (callback) {
             const fileControl = document.getElementById("fileInput");
             fileControl.addEventListener("change", function (event) {
                 if (event.target.files.length < 1) return;
@@ -126,15 +124,15 @@ requirejs(["vendor/mithril"], function(mIgnore) {
                 reader.readAsText(file);
             }, false);
             fileControl.click();
-        }
+        },
 
-        exportText() {
-            const fileContents = this.editorContents
+        exportText: function() {
+            const fileContents = Archive.editorContents
             const provisionalFileName = fileContents.split("\n")[0]
-            this.saveToFile(provisionalFileName, fileContents)
-        }
+            Archive.saveToFile(provisionalFileName, fileContents)
+        },
 
-        saveToFile(provisionalFileName, fileContents) {
+        saveToFile: function (provisionalFileName, fileContents) {
             console.log("saveToFile")
             const fileName = prompt("Please enter a file name for saving", provisionalFileName)
             if (!fileName) return
@@ -148,85 +146,67 @@ requirejs(["vendor/mithril"], function(mIgnore) {
             downloadLink.click()
             document.body.removeChild(downloadLink)
             console.log("done saving", fileName)
-        }
+        },
 
-        skip(offset) {
-            if (!this.items.length) return
-            if (this.currentItemIndex === null) {
-                offset >= 0 ? this.currentItemIndex = 0 : this.currentItemIndex = this.items.length;
+        skip: function (offset) {
+            if (!Archive.items.length) return
+            if (Archive.currentItemIndex === null) {
+                offset >= 0 ? Archive.currentItemIndex = 0 : Archive.currentItemIndex = Archive.items.length;
             } else {
-                this.currentItemIndex = (this.items.length + this.currentItemIndex + offset) % this.items.length
+                Archive.currentItemIndex = (Archive.items.length + Archive.currentItemIndex + offset) % Archive.items.length
             }
-            this.setEditorContents(this.items[this.currentItemIndex])
-        }
+            Archive.setEditorContents(Archive.items[Archive.currentItemIndex])
+        },
 
-        previous() { this.skip(-1) }
+        previous: function () { Archive.skip(-1) },
 
-        next() { this.skip(1) }
+        next: function () { Archive.skip(1) },
 
-        textForLog() {
-            return JSON.stringify(this.items, null, 4)
-        }
+        textForLog: function() {
+            return JSON.stringify(Archive.items, null, 4)
+        },
 
-        showLog() {
-            console.log("items", this.items)
-            if (!this.confirmClear()) return
-            this.setEditorContents(this.textForLog()) 
-        }
+        showLog: function () {
+            console.log("items", Archive.items)
+            if (!Archive.confirmClear()) return
+            Archive.setEditorContents(Archive.textForLog()) 
+        },
 
-        loadLog() {
-            if (this.items.length && !confirm("Replace all items with entered text for a log?")) return
-            this.items = JSON.parse(this.editorContents)
-            this.currentItemIndex = null
+        loadLog: function () {
+            if (Archive.items.length && !confirm("Replace all items with entered text for a log?")) return
+            Archive.items = JSON.parse(Archive.editorContents)
+            Archive.currentItemIndex = null
             // Update lastLoadedContents in case pasted in contents to avoid warning later since data was processed as intended
-            this.lastLoadedContents = this.editorContents
-        }
+            Archive.lastLoadedContents = Archive.editorContents
+        },
 
-        editorInput(event, other, other2) {
-            this.editorContents = event.target.value
-            this.currentItemIndex = null
-        }
-    }
-
-    const ArchiveUI = {
-        view(vnode) {
-            const archive = vnode.attrs.archive
-            console.log("view this & archive", this, archive)
-
+        view: function() {
             return m("main.ma2", [
                 m("h4.bw24.b--solid.b--blue", 
                     "Current item " + 
-                    (archive.currentItemIndex === null ? "???" : archive.currentItemIndex + 1) +
-                    " of " + archive.items.length
+                    (Archive.currentItemIndex === null ? "???" : Archive.currentItemIndex + 1) +
+                    " of " + Archive.items.length
                 ),
                 m("input#fileInput", { "type" : "file" , "hidden" : true } ),
-                m("textarea.w-90-ns.h5-ns#editor", { value: archive.editorContents, oninput: archive.editorInput.bind(archive) }),
+                m("textarea.w-90-ns.h5-ns#editor", { value: Archive.editorContents, oninput: function (event) { Archive.editorContents = event.target.value; Archive.currentItemIndex = null } }),
                 m("br"),
-                m("button.ma1", { onclick: archive.save.bind(archive) }, "Save"),
-                m("button.ma1", { onclick: archive.clear.bind(archive) }, "Clear"),
-                m("button.ma1", { onclick: archive.importText.bind(archive) }, "Import"),
-                m("button.ma1", { onclick: archive.exportText.bind(archive) }, "Export"),
+                m("button.ma1", { onclick: Archive.save }, "Save"),
+                m("button.ma1", { onclick: Archive.clear }, "Clear"),
+                m("button.ma1", { onclick: Archive.importText }, "Import"),
+                m("button.ma1", { onclick: Archive.exportText }, "Export"),
                 m("br"),
-                m("button.ma1", { onclick: archive.doIt.bind(archive) }, "Do it"),
-                m("button.ma1", { onclick: archive.printIt.bind(archive) }, "Print it"),
-                m("button.ma1", { onclick: archive.inspectIt.bind(archive) }, "Inspect it"),
+                m("button.ma1", { onclick: Archive.doIt }, "Do it"),
+                m("button.ma1", { onclick: Archive.printIt }, "Print it"),
+                m("button.ma1", { onclick: Archive.inspectIt }, "Inspect it"),
                 m("br"),
-                m("button.ma1", { onclick: archive.previous.bind(archive) }, "Previous"),
-                m("button.ma1", { onclick: archive.next.bind(archive) }, "Next"),
+                m("button.ma1", { onclick: Archive.previous }, "Previous"),
+                m("button.ma1", { onclick: Archive.next }, "Next"),
                 m("br"),
-                m("button.ma1", { onclick: archive.showLog.bind(archive) }, "Show log"),
-                m("button.ma1", { onclick: archive.loadLog.bind(archive) }, "Load log")
+                m("button.ma1", { onclick: Archive.showLog }, "Show log"),
+                m("button.ma1", { onclick: Archive.loadLog }, "Load log")
             ])
         }
     }
 
-    const archive = new Archive()
-
-    const Page = {
-        view(vnode) {
-            return m(ArchiveUI, { archive } )
-        }
-    }
-
-    m.mount(root, Page)
+    m.mount(root, Archive)
 })
