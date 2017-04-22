@@ -4,6 +4,17 @@ define([], function() {
     const MemoryArchive = {
         items: [],
 
+        getCapabilities() {
+            return {
+                idIsPosition: true,
+                addItem: true,
+                getItem: true,
+                itemCount: true,
+                textForLog: true,
+                loadFromLogText: true,
+            }
+        },
+
         addItem(item) {
             MemoryArchive.items.push(item)
         },
