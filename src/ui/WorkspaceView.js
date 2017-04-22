@@ -113,7 +113,8 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
 
         showLog() {
             if (!WorkspaceView.confirmClear()) return
-            WorkspaceView.setEditorContents(Archive.textForLog()) 
+            WorkspaceView.setEditorContents(Archive.textForLog())
+            WorkspaceView.currentItemIndex = null
         },
 
         loadLog() {
