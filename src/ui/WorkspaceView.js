@@ -39,7 +39,9 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
         },
 
         save() {
-            Archive.addItem(WorkspaceView.editorContents)
+            const newContents = WorkspaceView.editorContents
+            Archive.addItem(newContents)
+            WorkspaceView.lastLoadedContents = newContents
             WorkspaceView.currentItemIndex = Archive.itemCount() - 1
         },
 
