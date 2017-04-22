@@ -15,25 +15,25 @@ define(["FileUtils", "SelectionUtils", "EvalUtils"], function(FileUtils, Selecti
             WorkspaceView.lastLoadedContents = newContents
         },
 
-        save: function() {
+        save() {
             Archive.items.push(WorkspaceView.editorContents)
             WorkspaceView.currentItemIndex = Archive.items.length - 1
         },
 
-        confirmClear: function(promptText) {
+        confirmClear(promptText) {
             if (!WorkspaceView.editorContents) return true
             if (WorkspaceView.editorContents === WorkspaceView.lastLoadedContents) return true
             if (!promptText) promptText = "You have unsaved editor changes; proceed?"
             return confirm(promptText)
         },
 
-        clear: function() {
+        clear() {
             if (!WorkspaceView.confirmClear()) return
             WorkspaceView.setEditorContents("")
             WorkspaceView.currentItemIndex = null
         },
 
-        doIt: function () {
+        doIt() {
             const selection = SelectionUtils.getSelection("editor", true)
             try {
                 EvalUtils.eval(selection.text)
@@ -42,7 +42,7 @@ define(["FileUtils", "SelectionUtils", "EvalUtils"], function(FileUtils, Selecti
             }
         },
 
-        printIt: function () {
+        printIt() {
             const selection = SelectionUtils.getSelection("editor", true)
             const contents = WorkspaceView.editorContents
             const evalResult = "" + EvalUtils.evalOrError(selection.text)
@@ -50,13 +50,13 @@ define(["FileUtils", "SelectionUtils", "EvalUtils"], function(FileUtils, Selecti
             setTimeout(() => SelectionUtils.selectRange("editor", selection.end, selection.end + evalResult.length), 0)
         },
 
-        inspectIt: function () {
+        inspectIt() {
             const selection = SelectionUtils.getSelection("editor", true)
             const evalResult = EvalUtils.evalOrError(selection.text)
             console.dir(evalResult)
         },
 
-        importText: function() {
+        importText() {
             if (!WorkspaceView.confirmClear()) return
             FileUtils.loadFromFile((fileName, fileContents) => {
                 if (fileContents) {
@@ -68,13 +68,13 @@ define(["FileUtils", "SelectionUtils", "EvalUtils"], function(FileUtils, Selecti
             })
         },
 
-        exportText: function() {
+        exportText() {
             const fileContents = WorkspaceView.editorContents
             const provisionalFileName = fileContents.split("\n")[0]
             FileUtils.saveToFile(provisionalFileName, fileContents)
         },
 
-        skip: function (offset) {
+        skip(offset) {
             if (!Archive.items.length) return
             if (WorkspaceView.currentItemIndex === null) {
                 offset >= 0 ? WorkspaceView.currentItemIndex = 0 : WorkspaceView.currentItemIndex = Archive.items.length
@@ -84,21 +84,21 @@ define(["FileUtils", "SelectionUtils", "EvalUtils"], function(FileUtils, Selecti
             WorkspaceView.setEditorContents(Archive.items[WorkspaceView.currentItemIndex])
         },
 
-        previous: function () { WorkspaceView.skip(-1) },
+        previous() { WorkspaceView.skip(-1) },
 
-        next: function () { WorkspaceView.skip(1) },
+        next() { WorkspaceView.skip(1) },
 
-        textForLog: function() {
+        textForLog() {
             return JSON.stringify(Archive.items, null, 4)
         },
 
-        showLog: function () {
+        showLog() {
             console.log("items", Archive.items)
             if (!WorkspaceView.confirmClear()) return
             WorkspaceView.setEditorContents(WorkspaceView.textForLog()) 
         },
 
-        loadLog: function () {
+        loadLog() {
             if (Archive.items.length && !confirm("Replace all items with entered text for a log?")) return
             Archive.items = JSON.parse(WorkspaceView.editorContents)
             WorkspaceView.currentItemIndex = null
@@ -106,7 +106,7 @@ define(["FileUtils", "SelectionUtils", "EvalUtils"], function(FileUtils, Selecti
             WorkspaceView.lastLoadedContents = WorkspaceView.editorContents
         },
 
-        view: function() {
+        view() {
             return m("main.ma2", [
                 m("h4.bw24.b--solid.b--blue", 
                     "Current item " + 
@@ -114,7 +114,13 @@ define(["FileUtils", "SelectionUtils", "EvalUtils"], function(FileUtils, Selecti
                     " of " + Archive.items.length
                 ),
                 m("input#fileInput", { "type" : "file" , "hidden" : true } ),
-                m("textarea.w-90-ns.h5-ns#editor", { value: WorkspaceView.editorContents, oninput: function (event) { WorkspaceView.editorContents = event.target.value; WorkspaceView.currentItemIndex = null } }),
+                m("textarea.w-90-ns.h5-ns#editor", { 
+                    value: WorkspaceView.editorContents, 
+                    oninput: function (event) {
+                        WorkspaceView.editorContents = event.target.value
+                        WorkspaceView.currentItemIndex = null 
+                    }
+                }),
                 m("br"),
                 m("button.ma1", { onclick: WorkspaceView.save }, "Save"),
                 m("button.ma1", { onclick: WorkspaceView.clear }, "Clear"),
