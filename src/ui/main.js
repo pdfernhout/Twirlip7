@@ -1,3 +1,7 @@
+requirejs.config({
+    paths: { ace: ["vendor/ace"] }
+})
+
 requirejs(["vendor/mithril", "WorkspaceView"], function(mDiscardAsMadeGlobal, WorkspaceView) {
     "use strict"
     

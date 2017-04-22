@@ -1,4 +1,10 @@
-define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive"], function(FileUtils, SelectionUtils, EvalUtils, MemoryArchive, LocalStorageArchive) {
+define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive"], function(
+    FileUtils,
+    SelectionUtils,
+    EvalUtils,
+    MemoryArchive,
+    LocalStorageArchive
+) {
     "use strict"
 
     let Archive = LocalStorageArchive
@@ -28,26 +34,33 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
             }
         },
 
-        setEditorContents(newContents) {
+        setEditorContents(newContents, isNotSaved) {
             WorkspaceView.editorContents = newContents
-            WorkspaceView.lastLoadedContents = newContents
+            if (!isNotSaved) { 
+                WorkspaceView.lastLoadedContents = newContents
+            } else {
+                WorkspaceView.currentItemIndex = null
+            }
+        },
+
+        getEditorContents() {
+            return WorkspaceView.editorContents
         },
 
         oninputEditorContents(event) {
-            WorkspaceView.editorContents = event.target.value
-            WorkspaceView.currentItemIndex = null
+            WorkspaceView.setEditorContents(event.target.value, "isNotSaved")
         },
 
         save() {
-            const newContents = WorkspaceView.editorContents
+            const newContents = WorkspaceView.getEditorContents()
             Archive.addItem(newContents)
             WorkspaceView.lastLoadedContents = newContents
             WorkspaceView.currentItemIndex = Archive.itemCount() - 1
         },
 
         confirmClear(promptText) {
-            if (!WorkspaceView.editorContents) return true
-            if (WorkspaceView.editorContents === WorkspaceView.lastLoadedContents) return true
+            if (!WorkspaceView.getEditorContents()) return true
+            if (WorkspaceView.getEditorContents() === WorkspaceView.lastLoadedContents) return true
             if (!promptText) promptText = "You have unsaved editor changes; proceed?"
             return confirm(promptText)
         },
@@ -69,9 +82,9 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
 
         printIt() {
             const selection = SelectionUtils.getSelection("editor", true)
-            const contents = WorkspaceView.editorContents
+            const contents = WorkspaceView.getEditorContents()
             const evalResult = "" + EvalUtils.evalOrError(selection.text)
-            WorkspaceView.editorContents = contents.substring(0, selection.end) + evalResult + contents.substring(selection.end)
+            WorkspaceView.setEditorContents(contents.substring(0, selection.end) + evalResult + contents.substring(selection.end), "isNotSaved")
             setTimeout(() => SelectionUtils.selectRange("editor", selection.end, selection.end + evalResult.length), 0)
         },
 
@@ -94,7 +107,7 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
         },
 
         exportText() {
-            const fileContents = WorkspaceView.editorContents
+            const fileContents = WorkspaceView.getEditorContents()
             const provisionalFileName = fileContents.split("\n")[0]
             FileUtils.saveToFile(provisionalFileName, fileContents)
         },
@@ -121,10 +134,10 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
 
         loadLog() {
             if (Archive.itemCount() && !confirm("Replace all items with entered text for a log?")) return
-            Archive.loadFromLogText(WorkspaceView.editorContents)
+            Archive.loadFromLogText(WorkspaceView.getEditorContents())
             WorkspaceView.currentItemIndex = null
             // Update lastLoadedContents in case pasted in contents to avoid warning later since data was processed as intended
-            WorkspaceView.lastLoadedContents = WorkspaceView.editorContents
+            WorkspaceView.lastLoadedContents = WorkspaceView.getEditorContents()
         },
 
         view() {
@@ -138,7 +151,7 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
                 ),
                 m("input#fileInput", { "type" : "file" , "hidden" : true } ),
                 m("textarea.w-90-ns.h5-ns#editor", { 
-                    value: WorkspaceView.editorContents,
+                    value: WorkspaceView.getEditorContents(),
                     oninput: WorkspaceView.oninputEditorContents,
                 }),
                 m("br"),
