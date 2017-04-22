@@ -1,12 +1,32 @@
-define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive"], function(FileUtils, SelectionUtils, EvalUtils, MemoryArchive) {
+define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive"], function(FileUtils, SelectionUtils, EvalUtils, MemoryArchive, LocalStorageArchive) {
     "use strict"
 
-    const Archive = MemoryArchive
+    let Archive = LocalStorageArchive
 
     const WorkspaceView = {
         editorContents: "",
         lastLoadedContents: "",
         currentItemIndex: null,
+        archiveChoice: "local storage",
+        savedItemIndexes: {
+            "local storage": null,
+            "memory": null,
+        },
+
+        changeArchive() {
+            const oldChoice = WorkspaceView.archiveChoice
+            const newChoice = (WorkspaceView.archiveChoice === "memory" ? "local storage": "memory")
+
+            WorkspaceView.savedItemIndexes[oldChoice] = WorkspaceView.currentItemIndex
+            WorkspaceView.archiveChoice = newChoice
+            Archive = (newChoice === "memory" ? MemoryArchive : LocalStorageArchive)
+            WorkspaceView.currentItemIndex = WorkspaceView.savedItemIndexes[newChoice]
+            if (WorkspaceView.currentItemIndex === null) {
+                WorkspaceView.setEditorContents("")
+            } else {
+                WorkspaceView.setEditorContents(Archive.getItem(WorkspaceView.currentItemIndex))
+            }
+        },
 
         setEditorContents(newContents) {
             WorkspaceView.editorContents = newContents
@@ -106,6 +126,7 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive"], function(F
 
         view() {
             return m("main.ma2", [
+                m("button", {onclick: WorkspaceView.changeArchive}, "Archive: " + WorkspaceView.archiveChoice),
                 m("h4.bw24.b--solid.b--blue", 
                     "Current item ",
                     (WorkspaceView.currentItemIndex === null ? "???" : WorkspaceView.currentItemIndex + 1),
