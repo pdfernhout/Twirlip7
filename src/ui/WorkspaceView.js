@@ -1,30 +1,7 @@
-define(["FileUtils", "SelectionUtils", "EvalUtils"], function(FileUtils, SelectionUtils, EvalUtils) {
+define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive"], function(FileUtils, SelectionUtils, EvalUtils, MemoryArchive) {
     "use strict"
 
-    const Archive = {
-        items: [],
-
-        addItem(item) {
-            Archive.items.push(item)
-        },
-
-        getItem(index) {
-            return Archive.items[index]
-        },
-
-        itemCount() {
-            return Archive.items.length
-        },
-
-        textForLog() {
-            return JSON.stringify(Archive.items, null, 4)
-        },
-
-        loadFromLogText(logText) {
-            Archive.items = JSON.parse(logText)
-        }
-
-    }
+    const Archive = MemoryArchive
 
     const WorkspaceView = {
         editorContents: "",
