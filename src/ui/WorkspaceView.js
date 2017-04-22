@@ -3,6 +3,27 @@ define(["FileUtils", "SelectionUtils", "EvalUtils"], function(FileUtils, Selecti
 
     const Archive = {
         items: [],
+
+        addItem(item) {
+            Archive.items.push(item)
+        },
+
+        getItem(index) {
+            return Archive.items[index]
+        },
+
+        itemCount() {
+            return Archive.items.length
+        },
+
+        textForLog() {
+            return JSON.stringify(Archive.items, null, 4)
+        },
+
+        loadFromLogText(logText) {
+            Archive.items = JSON.parse(logText)
+        }
+
     }
 
     const WorkspaceView = {
@@ -21,8 +42,8 @@ define(["FileUtils", "SelectionUtils", "EvalUtils"], function(FileUtils, Selecti
         },
 
         save() {
-            Archive.items.push(WorkspaceView.editorContents)
-            WorkspaceView.currentItemIndex = Archive.items.length - 1
+            Archive.addItem(WorkspaceView.editorContents)
+            WorkspaceView.currentItemIndex = Archive.itemCount() - 1
         },
 
         confirmClear(promptText) {
@@ -80,32 +101,27 @@ define(["FileUtils", "SelectionUtils", "EvalUtils"], function(FileUtils, Selecti
         },
 
         skip(offset) {
-            if (!Archive.items.length) return
+            if (!Archive.itemCount()) return
             if (WorkspaceView.currentItemIndex === null) {
-                offset >= 0 ? WorkspaceView.currentItemIndex = 0 : WorkspaceView.currentItemIndex = Archive.items.length
+                offset >= 0 ? WorkspaceView.currentItemIndex = 0 : WorkspaceView.currentItemIndex = Archive.itemCount()
             } else {
-                WorkspaceView.currentItemIndex = (Archive.items.length + WorkspaceView.currentItemIndex + offset) % Archive.items.length
+                WorkspaceView.currentItemIndex = (Archive.itemCount() + WorkspaceView.currentItemIndex + offset) % Archive.itemCount()
             }
-            WorkspaceView.setEditorContents(Archive.items[WorkspaceView.currentItemIndex])
+            WorkspaceView.setEditorContents(Archive.getItem(WorkspaceView.currentItemIndex))
         },
 
         previous() { WorkspaceView.skip(-1) },
 
         next() { WorkspaceView.skip(1) },
 
-        textForLog() {
-            return JSON.stringify(Archive.items, null, 4)
-        },
-
         showLog() {
-            console.log("items", Archive.items)
             if (!WorkspaceView.confirmClear()) return
-            WorkspaceView.setEditorContents(WorkspaceView.textForLog()) 
+            WorkspaceView.setEditorContents(Archive.textForLog()) 
         },
 
         loadLog() {
-            if (Archive.items.length && !confirm("Replace all items with entered text for a log?")) return
-            Archive.items = JSON.parse(WorkspaceView.editorContents)
+            if (Archive.itemCount() && !confirm("Replace all items with entered text for a log?")) return
+            Archive.loadFromLogText(WorkspaceView.editorContents)
             WorkspaceView.currentItemIndex = null
             // Update lastLoadedContents in case pasted in contents to avoid warning later since data was processed as intended
             WorkspaceView.lastLoadedContents = WorkspaceView.editorContents
@@ -117,7 +133,7 @@ define(["FileUtils", "SelectionUtils", "EvalUtils"], function(FileUtils, Selecti
                     "Current item ",
                     (WorkspaceView.currentItemIndex === null ? "???" : WorkspaceView.currentItemIndex + 1),
                     " of ",
-                    Archive.items.length
+                    Archive.itemCount()
                 ),
                 m("input#fileInput", { "type" : "file" , "hidden" : true } ),
                 m("textarea.w-90-ns.h5-ns#editor", { 
@@ -140,7 +156,7 @@ define(["FileUtils", "SelectionUtils", "EvalUtils"], function(FileUtils, Selecti
                 m("button.ma1", { onclick: WorkspaceView.showLog }, "Show log"),
                 m("button.ma1", { onclick: WorkspaceView.loadLog }, "Load log")
             ])
-        }
+        },
     }
 
     return WorkspaceView
