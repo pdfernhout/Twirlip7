@@ -100,7 +100,7 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
         skip(offset) {
             if (!Archive.itemCount()) return
             if (WorkspaceView.currentItemIndex === null) {
-                offset >= 0 ? WorkspaceView.currentItemIndex = 0 : WorkspaceView.currentItemIndex = Archive.itemCount()
+                WorkspaceView.currentItemIndex = (offset >= 0 ?  0 : Archive.itemCount() - 1)
             } else {
                 WorkspaceView.currentItemIndex = (Archive.itemCount() + WorkspaceView.currentItemIndex + offset) % Archive.itemCount()
             }
