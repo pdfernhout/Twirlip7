@@ -15,6 +15,11 @@ define(["FileUtils", "SelectionUtils", "EvalUtils"], function(FileUtils, Selecti
             WorkspaceView.lastLoadedContents = newContents
         },
 
+        oninputEditorContents(event) {
+            WorkspaceView.editorContents = event.target.value
+            WorkspaceView.currentItemIndex = null
+        },
+
         save() {
             Archive.items.push(WorkspaceView.editorContents)
             WorkspaceView.currentItemIndex = Archive.items.length - 1
@@ -109,17 +114,15 @@ define(["FileUtils", "SelectionUtils", "EvalUtils"], function(FileUtils, Selecti
         view() {
             return m("main.ma2", [
                 m("h4.bw24.b--solid.b--blue", 
-                    "Current item " + 
-                    (WorkspaceView.currentItemIndex === null ? "???" : WorkspaceView.currentItemIndex + 1) +
-                    " of " + Archive.items.length
+                    "Current item ",
+                    (WorkspaceView.currentItemIndex === null ? "???" : WorkspaceView.currentItemIndex + 1),
+                    " of ",
+                    Archive.items.length
                 ),
                 m("input#fileInput", { "type" : "file" , "hidden" : true } ),
                 m("textarea.w-90-ns.h5-ns#editor", { 
-                    value: WorkspaceView.editorContents, 
-                    oninput: function (event) {
-                        WorkspaceView.editorContents = event.target.value
-                        WorkspaceView.currentItemIndex = null 
-                    }
+                    value: WorkspaceView.editorContents,
+                    oninput: WorkspaceView.oninputEditorContents,
                 }),
                 m("br"),
                 m("button.ma1", { onclick: WorkspaceView.save }, "Save"),
