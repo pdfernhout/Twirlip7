@@ -56,12 +56,15 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
 
         getSelectedEditorText() {
             let selectedText = WorkspaceView.editor.session.getTextRange(WorkspaceView.editor.getSelectionRange())
+            let isNoSelection = false
             if (!selectedText) {
                 // assume user wants all text if nothing is selected
                 selectedText = WorkspaceView.editor.getValue()
+                isNoSelection = true
             }
             return {
-                text: selectedText
+                text: selectedText,
+                isNoSelection,
             }
         },
 
@@ -97,7 +100,9 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
         printIt() {
             const selection = WorkspaceView.getSelectedEditorText()
             const evalResult = "" + EvalUtils.evalOrError(selection.text)
-            const start = WorkspaceView.editor.selection.getRange().end
+            if (selection.isNoSelection) { WorkspaceView.editor.selection.moveCursorFileEnd() }
+            const selectedRange = WorkspaceView.editor.selection.getRange()
+            const start = selectedRange.end
             const end = WorkspaceView.editor.session.insert(start, evalResult)
             WorkspaceView.editor.selection.setRange({start, end})
         },
