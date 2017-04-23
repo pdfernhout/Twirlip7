@@ -19,6 +19,7 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
             "local storage": null,
             "memory": null,
         },
+        aceEditorHeight: 20,
 
         changeArchive() {
             const oldChoice = WorkspaceView.archiveChoice
@@ -160,14 +161,30 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
                     Archive.itemCount()
                 ),
                 m("input#fileInput", { "type" : "file" , "hidden" : true } ),
-                m("div.w-90-ns.h5-ns#editor", { 
+                "Editor height: ",
+                m("input.ma1", {
+                    value: WorkspaceView.aceEditorHeight,
+                    onchange: function(event) {
+                        const newValue = event.target.value
+                        WorkspaceView.aceEditorHeight = newValue
+                        // setTimeout(WorkspaceView.editor.resize.bind(null, true), 0)
+                    }
+                }),
+                m("br"),
+                m("div.w-90.ba#editor", {
+                    style: {
+                        height: WorkspaceView.aceEditorHeight + "rem"
+                    },
                     oncreate: function(vnode) {
                         console.log("Initialized with height of: ", vnode.dom.offsetHeight)
                         WorkspaceView.editor = ace.edit("editor")
                         // WorkspaceView.editor.setTheme("ace/theme/monokai")
                         WorkspaceView.editor.getSession().setMode("ace/mode/javascript")
                         WorkspaceView.editor.getSession().setUseSoftTabs(true)
-                    }, 
+                    },
+                    onupdate: function() {
+                        WorkspaceView.editor.resize()
+                    }
                 }),
                 m("br"),
                 m("button.ma1", { onclick: WorkspaceView.save }, "Save"),
@@ -183,7 +200,7 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
                 m("button.ma1", { onclick: WorkspaceView.next }, "Next"),
                 m("br"),
                 m("button.ma1", { onclick: WorkspaceView.showLog }, "Show log"),
-                m("button.ma1", { onclick: WorkspaceView.loadLog }, "Load log")
+                m("button.ma1", { onclick: WorkspaceView.loadLog }, "Load log"),
             ])
         },
     }
