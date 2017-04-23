@@ -1,4 +1,4 @@
-h3. Yet another experiment towards a social semantic desktop
+### Yet another experiment towards a social semantic desktop
 
 Right now, this is just a simple IDE for playing with JavaScript which can store snippets in a log.
 
@@ -11,6 +11,11 @@ To test this, copy one of the arrays in example.logs.txt into the editor and pre
 
 Currently expects ES6 in a modern browser.
 
-Uses Mithril.js, Tachyons, and the ACE editor.
+UI uses Mithril.js, Tachyons, RequireJS, and the ACE editor.
+
+Server uses Node.js with Express -- however you don't actually need to turn the server yet as you can just load the files into your browser in some other way like:  
+https://raw.githubusercontent.com/pdfernhout/Twirlip7/tree/master/src/ui/index.html
 
 No build step (yet).
+
+### License: MIT
