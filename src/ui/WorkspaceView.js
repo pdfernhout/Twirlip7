@@ -1,16 +1,17 @@
-define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive"], function(
+define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/ace"], function(
     FileUtils,
     SelectionUtils,
     EvalUtils,
     MemoryArchive,
-    LocalStorageArchive
+    LocalStorageArchive,
+    ace
 ) {
     "use strict"
 
     let Archive = LocalStorageArchive
 
     const WorkspaceView = {
-        editorContents: "",
+        editor: null,
         lastLoadedContents: "",
         currentItemIndex: null,
         archiveChoice: "local storage",
@@ -35,20 +36,29 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
         },
 
         setEditorContents(newContents, isNotSaved) {
-            WorkspaceView.editorContents = newContents
+            WorkspaceView.editor.setValue(newContents)
             if (!isNotSaved) { 
                 WorkspaceView.lastLoadedContents = newContents
             } else {
                 WorkspaceView.currentItemIndex = null
             }
+            WorkspaceView.editor.selection.clearSelection()
+            WorkspaceView.editor.selection.moveCursorFileStart()
         },
 
         getEditorContents() {
-            return WorkspaceView.editorContents
+            return WorkspaceView.editor.getValue()
         },
 
-        oninputEditorContents(event) {
-            WorkspaceView.setEditorContents(event.target.value, "isNotSaved")
+        getSelectedEditorText() {
+            let selectedText = WorkspaceView.editor.session.getTextRange(WorkspaceView.editor.getSelectionRange())
+            if (!selectedText) {
+                // assume user wants all text if nothing is selected
+                selectedText = WorkspaceView.editor.getValue()
+            }
+            return {
+                text: selectedText
+            }
         },
 
         save() {
@@ -61,7 +71,7 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
         confirmClear(promptText) {
             if (!WorkspaceView.getEditorContents()) return true
             if (WorkspaceView.getEditorContents() === WorkspaceView.lastLoadedContents) return true
-            if (!promptText) promptText = "You have unsaved editor changes; proceed?"
+            if (!promptText) promptText = "You have unsaved editor changes. Proceed?"
             return confirm(promptText)
         },
 
@@ -72,7 +82,7 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
         },
 
         doIt() {
-            const selection = SelectionUtils.getSelection("editor", true)
+            const selection = WorkspaceView.getSelectedEditorText()
             try {
                 EvalUtils.eval(selection.text)
             } catch (error) {
@@ -81,15 +91,15 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
         },
 
         printIt() {
-            const selection = SelectionUtils.getSelection("editor", true)
-            const contents = WorkspaceView.getEditorContents()
+            const selection = WorkspaceView.getSelectedEditorText()
             const evalResult = "" + EvalUtils.evalOrError(selection.text)
-            WorkspaceView.setEditorContents(contents.substring(0, selection.end) + evalResult + contents.substring(selection.end), "isNotSaved")
-            setTimeout(() => SelectionUtils.selectRange("editor", selection.end, selection.end + evalResult.length), 0)
+            const start = WorkspaceView.editor.selection.getRange().end
+            const end = WorkspaceView.editor.session.insert(start, evalResult)
+            WorkspaceView.editor.selection.setRange({start, end})
         },
 
         inspectIt() {
-            const selection = SelectionUtils.getSelection("editor", true)
+            const selection = WorkspaceView.getSelectedEditorText()
             const evalResult = EvalUtils.evalOrError(selection.text)
             console.dir(evalResult)
         },
@@ -150,9 +160,14 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
                     Archive.itemCount()
                 ),
                 m("input#fileInput", { "type" : "file" , "hidden" : true } ),
-                m("textarea.w-90-ns.h5-ns#editor", { 
-                    value: WorkspaceView.getEditorContents(),
-                    oninput: WorkspaceView.oninputEditorContents,
+                m("div.w-90-ns.h5-ns#editor", { 
+                    oncreate: function(vnode) {
+                        console.log("Initialized with height of: ", vnode.dom.offsetHeight)
+                        WorkspaceView.editor = ace.edit("editor")
+                        // WorkspaceView.editor.setTheme("ace/theme/monokai")
+                        WorkspaceView.editor.getSession().setMode("ace/mode/javascript")
+                        WorkspaceView.editor.getSession().setUseSoftTabs(true)
+                    }, 
                 }),
                 m("br"),
                 m("button.ma1", { onclick: WorkspaceView.save }, "Save"),
