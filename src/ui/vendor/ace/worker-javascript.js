@@ -11739,6 +11739,7 @@ oop.inherits(JavaScriptWorker, Mirror);
             node: true,
             laxcomma: true,
             laxbreak: true,
+            asi: true, // pdfernhout modified for Twirlip7
             lastsemic: true,
             onevar: false,
             passfail: false,
