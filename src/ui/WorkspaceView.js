@@ -10,6 +10,9 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
 
     let Archive = LocalStorageArchive
 
+    // Used for resizing the editor's height
+    let dragOriginY
+
     const WorkspaceView = {
         editor: null,
         lastLoadedContents: "",
@@ -109,7 +112,6 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
             if (!WorkspaceView.confirmClear()) return
             FileUtils.loadFromFile((fileName, fileContents) => {
                 if (fileContents) {
-                    console.log("updating editor")
                     const newContent = fileName + "\n---------------------------------------\n" + fileContents
                     WorkspaceView.setEditorContents(newContent)
                     m.redraw()
@@ -161,24 +163,12 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
                     Archive.itemCount()
                 ),
                 m("input#fileInput", { "type" : "file" , "hidden" : true } ),
-                "Editor height: ",
-                m("input.ma1", {
-                    value: WorkspaceView.aceEditorHeight,
-                    onchange: function(event) {
-                        const newValue = event.target.value
-                        WorkspaceView.aceEditorHeight = newValue
-                        // setTimeout(WorkspaceView.editor.resize.bind(null, true), 0)
-                    }
-                }),
-                m("br"),
-                m("div.w-90.ba#editor", {
+                m("div.w-90#editor", {
                     style: {
                         height: WorkspaceView.aceEditorHeight + "rem"
                     },
-                    oncreate: function(vnode) {
-                        console.log("Initialized with height of: ", vnode.dom.offsetHeight)
+                    oncreate: function() {
                         WorkspaceView.editor = ace.edit("editor")
-                        // WorkspaceView.editor.setTheme("ace/theme/monokai")
                         WorkspaceView.editor.getSession().setMode("ace/mode/javascript")
                         WorkspaceView.editor.getSession().setUseSoftTabs(true)
                     },
@@ -186,7 +176,22 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
                         WorkspaceView.editor.resize()
                     }
                 }),
-                m("br"),
+                m("div.w-90.ba.pa1.bg-light-gray", {
+                    // splitter for resizing the editor's height
+                    style: { cursor: "grab" },
+                    draggable: true,
+                    ondragstart: (event) => {
+                        dragOriginY = event.screenY
+                        event.dataTransfer.setData("Text", event.target.id)
+                    },
+                    ondragend: (event) => {
+                        const yDifference = event.screenY - dragOriginY
+                        const lineDifference = Math.floor(yDifference / WorkspaceView.editor.renderer.lineHeight)
+                        WorkspaceView.aceEditorHeight = parseInt(WorkspaceView.aceEditorHeight) + lineDifference
+                        if (WorkspaceView.aceEditorHeight < 5) { WorkspaceView.aceEditorHeight = 5 }
+                        if (WorkspaceView.aceEditorHeight > 100) { WorkspaceView.aceEditorHeight = 100 }
+                    },
+                }),
                 m("button.ma1", { onclick: WorkspaceView.save }, "Save"),
                 m("button.ma1", { onclick: WorkspaceView.clear }, "Clear"),
                 m("button.ma1", { onclick: WorkspaceView.importText }, "Import"),
