@@ -30,9 +30,6 @@
 
 [
     "alert(\"Hello, world!\")",
-    "test",
-    "more",
-    "then",
     "1 + 1",
     "function my_add(a, b) { return a + b }\n\nmy_add(2, 3)\n",
     "var state = {\n    count: 0,\n    inc: function() {state.count++}\n}\n\nvar Counter = {\n    view: function() {\n        return m(\"div\", {onclick: state.inc}, state.count)\n    }\n}\n\nvar div = document.createElement(\"div\")\ndocument.body.appendChild(div)\nm.mount(div, Counter)",
