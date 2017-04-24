@@ -189,12 +189,12 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
 
         view() {
             return m("main.ma2", [
-                m("div#toastDiv.fixed.top-2.left-2.w-40.fieldset.bg-gold.pl3.pr3.tc.o-90", 
+                m("div#toastDiv.fixed.top-2.left-2.w-40.pa2.fieldset.bg-gold.pl3.pr3.tc.o-90.z-max", 
                     { hidden: WorkspaceView.toastMessages.length === 0 },
                     WorkspaceView.toastMessages.length ? WorkspaceView.toastMessages[0] : ""
                 ),
                 m("button", {onclick: WorkspaceView.changeArchive}, "Archive: " + WorkspaceView.archiveChoice),
-                m("h4.bw24.b--solid.b--blue", 
+                m("h4.bw24.b--solid.b--blue.pa1", 
                     "Current item ",
                     (WorkspaceView.currentItemIndex === null ? "???" : WorkspaceView.currentItemIndex + 1),
                     " of ",
