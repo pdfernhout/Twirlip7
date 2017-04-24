@@ -232,7 +232,9 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
                 m("a.ml2", { target: "_blank", href: "https://mithril.js.org/" }, "Mithril.js"),
                 m("a.ml2", { target: "_blank", href: "http://tachyons.io/" }, "Tachyons.js"),
                 m("a.ml2", { target: "_blank", href: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" }, "JavaScript"),
-                m("h4.bw24.b--solid.b--blue.pa1", 
+                m("h4.ba.pa1", 
+                    m("button.ma1", { onclick: WorkspaceView.previous }, "< Previous"),
+                    m("button.ma1", { onclick: WorkspaceView.next }, "Next >"),
                     "JavaScript snippet ",
                     (WorkspaceView.currentItemIndex === null ? "???" : WorkspaceView.currentItemIndex + 1),
                     " of ",
@@ -280,9 +282,6 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
                 m("button.ma1", { onclick: WorkspaceView.showExampleLog }, "Show example log"),
                 m("button.ma1", { onclick: WorkspaceView.showLog }, "Show current log"),
                 m("button.ma1", { onclick: WorkspaceView.loadLog }, "Load log"),
-                m("span.pa1"),
-                m("button.ma1", { onclick: WorkspaceView.previous }, "Previous"),
-                m("button.ma1", { onclick: WorkspaceView.next }, "Next"),
             ])
         },
     }
