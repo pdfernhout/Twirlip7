@@ -7,7 +7,7 @@ The log of snippets can be expoerted or imported as JSON.
 
 As an experiment, questions include how could these snippets be stored, retrieved, visualized, referenced, annotated, shared, versioned, or discussed?
 
-To test this, copy one of the arrays in example.logs.txt into the editor and press "Load log".
+To test this, copy one of the arrays in example-logs.txt into the editor and press "Load log".
 
 Currently expects ES6 in a modern browser.
 

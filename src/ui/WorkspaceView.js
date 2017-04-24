@@ -1,10 +1,11 @@
-define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/ace"], function(
+define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/ace", "exampleLog"], function(
     FileUtils,
     SelectionUtils,
     EvalUtils,
     MemoryArchive,
     LocalStorageArchive,
-    ace
+    ace,
+    exampleLog
 ) {
     "use strict"
 
@@ -131,7 +132,14 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
         },
 
         skip(offset) {
-            if (!Archive.itemCount()) return
+            if (!Archive.itemCount()) {
+                alert("No log items to display. Try saving one first.")
+                return
+            }
+            if (Archive.itemCount() === 1) {
+                alert("Only one log item to display. Try saving another one first.")
+                return
+            }
             if (!WorkspaceView.confirmClear()) return
             if (WorkspaceView.currentItemIndex === null) {
                 WorkspaceView.currentItemIndex = (offset >= 0 ?  0 : Archive.itemCount() - 1)
@@ -153,10 +161,21 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
 
         loadLog() {
             if (Archive.itemCount() && !confirm("Replace all items with entered text for a log?")) return
-            Archive.loadFromLogText(WorkspaceView.getEditorContents())
+            try {
+                Archive.loadFromLogText(WorkspaceView.getEditorContents())
+            } catch (error) {
+                alert("Problem loading log from editor:\n" + error)
+                return
+            }
             WorkspaceView.currentItemIndex = null
             // Update lastLoadedContents in case pasted in contents to avoid warning later since data was processed as intended
             WorkspaceView.lastLoadedContents = WorkspaceView.getEditorContents()
+            alert("Loaded log from editor")
+        },
+
+        showExampleLog() {
+            if (!WorkspaceView.confirmClear()) return
+            WorkspaceView.setEditorContents(JSON.stringify(exampleLog, null, 4))
         },
 
         view() {
@@ -210,7 +229,8 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
                 m("button.ma1", { onclick: WorkspaceView.previous }, "Previous"),
                 m("button.ma1", { onclick: WorkspaceView.next }, "Next"),
                 m("span.pa1"),
-                m("button.ma1", { onclick: WorkspaceView.showLog }, "Show log"),
+                m("button.ma1", { onclick: WorkspaceView.showExampleLog }, "Show example log"),
+                m("button.ma1", { onclick: WorkspaceView.showLog }, "Show current log"),
                 m("button.ma1", { onclick: WorkspaceView.loadLog }, "Load log"),
             ])
         },
