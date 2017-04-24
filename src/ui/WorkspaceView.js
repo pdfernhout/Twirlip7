@@ -27,7 +27,7 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
 
         oninit() {
             if (Archive.itemCount() === 0) {
-                WorkspaceView.toast("Click \"Show example log\" and then \"Load log\" and then \"Next\" to get started with some examples", 8000)
+                WorkspaceView.toast("Click \"Show example log\", then \"Load log\", then \"Next\", and then \"Do it\" to get started with some examples", 8000)
             }
         },
 
@@ -188,6 +188,7 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
         toast(message, delay) {
             function removeToastAfterDelay() {
                 setTimeout(function() {
+                    console.log("toast timeout", WorkspaceView.toastMessages)
                     WorkspaceView.toastMessages.shift()
                     if ( WorkspaceView.toastMessages.length ) { removeToastAfterDelay() }
                     m.redraw()
@@ -195,7 +196,7 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
             }
             if (delay === undefined) { delay = 3000 }
             WorkspaceView.toastMessages.push({message, delay})
-            removeToastAfterDelay()
+            if ( WorkspaceView.toastMessages.length === 1) { removeToastAfterDelay() }
         },
 
         view() {
@@ -250,12 +251,12 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
                 m("button.ma1", { onclick: WorkspaceView.importText }, "Import"),
                 m("button.ma1", { onclick: WorkspaceView.exportText }, "Export"),
                 m("br"),
-                m("button.ma1", { onclick: WorkspaceView.previous }, "Previous"),
-                m("button.ma1", { onclick: WorkspaceView.next }, "Next"),
-                m("span.pa1"),
                 m("button.ma1", { onclick: WorkspaceView.showExampleLog }, "Show example log"),
                 m("button.ma1", { onclick: WorkspaceView.showLog }, "Show current log"),
                 m("button.ma1", { onclick: WorkspaceView.loadLog }, "Load log"),
+                m("span.pa1"),
+                m("button.ma1", { onclick: WorkspaceView.previous }, "Previous"),
+                m("button.ma1", { onclick: WorkspaceView.next }, "Next"),
             ])
         },
     }
