@@ -227,7 +227,7 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
                 ),
                 m("button", {onclick: WorkspaceView.changeArchive}, "Archive: " + WorkspaceView.archiveChoice),
                 m("h4.bw24.b--solid.b--blue.pa1", 
-                    "Current item ",
+                    "JavaScript snippet ",
                     (WorkspaceView.currentItemIndex === null ? "???" : WorkspaceView.currentItemIndex + 1),
                     " of ",
                     Archive.itemCount()
