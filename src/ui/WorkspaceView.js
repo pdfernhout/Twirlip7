@@ -27,7 +27,7 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
 
         oninit() {
             if (Archive.itemCount() === 0) {
-                WorkspaceView.toast("Click \"Show example log\", then \"Load log\", then \"Next\", and then \"Do it\" to get started with some examples", 8000)
+                WorkspaceView.toast("To get started with some examples, click \"Show example log\", then \"Load log\", then \"Next\", and then \"Do it\".", 8000)
             }
         },
 
