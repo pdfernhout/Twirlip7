@@ -12,6 +12,23 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
 
     // Used for resizing the editor's height
     let dragOriginY
+    
+    // Convenience function which examples could use to put up closeable views
+    function show(viewFunction) {
+        let div = document.createElement("div")
+
+        const ClosableComponent = {
+          view(controller, args) {
+            return m("div.ba.ma3.pa3.bg-light-purple",
+              m("button.fr", {onclick: function () { document.body.removeChild(div) } }, "X"),
+              viewFunction()
+            )
+          }
+        }
+
+        document.body.appendChild(div)
+        m.mount(div, ClosableComponent)
+    }
 
     const WorkspaceView = {
         editor: null,
@@ -24,10 +41,12 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
         },
         aceEditorHeight: 20,
         toastMessages: [],
-
+        
         oninit() {
             if (Archive.itemCount() === 0) {
-                WorkspaceView.toast("To get started with some examples, click \"Show example log\", then \"Load log\", then \"Next\", and then \"Do it\".", 8000)
+                show(function () { 
+                   return m("div", "To get started with some examples, click \"Show example log\", then \"Load log\", then \"Next\", and then \"Do it\".")
+                }))
             }
         },
 
