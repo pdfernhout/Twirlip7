@@ -134,7 +134,7 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
 
         skip(offset) {
             if (!Archive.itemCount()) {
-                WorkspaceView.toast("No log items to display. Try saving one first.")
+                WorkspaceView.toast("No log items to display. Try saving one first -- or show the example log in the editor and then load it.")
                 return
             }
             if (Archive.itemCount() === 1) {
@@ -184,7 +184,7 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
             setTimeout(function() {
                 WorkspaceView.toastMessages.shift()
                 m.redraw()
-            }, 2000)
+            }, 3000)
         },
 
         view() {
