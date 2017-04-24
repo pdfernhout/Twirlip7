@@ -15,7 +15,7 @@ To test this, click "Show example log" which will put some JSON text in the edit
 The UI uses Mithril.js, Tachyons.js, RequireJS, and the ACE editor in plain JavaScript. The UI currently expects ES6 in a modern browser.
 
 The Server uses Node.js with Express to server the UI files. Eventually the server may do something more than just serving files. Using the server requires running "npm install" to load the supporting npm modules and then "npm run server" to run the server. However you don't actually need to install and run the server yet as you can just load the files directly into your browser -- including from this test link:  
-https://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html
+http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html
 
 No build step (yet).
 
