@@ -23,6 +23,7 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
             "memory": null,
         },
         aceEditorHeight: 20,
+        toastMessages: [],
 
         changeArchive() {
             const oldChoice = WorkspaceView.archiveChoice
@@ -93,7 +94,7 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
             try {
                 EvalUtils.eval(selection.text)
             } catch (error) {
-                alert("Eval error:\n" + error)
+                WorkspaceView.toast("Eval error:\n" + error)
             }
         },
 
@@ -133,11 +134,11 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
 
         skip(offset) {
             if (!Archive.itemCount()) {
-                alert("No log items to display. Try saving one first.")
+                WorkspaceView.toast("No log items to display. Try saving one first.")
                 return
             }
             if (Archive.itemCount() === 1) {
-                alert("Only one log item to display. Try saving another one first.")
+                WorkspaceView.toast("Only one log item to display. Try saving another one first.")
                 return
             }
             if (!WorkspaceView.confirmClear()) return
@@ -164,13 +165,13 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
             try {
                 Archive.loadFromLogText(WorkspaceView.getEditorContents())
             } catch (error) {
-                alert("Problem loading log from editor:\n" + error)
+                WorkspaceView.toast("Problem loading log from editor:\n" + error)
                 return
             }
             WorkspaceView.currentItemIndex = null
             // Update lastLoadedContents in case pasted in contents to avoid warning later since data was processed as intended
             WorkspaceView.lastLoadedContents = WorkspaceView.getEditorContents()
-            alert("Loaded log from editor")
+            WorkspaceView.toast("Loaded log from editor")
         },
 
         showExampleLog() {
@@ -178,8 +179,20 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
             WorkspaceView.setEditorContents(JSON.stringify(exampleLog, null, 4))
         },
 
+        toast(message) {
+            WorkspaceView.toastMessages.push(message)
+            setTimeout(function() {
+                WorkspaceView.toastMessages.shift()
+                m.redraw()
+            }, 2000)
+        },
+
         view() {
             return m("main.ma2", [
+                m("div#toastDiv.fixed.top-2.left-2.w-40.fieldset.bg-gold.pl3.pr3.tc.o-90", 
+                    { hidden: WorkspaceView.toastMessages.length === 0 },
+                    WorkspaceView.toastMessages.length ? WorkspaceView.toastMessages[0] : ""
+                ),
                 m("button", {onclick: WorkspaceView.changeArchive}, "Archive: " + WorkspaceView.archiveChoice),
                 m("h4.bw24.b--solid.b--blue", 
                     "Current item ",
