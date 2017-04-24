@@ -1,6 +1,5 @@
-define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/ace", "exampleLog"], function(
+define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/ace", "exampleLog"], function(
     FileUtils,
-    SelectionUtils,
     EvalUtils,
     MemoryArchive,
     LocalStorageArchive,
