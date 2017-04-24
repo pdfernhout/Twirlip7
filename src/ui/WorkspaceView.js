@@ -14,12 +14,13 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
     let dragOriginY
     
     // Convenience function which examples could use to put up closeable views
-    window.show = function(viewFunction) {
+    window.show = function(viewFunction, extraStyling) {
+        if (!extraStyling) { extraStyling = "" }
         let div = document.createElement("div")
 
         const ClosableComponent = {
             view() {
-                return m("div.ba.ma3.pa3.bg-light-purple",
+                return m("div.ba.ma3.pa3.bg-light-purple" + extraStyling,
                 m("button.fr", {onclick: function () { document.body.removeChild(div) } }, "X"),
                 viewFunction()
                 )
