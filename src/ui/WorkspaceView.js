@@ -25,6 +25,12 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
         aceEditorHeight: 20,
         toastMessages: [],
 
+        oninit() {
+            if (Archive.itemCount() === 0) {
+                WorkspaceView.toast("Click \"Show example log\" and then \"Load log\" and then \"Next\" to get started with some examples", 8000)
+            }
+        },
+
         changeArchive() {
             const oldChoice = WorkspaceView.archiveChoice
             const newChoice = (WorkspaceView.archiveChoice === "memory" ? "local storage": "memory")
@@ -179,19 +185,24 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
             WorkspaceView.setEditorContents(JSON.stringify(exampleLog, null, 4))
         },
 
-        toast(message) {
-            WorkspaceView.toastMessages.push(message)
-            setTimeout(function() {
-                WorkspaceView.toastMessages.shift()
-                m.redraw()
-            }, 3000)
+        toast(message, delay) {
+            function removeToastAfterDelay() {
+                setTimeout(function() {
+                    WorkspaceView.toastMessages.shift()
+                    if ( WorkspaceView.toastMessages.length ) { removeToastAfterDelay() }
+                    m.redraw()
+                }, WorkspaceView.toastMessages[0].delay)
+            }
+            if (delay === undefined) { delay = 3000 }
+            WorkspaceView.toastMessages.push({message, delay})
+            removeToastAfterDelay()
         },
 
         view() {
             return m("main.ma2", [
                 m("div#toastDiv.fixed.top-2.left-2.w-40.pa2.fieldset.bg-gold.pl3.pr3.tc.o-90.z-max", 
                     { hidden: WorkspaceView.toastMessages.length === 0 },
-                    WorkspaceView.toastMessages.length ? WorkspaceView.toastMessages[0] : ""
+                    WorkspaceView.toastMessages.length ? WorkspaceView.toastMessages[0].message : ""
                 ),
                 m("button", {onclick: WorkspaceView.changeArchive}, "Archive: " + WorkspaceView.archiveChoice),
                 m("h4.bw24.b--solid.b--blue.pa1", 
