@@ -209,7 +209,6 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
         toast(message, delay) {
             function removeToastAfterDelay() {
                 setTimeout(function() {
-                    console.log("toast timeout", WorkspaceView.toastMessages)
                     WorkspaceView.toastMessages.shift()
                     if ( WorkspaceView.toastMessages.length ) { removeToastAfterDelay() }
                     m.redraw()
