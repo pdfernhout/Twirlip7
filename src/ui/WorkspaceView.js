@@ -227,6 +227,11 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
                     WorkspaceView.toastMessages.length ? WorkspaceView.toastMessages[0].message : ""
                 ),
                 m("button", {onclick: WorkspaceView.changeArchive}, "Archive: " + WorkspaceView.archiveChoice),
+                m("a.ml2", { target: "_blank", href: "https://github.com/pdfernhout/Twirlip7" }, "About Twirlip"),
+                m("span.ml2", "which uses:"),
+                m("a.ml2", { target: "_blank", href: "https://mithril.js.org/" }, "Mithril.js"),
+                m("a.ml2", { target: "_blank", href: "http://tachyons.io/" }, "Tachyons.js"),
+                m("a.ml2", { target: "_blank", href: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" }, "JavaScript"),
                 m("h4.bw24.b--solid.b--blue.pa1", 
                     "JavaScript snippet ",
                     (WorkspaceView.currentItemIndex === null ? "???" : WorkspaceView.currentItemIndex + 1),
