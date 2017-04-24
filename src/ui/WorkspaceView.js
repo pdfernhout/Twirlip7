@@ -106,6 +106,7 @@ define(["FileUtils", "SelectionUtils", "EvalUtils", "MemoryArchive", "LocalStora
             const start = selectedRange.end
             const end = WorkspaceView.editor.session.insert(start, evalResult)
             WorkspaceView.editor.selection.setRange({start, end})
+            WorkspaceView.editor.focus()
         },
 
         inspectIt() {
