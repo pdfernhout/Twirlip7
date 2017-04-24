@@ -14,16 +14,16 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
     let dragOriginY
     
     // Convenience function which examples could use to put up closeable views
-    function show(viewFunction) {
+    window.show = function(viewFunction) {
         let div = document.createElement("div")
 
         const ClosableComponent = {
-          view(controller, args) {
-            return m("div.ba.ma3.pa3.bg-light-purple",
-              m("button.fr", {onclick: function () { document.body.removeChild(div) } }, "X"),
-              viewFunction()
-            )
-          }
+            view() {
+                return m("div.ba.ma3.pa3.bg-light-purple",
+                m("button.fr", {onclick: function () { document.body.removeChild(div) } }, "X"),
+                viewFunction()
+                )
+            }
         }
 
         document.body.appendChild(div)
@@ -44,9 +44,11 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
         
         oninit() {
             if (Archive.itemCount() === 0) {
-                show(function () { 
-                   return m("div", "To get started with some examples, click \"Show example log\", then \"Load log\", then \"Next\", and then \"Do it\".")
-                }))
+                window.show(function () { 
+                    return m("div", `To get started with some example snippets,
+                        click "Show example log", then "Load log", then "Next", and then "Do it".
+                        Use "Previous" and "Next" to scroll through more example snippets.`)
+                })
             }
         },
 
