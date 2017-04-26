@@ -18,11 +18,18 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
         if (!extraStyling) { extraStyling = "" }
         let div = document.createElement("div")
 
-        const ClosableComponent = {
+        const ClosableComponent = {            
             view() {
+                let subview
+                try {
+                    subview = viewFunction()
+                } catch (e) {
+                    console.log("Error in show function", e)
+                    subview = m("div.ba.ma2.pa2.bg-red", "Error in show function: " + e)
+                }
                 return m("div.ba.ma3.pa3.bg-light-purple" + extraStyling,
-                m("button.fr", {onclick: function () { document.body.removeChild(div) } }, "X"),
-                viewFunction()
+                    m("button.fr", {onclick: function () { document.body.removeChild(div) } }, "X"),
+                    subview
                 )
             }
         }
