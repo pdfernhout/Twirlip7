@@ -248,6 +248,7 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
                         WorkspaceView.editor = ace.edit("editor")
                         WorkspaceView.editor.getSession().setMode("ace/mode/javascript")
                         WorkspaceView.editor.getSession().setUseSoftTabs(true)
+                        WorkspaceView.editor.$blockScrolling = Infinity 
                     },
                     onupdate: function() {
                         WorkspaceView.editor.resize()
