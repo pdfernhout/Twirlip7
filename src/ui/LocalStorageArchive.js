@@ -9,8 +9,8 @@ define([], function() {
                 addItem: true,
                 getItem: true,
                 itemCount: true,
-                textForLog: true,
-                loadFromLogText: true,
+                textForJournal: true,
+                loadFromJournalText: true,
             }
         },
 
@@ -26,7 +26,7 @@ define([], function() {
             return localStorage.length
         },
 
-        textForLog() {
+        textForJournal() {
             const items = []
             for (let i = 0; i < localStorage.length; i++) {
                 items.push(LocalStorageArchive.getItem(i))
@@ -34,9 +34,9 @@ define([], function() {
             return JSON.stringify(items, null, 4)
         },
 
-        loadFromLogText(logText) {
+        loadFromJournalText(journalText) {
             localStorage.clear()
-            const items = JSON.parse(logText)
+            const items = JSON.parse(journalText)
             for (let item of items) { LocalStorageArchive.addItem(item) }
         }
     }

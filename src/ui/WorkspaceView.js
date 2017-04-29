@@ -1,10 +1,10 @@
-define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/ace", "exampleLog"], function(
+define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/ace", "exampleJournal"], function(
     FileUtils,
     EvalUtils,
     MemoryArchive,
     LocalStorageArchive,
     ace,
-    exampleLog
+    exampleJournal
 ) {
     "use strict"
     /* global m */
@@ -54,8 +54,8 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
         oninit() {
             if (Archive.itemCount() === 0) {
                 window.show(function () { 
-                    return m("div", `To get started with some example snippets,
-                        click "Show example log", then "Load log", then "Next", and then "Do it".
+                    return m("div", `To get started with some example code snippets,
+                        click "Show example journal", then "Load journal", then "Next", and then "Do it".
                         Use "Previous" and "Next" to scroll through more example snippets.`)
                 })
             }
@@ -170,11 +170,11 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
 
         skip(offset) {
             if (!Archive.itemCount()) {
-                WorkspaceView.toast("No log items to display. Try saving one first -- or show the example log in the editor and then load it.")
+                WorkspaceView.toast("No journal items to display. Try saving one first -- or show the example journal in the editor and then load it.")
                 return
             }
             if (Archive.itemCount() === 1) {
-                WorkspaceView.toast("Only one log item to display. Try saving another one first.")
+                WorkspaceView.toast("Only one journal item to display. Try saving another one first.")
                 return
             }
             if (!WorkspaceView.confirmClear()) return
@@ -190,29 +190,29 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
 
         next() { WorkspaceView.skip(1) },
 
-        showLog() {
+        showJournal() {
             if (!WorkspaceView.confirmClear()) return
-            WorkspaceView.setEditorContents(Archive.textForLog())
+            WorkspaceView.setEditorContents(Archive.textForJournal())
             WorkspaceView.currentItemIndex = null
         },
 
-        loadLog() {
-            if (Archive.itemCount() && !confirm("Replace all items with entered text for a log?")) return
+        loadJournal() {
+            if (Archive.itemCount() && !confirm("Replace all items with entered text for a journal?")) return
             try {
-                Archive.loadFromLogText(WorkspaceView.getEditorContents())
+                Archive.loadFromJournalText(WorkspaceView.getEditorContents())
             } catch (error) {
-                WorkspaceView.toast("Problem loading log from editor:\n" + error)
+                WorkspaceView.toast("Problem loading journal from editor:\n" + error)
                 return
             }
             WorkspaceView.currentItemIndex = null
             // Update lastLoadedContents in case pasted in contents to avoid warning later since data was processed as intended
             WorkspaceView.lastLoadedContents = WorkspaceView.getEditorContents()
-            WorkspaceView.toast("Loaded log from editor")
+            WorkspaceView.toast("Loaded journal from editor")
         },
 
-        showExampleLog() {
+        showExampleJournal() {
             if (!WorkspaceView.confirmClear()) return
-            WorkspaceView.setEditorContents(JSON.stringify(exampleLog, null, 4))
+            WorkspaceView.setEditorContents(JSON.stringify(exampleJournal, null, 4))
         },
 
         toast(message, delay) {
@@ -283,15 +283,15 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
                 m("button.ma1", { onclick: WorkspaceView.printIt, title: "Evaluate code and insert result in editor" }, "Print it"),
                 m("button.ma1", { onclick: WorkspaceView.inspectIt, title: "Evaluate code and log result to console"  }, "Inspect it"),
                 m("span.pa1"),
-                m("button.ma1", { onclick: WorkspaceView.save, title: "Save current snippet into the log"  }, "Save"),
+                m("button.ma1", { onclick: WorkspaceView.save, title: "Save current snippet into the journal"  }, "Save"),
                 m("button.ma1", { onclick: WorkspaceView.clear, title: "Clear out text in editor" }, "Clear"),
                 m("button.ma1", { onclick: WorkspaceView.importText, title: "Load a file into editor" }, "Import"),
                 m("button.ma1", { onclick: WorkspaceView.exportText, title: "Save current editor text to a file" }, "Export"),
                 m("br"),
                 m("button", { onclick: WorkspaceView.changeArchive, title: "Change storage location of snippets" }, "Archive: " + WorkspaceView.archiveChoice),
-                m("button.ma1", { onclick: WorkspaceView.showLog, title: "Put JSON for log contents into editor" }, "Show current log"),
-                m("button.ma1", { onclick: WorkspaceView.showExampleLog, title: "Put a log of sample snippets as JSON into editor (for loading afterwards)" }, "Show example log"),
-                m("button.ma1", { onclick: WorkspaceView.loadLog, title: "Load JSON log from editor -- replacing all previous snippets!" }, "Load log"),
+                m("button.ma1", { onclick: WorkspaceView.showJournal, title: "Put JSON for journal contents into editor" }, "Show current journal"),
+                m("button.ma1", { onclick: WorkspaceView.showExampleJournal, title: "Put a journal of sample snippets as JSON into editor (for loading afterwards)" }, "Show example journal"),
+                m("button.ma1", { onclick: WorkspaceView.loadJournal, title: "Load JSON journal from editor -- replacing all previous snippets!" }, "Load journal"),
             ])
         },
     }

@@ -10,8 +10,8 @@ define([], function() {
                 addItem: true,
                 getItem: true,
                 itemCount: true,
-                textForLog: true,
-                loadFromLogText: true,
+                textForJournal: true,
+                loadFromJournalText: true,
             }
         },
 
@@ -27,12 +27,12 @@ define([], function() {
             return MemoryArchive.items.length
         },
 
-        textForLog() {
+        textForJournal() {
             return JSON.stringify(MemoryArchive.items, null, 4)
         },
 
-        loadFromLogText(logText) {
-            MemoryArchive.items = JSON.parse(logText)
+        loadFromJournalText(journalText) {
+            MemoryArchive.items = JSON.parse(journalText)
         }
     }
 
