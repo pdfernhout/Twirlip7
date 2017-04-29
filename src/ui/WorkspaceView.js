@@ -248,7 +248,7 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
                     Archive.itemCount()
                 ),
                 m("input#fileInput", { "type" : "file" , "hidden" : true } ),
-                m("div.w-90#editor", {
+                m("div.w-100#editor", {
                     style: {
                         height: WorkspaceView.aceEditorHeight + "rem"
                     },
@@ -262,13 +262,14 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
                         WorkspaceView.editor.resize()
                     }
                 }),
-                m("div.w-90.ba.pa1.bg-light-gray", {
+                m("div.bg-light-gray", {
                     // splitter for resizing the editor's height
-                    style: { cursor: "grab" },
+                    style: { cursor: "ns-resize", height: "0.33rem" },
                     draggable: true,
                     ondragstart: (event) => {
                         dragOriginY = event.screenY
                         event.dataTransfer.setData("Text", event.target.id)
+                        event.dataTransfer.effectAllowed = "none"
                     },
                     ondragend: (event) => {
                         const yDifference = event.screenY - dragOriginY
