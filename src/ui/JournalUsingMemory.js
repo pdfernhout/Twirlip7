@@ -1,7 +1,7 @@
 define([], function() {
     "use strict"
 
-    const MemoryArchive = {
+    const JournalUsingMemory = {
         items: [],
 
         getCapabilities() {
@@ -16,25 +16,25 @@ define([], function() {
         },
 
         addItem(item) {
-            MemoryArchive.items.push(item)
+            JournalUsingMemory.items.push(item)
         },
 
         getItem(index) {
-            return MemoryArchive.items[index]
+            return JournalUsingMemory.items[index]
         },
 
         itemCount() {
-            return MemoryArchive.items.length
+            return JournalUsingMemory.items.length
         },
 
         textForJournal() {
-            return JSON.stringify(MemoryArchive.items, null, 4)
+            return JSON.stringify(JournalUsingMemory.items, null, 4)
         },
 
         loadFromJournalText(journalText) {
-            MemoryArchive.items = JSON.parse(journalText)
+            JournalUsingMemory.items = JSON.parse(journalText)
         }
     }
 
-    return MemoryArchive
+    return JournalUsingMemory
 })

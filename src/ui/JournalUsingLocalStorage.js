@@ -1,7 +1,8 @@
 define([], function() {
     "use strict"
+    /* global localStorage */
 
-    const LocalStorageArchive = {
+    const JournalUsingLocalStorage = {
 
         getCapabilities() {
             return {
@@ -29,7 +30,7 @@ define([], function() {
         textForJournal() {
             const items = []
             for (let i = 0; i < localStorage.length; i++) {
-                items.push(LocalStorageArchive.getItem(i))
+                items.push(JournalUsingLocalStorage.getItem(i))
             }
             return JSON.stringify(items, null, 4)
         },
@@ -37,9 +38,9 @@ define([], function() {
         loadFromJournalText(journalText) {
             localStorage.clear()
             const items = JSON.parse(journalText)
-            for (let item of items) { LocalStorageArchive.addItem(item) }
+            for (let item of items) { JournalUsingLocalStorage.addItem(item) }
         }
     }
 
-    return LocalStorageArchive
+    return JournalUsingLocalStorage
 })
