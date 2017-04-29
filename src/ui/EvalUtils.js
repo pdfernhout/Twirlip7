@@ -6,15 +6,15 @@ define([], function() {
         evalOrError(text) {
             let result
             try {
-                result = EvalUtils.eval(text)
+                result = EvalUtils.eval("(" + text + ")")
             } catch (error) {
-                result = error                
+                result = error
             }
             return result
         },
 
         eval(text) {
-            return eval("(" + text + ")")
+            return eval(text)
         }
     }
 
