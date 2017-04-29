@@ -6,7 +6,7 @@ define([], function() {
         evalOrError(text) {
             let result
             try {
-                result = eval(text)
+                result = EvalUtils.eval(text)
             } catch (error) {
                 result = error                
             }
@@ -14,7 +14,7 @@ define([], function() {
         },
 
         eval(text) {
-            return eval(text)
+            return eval("(" + text + ")")
         }
     }
 
