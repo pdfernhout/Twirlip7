@@ -29,7 +29,12 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     subview = m("div.ba.ma2.pa2.bg-red", "Error in show function: " + e)
                 }
                 return m("div.ba.ma3.pa3.bg-light-purple" + extraStyling,
-                    m("button.fr", {onclick: function () { document.body.removeChild(div) } }, "X"),
+                    m("button.fr", {
+                        onclick: function () {
+                            m.mount(div, null)
+                            document.body.removeChild(div)
+                        }
+                    }, "X"),
                     subview
                 )
             }
