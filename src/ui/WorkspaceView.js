@@ -1,15 +1,15 @@
-define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/ace", "exampleJournal"], function(
+define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorage", "ace/ace", "exampleJournal"], function(
     FileUtils,
     EvalUtils,
-    MemoryArchive,
-    LocalStorageArchive,
+    JournalUsingMemory,
+    JournalUsingLocalStorage,
     ace,
     exampleJournal
 ) {
     "use strict"
     /* global m */
 
-    let Archive = LocalStorageArchive
+    let currentJournal = JournalUsingLocalStorage
 
     // Used for resizing the editor's height
     let dragOriginY
@@ -43,7 +43,7 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
         editor: null,
         lastLoadedContents: "",
         currentItemIndex: null,
-        archiveChoice: "local storage",
+        journalChoice: "local storage",
         savedItemIndexes: {
             "local storage": null,
             "memory": null,
@@ -52,7 +52,7 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
         toastMessages: [],
         
         oninit() {
-            if (Archive.itemCount() === 0) {
+            if (currentJournal.itemCount() === 0) {
                 window.show(function () { 
                     return m("div", `To get started with some example code snippets,
                         click "Show example journal", then "Load journal", then "Next", and then "Do it".
@@ -61,18 +61,18 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
             }
         },
 
-        changeArchive() {
-            const oldChoice = WorkspaceView.archiveChoice
-            const newChoice = (WorkspaceView.archiveChoice === "memory" ? "local storage": "memory")
+        changeJournal() {
+            const oldChoice = WorkspaceView.journalChoice
+            const newChoice = (WorkspaceView.journalChoice === "memory" ? "local storage": "memory")
 
             WorkspaceView.savedItemIndexes[oldChoice] = WorkspaceView.currentItemIndex
-            WorkspaceView.archiveChoice = newChoice
-            Archive = (newChoice === "memory" ? MemoryArchive : LocalStorageArchive)
+            WorkspaceView.journalChoice = newChoice
+            currentJournal = (newChoice === "memory" ? JournalUsingMemory : JournalUsingLocalStorage)
             WorkspaceView.currentItemIndex = WorkspaceView.savedItemIndexes[newChoice]
             if (WorkspaceView.currentItemIndex === null) {
                 WorkspaceView.setEditorContents("")
             } else {
-                WorkspaceView.setEditorContents(Archive.getItem(WorkspaceView.currentItemIndex))
+                WorkspaceView.setEditorContents(currentJournal.getItem(WorkspaceView.currentItemIndex))
             }
         },
 
@@ -107,9 +107,9 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
 
         save() {
             const newContents = WorkspaceView.getEditorContents()
-            Archive.addItem(newContents)
+            currentJournal.addItem(newContents)
             WorkspaceView.lastLoadedContents = newContents
-            WorkspaceView.currentItemIndex = Archive.itemCount() - 1
+            WorkspaceView.currentItemIndex = currentJournal.itemCount() - 1
         },
 
         confirmClear(promptText) {
@@ -169,21 +169,21 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
         },
 
         skip(offset) {
-            if (!Archive.itemCount()) {
+            if (!currentJournal.itemCount()) {
                 WorkspaceView.toast("No journal items to display. Try saving one first -- or show the example journal in the editor and then load it.")
                 return
             }
-            if (Archive.itemCount() === 1) {
+            if (currentJournal.itemCount() === 1) {
                 WorkspaceView.toast("Only one journal item to display. Try saving another one first.")
                 return
             }
             if (!WorkspaceView.confirmClear()) return
             if (WorkspaceView.currentItemIndex === null) {
-                WorkspaceView.currentItemIndex = (offset >= 0 ?  0 : Archive.itemCount() - 1)
+                WorkspaceView.currentItemIndex = (offset >= 0 ?  0 : currentJournal.itemCount() - 1)
             } else {
-                WorkspaceView.currentItemIndex = (Archive.itemCount() + WorkspaceView.currentItemIndex + offset) % Archive.itemCount()
+                WorkspaceView.currentItemIndex = (currentJournal.itemCount() + WorkspaceView.currentItemIndex + offset) % currentJournal.itemCount()
             }
-            WorkspaceView.setEditorContents(Archive.getItem(WorkspaceView.currentItemIndex))
+            WorkspaceView.setEditorContents(currentJournal.getItem(WorkspaceView.currentItemIndex))
         },
 
         previous() { WorkspaceView.skip(-1) },
@@ -192,14 +192,14 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
 
         showJournal() {
             if (!WorkspaceView.confirmClear()) return
-            WorkspaceView.setEditorContents(Archive.textForJournal())
+            WorkspaceView.setEditorContents(currentJournal.textForJournal())
             WorkspaceView.currentItemIndex = null
         },
 
         loadJournal() {
-            if (Archive.itemCount() && !confirm("Replace all items with entered text for a journal?")) return
+            if (currentJournal.itemCount() && !confirm("Replace all items with entered text for a journal?")) return
             try {
-                Archive.loadFromJournalText(WorkspaceView.getEditorContents())
+                currentJournal.loadFromJournalText(WorkspaceView.getEditorContents())
             } catch (error) {
                 WorkspaceView.toast("Problem loading journal from editor:\n" + error)
                 return
@@ -245,7 +245,7 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
                     "JavaScript snippet ",
                     (WorkspaceView.currentItemIndex === null ? "???" : WorkspaceView.currentItemIndex + 1),
                     " of ",
-                    Archive.itemCount()
+                    currentJournal.itemCount()
                 ),
                 m("input#fileInput", { "type" : "file" , "hidden" : true } ),
                 m("div.w-100#editor", {
@@ -288,7 +288,7 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
                 m("button.ma1", { onclick: WorkspaceView.importText, title: "Load a file into editor" }, "Import"),
                 m("button.ma1", { onclick: WorkspaceView.exportText, title: "Save current editor text to a file" }, "Export"),
                 m("br"),
-                m("button", { onclick: WorkspaceView.changeArchive, title: "Change storage location of snippets" }, "Archive: " + WorkspaceView.archiveChoice),
+                m("button", { onclick: WorkspaceView.changeJournal, title: "Change storage location of snippets" }, "Journal: " + WorkspaceView.journalChoice),
                 m("button.ma1", { onclick: WorkspaceView.showJournal, title: "Put JSON for journal contents into editor" }, "Show current journal"),
                 m("button.ma1", { onclick: WorkspaceView.showExampleJournal, title: "Put a journal of sample snippets as JSON into editor (for loading afterwards)" }, "Show example journal"),
                 m("button.ma1", { onclick: WorkspaceView.loadJournal, title: "Load JSON journal from editor -- replacing all previous snippets!" }, "Load journal"),
