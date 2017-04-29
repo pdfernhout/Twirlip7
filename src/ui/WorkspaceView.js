@@ -7,6 +7,7 @@ define(["FileUtils", "EvalUtils", "MemoryArchive", "LocalStorageArchive", "ace/a
     exampleLog
 ) {
     "use strict"
+    /* global m */
 
     let Archive = LocalStorageArchive
 
