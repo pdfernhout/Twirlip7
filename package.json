@@ -2,6 +2,7 @@
   "name": "twirlip7",
   "version": "1.0.0",
   "description": "Social Semantic Desktop",
+  "repository": "https://github.com/pdfernhout/Twirlip7",
   "main": "server.js",
   "scripts": {
     "test": "npm run test",
@@ -10,10 +11,11 @@
   "author": "Paul D. Fernhout",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.15.2"
+    "express": "4.15.2"
   },
   "devDependencies": {
-    "eslint": "^3.19.0",
-    "tachyons": "^4.7.0"
+    "eslint": "3.19.0",
+    "tachyons": "4.7.0",
+    "three.js": "0.77.1"
   }
 }
