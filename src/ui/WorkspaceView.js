@@ -7,7 +7,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
     exampleJournal
 ) {
     "use strict"
-    /* global m */
+    /* global m, location */
 
     let currentJournal = JournalUsingLocalStorage
 
@@ -28,13 +28,16 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     console.log("Error in show function", e)
                     subview = m("div.ba.ma2.pa2.bg-red", "Error in show function: " + e)
                 }
+                const isShown = location.hash.startsWith("#show=")
                 return m("div.ba.ma3.pa3.bg-light-purple" + extraStyling,
-                    m("button.fr", {
-                        onclick: function () {
-                            m.mount(div, null)
-                            document.body.removeChild(div)
-                        }
-                    }, "X"),
+                    isShown ?
+                        [] :
+                        m("button.fr", {
+                            onclick: function () {
+                                m.mount(div, null)
+                                document.body.removeChild(div)
+                            }
+                        }, "X"),
                     subview
                 )
             }
@@ -157,7 +160,11 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
 
         showIt() {
-            window.open("#show=" + WorkspaceView.currentItemIndex)
+            if (WorkspaceView.currentItemIndex === null) {
+                alert("pick a snippet first")
+                return
+            }
+            window.open("#show=" + (parseInt(WorkspaceView.currentItemIndex) + 1))
         },
         
         importText() {
