@@ -28,7 +28,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     console.log("Error in show function", e)
                     subview = m("div.ba.ma2.pa2.bg-red", "Error in show function: " + e)
                 }
-                const isShown = location.hash.startsWith("#show=")
+                const isShown = location.hash.startsWith("#open=")
                 return m("div.ba.ma3.pa3.bg-light-purple" + extraStyling,
                     isShown ?
                         [] :
@@ -159,16 +159,16 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             console.dir(evalResult)
         },
 
-        showIt() {
+        openIt() {
             if (currentJournal !== JournalUsingLocalStorage) {
-                alert("Snippets need to be in the local storage journal to be shown.")
+                alert("Snippets need to be in the local storage journal (not memory)\nto be opened in a new window.")
                 return
             }
             if (WorkspaceView.currentItemIndex === null) {
-                alert("pick a snippet first")
+                alert("To open a snippet in its own window, you need to\nnavigate to a snippet from local storage first or save a new one.")
                 return
             }
-            window.open("#show=" + (parseInt(WorkspaceView.currentItemIndex) + 1))
+            window.open("#open=" + (parseInt(WorkspaceView.currentItemIndex) + 1))
         },
         
         importText() {
@@ -302,7 +302,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("button.ma1", { onclick: WorkspaceView.doIt, title: "Evaluate selected code" }, "Do it"),
                 m("button.ma1", { onclick: WorkspaceView.printIt, title: "Evaluate code and insert result in editor" }, "Print it"),
                 m("button.ma1", { onclick: WorkspaceView.inspectIt, title: "Evaluate code and log result to console"  }, "Inspect it"),
-                m("button.ma1", { onclick: WorkspaceView.showIt, title: "Show code result in a new window" }, "Show it"),
+                m("button.ma1", { onclick: WorkspaceView.openIt, title: "Open current saved snippet in a new window" }, "Open it"),
                 m("span.pa1"),
                 m("button.ma1", { onclick: WorkspaceView.save, title: "Save current snippet into the journal"  }, "Save"),
                 m("button.ma1", { onclick: WorkspaceView.clear, title: "Clear out text in editor" }, "Clear"),
