@@ -160,6 +160,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
 
         showIt() {
+            if (currentJournal !== JournalUsingLocalStorage) {
+                alert("Snippets need to be in the local storage journal to be shown.")
+                return
+            }
             if (WorkspaceView.currentItemIndex === null) {
                 alert("pick a snippet first")
                 return
