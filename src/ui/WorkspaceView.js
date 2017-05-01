@@ -156,6 +156,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             console.dir(evalResult)
         },
 
+        showIt() {
+            window.open("#show=" + WorkspaceView.currentItemIndex)
+        },
+        
         importText() {
             if (!WorkspaceView.confirmClear()) return
             FileUtils.loadFromFile((fileName, fileContents) => {
@@ -287,6 +291,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("button.ma1", { onclick: WorkspaceView.doIt, title: "Evaluate selected code" }, "Do it"),
                 m("button.ma1", { onclick: WorkspaceView.printIt, title: "Evaluate code and insert result in editor" }, "Print it"),
                 m("button.ma1", { onclick: WorkspaceView.inspectIt, title: "Evaluate code and log result to console"  }, "Inspect it"),
+                m("button.ma1", { onclick: WorkspaceView.showIt, title: "Show code result in a new window" }, "Show it"),
                 m("span.pa1"),
                 m("button.ma1", { onclick: WorkspaceView.save, title: "Save current snippet into the journal"  }, "Save"),
                 m("button.ma1", { onclick: WorkspaceView.clear, title: "Clear out text in editor" }, "Clear"),
