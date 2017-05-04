@@ -1,12 +1,12 @@
 // Dragging example works in Firefox but has an offset issue with Chrome
 
 const draggables = { 
-    1: {x: 0, y: 0},
-    2: {x: 0, y: 0},
-    3: {x: 0, y: 0},
-    4: {x: 0, y: 0},
+    1: {x: 0, y: 0, action: `alert("Hello from draggable #1")`},
+    2: {x: 0, y: 0, action: `alert("Hello from draggable #2")`},
+    3: {x: 0, y: 0, action: `alert("Hello from draggable #3")`},
+    4: {x: 0, y: 0, action: `alert("Hello from draggable #4")`},
     5: {x: 0, y: 0, "name": "In memory of James R. Beniger", action: `open("https://en.wikipedia.org/wiki/Beniger,_James_R.")` },
-    6: {x: 0, y: 0, "name": "Log Draggables", action: `console.log("draggables", this.draggables)` },
+    6: {x: 0, y: 0, "name": "Log Draggables", action: `console.log("draggables", context.draggables)` },
 }
 
 let dragStart
@@ -35,8 +35,7 @@ show(() => {
                 draggables[number].y = d.y + e.screenY - s.y
                 console.log("ondragend", draggables[number])
             },
-            // TODO: eval binding needs more work
-            onclick: draggables[number].action ? eval.bind({draggables, number}, draggables[number].action) : (() => alert("Hello from draggable #" + number))
+            onclick: draggables[number].action ? function() { const context = { draggables }; eval(draggables[number].action) }: (() => undefined)
         }, draggables[number].name || ("Drag me! " + number)))
       )
     }, ".bg-blue.br4"
