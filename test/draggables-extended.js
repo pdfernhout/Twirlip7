@@ -22,18 +22,14 @@ show(() => {
             },
             ondragstart: (e) => {
                 dragStart = {x: e.screenX, y: e.screenY}
-                console.log("ondragstart", dragStart, e)
                 e.dataTransfer.setData('text/plain', number)
                 e.dataTransfer.effectAllowed = "move"
             },
             ondragend: (e) => {
                 const d = draggables[number]
-                console.log("ondragend d", d)
                 const s = dragStart;
-                console.log("ondragend s", s)
                 draggables[number].x = d.x + e.screenX - s.x
                 draggables[number].y = d.y + e.screenY - s.y
-                console.log("ondragend", draggables[number])
             },
             onclick: draggables[number].action ? function() { const context = { draggables }; eval(draggables[number].action) }: (() => undefined)
         }, draggables[number].name || ("Drag me! " + number)))
