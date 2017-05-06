@@ -15,8 +15,14 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
     let dragOriginY
     
     // Convenience function which examples could use to put up closeable views
-    window.show = function(viewFunction, extraStyling, cleanUpCB) {
-        if (!extraStyling) { extraStyling = "" }
+    window.show = function(viewFunction, config) {
+        // config supports extraStyling and onclose
+        if (typeof config === "string") {
+            config = { extraStyling: config }
+        }
+        if (!config) config = {}
+        if (!config.extraStyling) { config.extraStyling = "" }
+        
         let div = document.createElement("div")
 
         const ClosableComponent = {            
@@ -29,12 +35,18 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     subview = m("div.ba.ma2.pa2.bg-red", "Error in show function: " + e)
                 }
                 const isShown = location.hash.startsWith("#open=")
-                return m("div.ba.ma3.pa3.bg-light-purple" + extraStyling,
+                return m("div.ba.ma3.pa3.bg-light-purple" + config.extraStyling,
                     isShown ?
                         [] :
                         m("button.fr", {
                             onclick: function () {
-                                if (cleanUpCB) cleanUpCB()
+                                if (config.onclose) {
+                                    try {
+                                        config.onclose()
+                                    } catch (e) {
+                                        console.log("Error in onclose function", e)
+                                    }
+                                }
                                 m.mount(div, null)
                                 document.body.removeChild(div)
                             }
