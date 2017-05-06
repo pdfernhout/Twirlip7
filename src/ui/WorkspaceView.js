@@ -15,7 +15,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
     let dragOriginY
     
     // Convenience function which examples could use to put up closeable views
-    window.show = function(viewFunction, extraStyling) {
+    window.show = function(viewFunction, extraStyling, cleanUpCB) {
         if (!extraStyling) { extraStyling = "" }
         let div = document.createElement("div")
 
@@ -34,6 +34,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         [] :
                         m("button.fr", {
                             onclick: function () {
+                                if (cleanUpCB) cleanUpCB()
                                 m.mount(div, null)
                                 document.body.removeChild(div)
                             }
