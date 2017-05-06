@@ -25,4 +25,4 @@ show(() => {
             fill: "orange",
         })
     )
-}, "", () => clearInterval(interval))
+}, { onclose: () => clearInterval(interval) })
