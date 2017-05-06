@@ -260,6 +260,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("a.ml2", { target: "_blank", href: "https://mithril.js.org/" }, "Mithril.js"),
                 m("a.ml2", { target: "_blank", href: "http://tachyons.io/" }, "Tachyons.js"),
                 m("a.ml2", { target: "_blank", href: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" }, "JavaScript"),
+                m("a.ml2", { target: "_blank", href: "https://arthurclemens.github.io/mithril-template-converter" }, "HTML->Mithril"),
+                // Useful: 
                 m("h4.ba.pa1", 
                     m("button.ma1", { onclick: WorkspaceView.previous, title: "Go to earlier snippet (or wrap around)" }, "< Previous"),
                     m("button.ma1", { onclick: WorkspaceView.next, title: "Go to later snippet (or wrap around)" }, "Next >"),
