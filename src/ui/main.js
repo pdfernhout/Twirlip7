@@ -8,13 +8,10 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage"], funct
     /* global location */
     
     const hash = location.hash
-    console.log("hash", hash)
     
     if (hash && hash.startsWith("#open=")) {
         const itemIndex = hash.substring(6)
-        console.log("has hash itemIndex", itemIndex)
         const item = JournalUsingLocalStorage.getItem(parseInt(itemIndex) - 1)
-        console.log("item", item)
         if (item) {
             eval(item)
         }
