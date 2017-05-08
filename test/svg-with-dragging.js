@@ -1,20 +1,9 @@
-// svg example with dragging
-// Only works as expected on the first drag
-// Need to deal with offset better
-
-let x = 100;
-let y = 100;
-
-function update() {
-    x += 1;
-    y -= 0.25;
-    m.redraw()
-}
-const interval = setInterval(update, 100);
+// svg example with 
+// May not keep up with fast drags
 
 let draggedItem = null;
-let start = {}
-let offset = {}
+let dragStart = {}
+let objectStart = {}
 
 show(() => {
     return m("svg", { width: 600, height: 200},
@@ -22,28 +11,32 @@ show(() => {
             style: {"stroke": "black", "fill": "none", "stroke-width": "1"}
         }),
         m("circle", {
-            cx: x, 
-            cy: y, 
+            cx: 100, 
+            cy: 100, 
             r: 50, 
             stroke: "green", 
             "stroke-width": 4, 
             fill: "orange",
             onmousedown: (event) => {
                 draggedItem = event.target
-                start = { x: event.clientX, y: event.clientY }
-                console.log("start", start)
-                offset = { x: 0, y: 0 }
+                dragStart = { x: event.clientX, y: event.clientY }
+                objectStart = { x: parseInt(event.target.cx.baseVal.value), y: parseInt(event.target.cy.baseVal.value) }
             },
-            onmousemove: (event) => { 
+            onmousemove: (event) => {
+                console.log("dragging", draggedItem)
                 if (draggedItem === event.target) { 
-                    let x = event.clientX - start.x + offset.x
-                    let y = event.clientY - start.y + offset.y
-                    event.target.setAttribute("transform", "translate(" + x + "," + y + ")") 
-                } else {
-                    draggedItem = null
+                    const dx = event.clientX - dragStart.x
+                    const dy = event.clientY - dragStart.y
+                    const newX = objectStart.x + dx
+                    const newY = objectStart.y + dy
+                    event.target.setAttribute("cx", newX)
+                    event.target.setAttribute("cy", newY)
                 }
             },
-            onmouseup: () => draggedItem = null,
+            onmouseup: () => {
+                draggedItem = null
+                console.log("stop dragging", draggedItem)
+            },
         })
     )
 }, { onclose: () => clearInterval(interval) })
