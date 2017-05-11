@@ -2,11 +2,11 @@
 
 const draggables = { 
     1: {x: 0, y: 0, action: `alert("Hello from draggable #1")`},
-    2: {x: 0, y: 0, action: `alert("Hello from draggable #2")`},
-    3: {x: 0, y: 0, action: `alert("Hello from draggable #3")`},
-    4: {x: 0, y: 0, name: "Make new item", action: `makeNewItem(context)` },
-    5: {x: 0, y: 0, name: "In memory of James R. Beniger", action: `open("https://en.wikipedia.org/wiki/Beniger,_James_R.")` },
-    6: {x: 0, y: 0, name: "Log Draggables", action: `console.log("draggables", context.draggables)` },
+    2: {x: 0, y: 50, action: `alert("Hello from draggable #2")`},
+    3: {x: 0, y: 100, action: `alert("Hello from draggable #3")`},
+    4: {x: 0, y: 150, name: "Make new item", action: makeNewItem },
+    5: {x: 0, y: 200, name: "In memory of James R. Beniger", action: `open("https://en.wikipedia.org/wiki/Beniger,_James_R.")` },
+    6: {x: 0, y: 250, name: "Log Draggables", action: `console.log("draggables", context.draggables)` },
 }
 
 function makeNewItem(context) {
@@ -19,8 +19,8 @@ function makeNewItem(context) {
 let dragStart
 
 show(() => {
-    return m("div.bg-gray.h5.w100", { ondragover: (e) => e.preventDefault(), ondrop: (e) => e.preventDefault() },
-        Object.keys(draggables).map((number) => m("div.di.ba.pa2.ma2.relative.bg-green", {
+    return m("div.bg-gray.h5.w100.relative", { ondragover: (e) => e.preventDefault(), ondrop: (e) => e.preventDefault() },
+        Object.keys(draggables).map((number) => m("div.di.ba.pa2.ma2.bg-green.absolute", {
             draggable: true,
             style: {
                 cursor: "move",
@@ -38,7 +38,13 @@ show(() => {
                 draggables[number].x = d.x + e.screenX - s.x
                 draggables[number].y = d.y + e.screenY - s.y
             },
-            onclick: draggables[number].action ? function() { const context = { draggables }; eval(draggables[number].action) }: (() => undefined)
+            onclick: draggables[number].action ? function() {
+                const context = { draggables }
+                const action = draggables[number].action
+                typeof action === "string" ?
+                    eval(draggables[number].action) :
+                    action(context)
+            }: (() => undefined)
         }, draggables[number].name || ("Drag me! " + number)))
       )
     }, ".bg-blue.br4"
