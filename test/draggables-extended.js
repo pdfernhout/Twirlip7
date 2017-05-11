@@ -4,9 +4,16 @@ const draggables = {
     1: {x: 0, y: 0, action: `alert("Hello from draggable #1")`},
     2: {x: 0, y: 0, action: `alert("Hello from draggable #2")`},
     3: {x: 0, y: 0, action: `alert("Hello from draggable #3")`},
-    4: {x: 0, y: 0, action: `alert("Hello from draggable #4")`},
-    5: {x: 0, y: 0, "name": "In memory of James R. Beniger", action: `open("https://en.wikipedia.org/wiki/Beniger,_James_R.")` },
-    6: {x: 0, y: 0, "name": "Log Draggables", action: `console.log("draggables", context.draggables)` },
+    4: {x: 0, y: 0, name: "Make new item", action: `makeNewItem(context)` },
+    5: {x: 0, y: 0, name: "In memory of James R. Beniger", action: `open("https://en.wikipedia.org/wiki/Beniger,_James_R.")` },
+    6: {x: 0, y: 0, name: "Log Draggables", action: `console.log("draggables", context.draggables)` },
+}
+
+function makeNewItem(context) {
+    console.log("makeNewItem", context)
+    const name = prompt("new name?")
+    if (!name) return
+    context.draggables[new Date().toISOString()] = {x: 0, y: 0, name: name }
 }
 
 let dragStart
