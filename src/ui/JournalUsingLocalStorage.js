@@ -43,7 +43,7 @@ define(["vendor/sha256"], function(sha256) {
         },
         
         getItemForLocation(location) {
-            return localStorage.getItem(locationToHashPrefix + location)
+            return JournalUsingLocalStorage.getItem(localStorage.getItem(locationToHashPrefix + location))
         },
         
         itemCount() {
@@ -52,26 +52,31 @@ define(["vendor/sha256"], function(sha256) {
         },
 
         textForJournal() {
+            const itemCount = JournalUsingLocalStorage.itemCount();
             const items = []
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i)
-                if (key.startsWith(hashToItemPrefix)) {
-                    items.push(localStorage.getItem(key))
-                }
+            for (let i = 0; i < itemCount; i++) {
+                const item = JournalUsingLocalStorage.getItemForLocation(i);
+                items.push(item)
             }
             return JSON.stringify(items, null, 4)
         },
 
         clearItems() {
-            for (let i = 0; i < localStorage.length; i++) {
+            // record keys to delete first to avoid modifying localStorage when we traverse it
+            const keysToDelete = []
+            const length = localStorage.length;
+            for (let i = 0; i < length; i++) {
                 const key = localStorage.key(i)
                 if (key.startsWith(hashToItemPrefix)
                     || key.startsWith(hashToLocationPrefix)
                     || key.startsWith(locationToHashPrefix)
                     || key === "_itemCount"
                 ) {
-                    localStorage.removeItem(key)
+                    keysToDelete.push(key)
                 }
+            }
+            for (let key of keysToDelete) {
+                localStorage.removeItem(key)
             }
         },
         
