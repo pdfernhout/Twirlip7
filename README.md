@@ -20,3 +20,5 @@ http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html
 No build step (yet).
 
 ### License: MIT
+
+![Twirlip7 Screenshot showing F-to-C snippet](screenshots/Twirlip7_Screenshot_showing_F-to-C_snippet_2017-05-19.png?raw=true "Twirlip7 Screenshot showing F-to-C snippet")
