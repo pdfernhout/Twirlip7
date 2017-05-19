@@ -1,44 +1,113 @@
-define([], function() {
+define(["vendor/sha256"], function(sha256) {
     "use strict"
     /* global localStorage */
-
+    
+    const hashToItemPrefix = "h2i_"
+    const hashToLocationPrefix = "h2l_"
+    const locationToHashPrefix = "l2h_"
+    
     const JournalUsingLocalStorage = {
 
         getCapabilities() {
             return {
-                idIsPosition: true,
+                idIsPosition: false,
                 addItem: true,
                 getItem: true,
                 itemCount: true,
                 textForJournal: true,
                 loadFromJournalText: true,
+                skip: true,
             }
         },
 
         addItem(item) {
-            localStorage.setItem(localStorage.length, item)
+            const hash = "" + sha256.sha256(item)
+            if (JournalUsingLocalStorage.getItem(hash)) return hash
+            const itemCount = JournalUsingLocalStorage.itemCount()
+            const location = itemCount;
+            try {
+                localStorage.setItem(hashToItemPrefix + hash, item)
+                localStorage.setItem(hashToLocationPrefix + hash, "" + location)
+                localStorage.setItem(locationToHashPrefix + location, hash)
+                localStorage.setItem("_itemCount", "" + (itemCount + 1))
+            } catch (e) {
+                // Probably storage is full
+                console.log("addItem failed", location, hash, e)
+                return null
+            }
+            return hash
         },
 
-        getItem(index) {
-            return localStorage.getItem(index)
+        getItem(hash) {
+            return localStorage.getItem(hashToItemPrefix + hash)
         },
-
+        
+        getItemForLocation(location) {
+            return localStorage.getItem(locationToHashPrefix + location)
+        },
+        
         itemCount() {
-            return localStorage.length
+            const itemCountString = localStorage.getItem("_itemCount") || "0"
+            return parseInt(itemCountString)
         },
 
         textForJournal() {
             const items = []
             for (let i = 0; i < localStorage.length; i++) {
-                items.push(JournalUsingLocalStorage.getItem(i))
+                const key = localStorage.key(i)
+                if (key.startsWith(hashToItemPrefix)) {
+                    items.push(localStorage.getItem(key))
+                }
             }
             return JSON.stringify(items, null, 4)
         },
 
+        clearItems() {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i)
+                if (key.startsWith(hashToItemPrefix)
+                    || key.startsWith(hashToLocationPrefix)
+                    || key.startsWith(locationToHashPrefix)
+                    || key === "_itemCount"
+                ) {
+                    localStorage.removeItem(key)
+                }
+            }
+        },
+        
         loadFromJournalText(journalText) {
-            localStorage.clear()
+            JournalUsingLocalStorage.clearItems();
             const items = JSON.parse(journalText)
             for (let item of items) { JournalUsingLocalStorage.addItem(item) }
+        },
+        
+        locationForKey(key) {
+            const searchKey = hashToLocationPrefix + key;
+            const locationString = localStorage.getItem(searchKey)
+            if (!locationString) return null;
+            return parseInt(locationString)
+        },
+        
+        skip(reference, delta, wrap) {
+            // TODO: Need to fix this so can skip over non-prefixed items if store other information
+            const itemCount = JournalUsingLocalStorage.itemCount()
+            if (itemCount === 0) return null
+            let start = (!reference) ? 
+                // convoluted start if reference is null or empty, 
+                // since want +1 to go to 0 or -1 to go to end
+                ((delta <= 0) ? 0 : itemCount - 1) :
+                JournalUsingLocalStorage.locationForKey(reference)
+            if (start === null) start = 0; 
+            let location
+            if (wrap) {
+                delta = delta % itemCount
+                location = (start + delta + itemCount) % itemCount
+            } else {
+                location = start + delta
+                if (location < 0) location = 0
+                if (location >= itemCount) location = itemCount - 1
+            }
+            return localStorage.getItem(locationToHashPrefix + location)
         }
     }
 

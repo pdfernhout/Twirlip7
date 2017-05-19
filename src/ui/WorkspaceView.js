@@ -9,6 +9,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
     "use strict"
     /* global m, location */
 
+    // let currentJournal = JournalUsingLocalStorage
     let currentJournal = JournalUsingLocalStorage
 
     // Used for resizing the editor's height
@@ -128,9 +129,13 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
         save() {
             const newContents = WorkspaceView.getEditorContents()
-            currentJournal.addItem(newContents)
+            const reference = currentJournal.addItem(newContents)
+            if (reference === null) {
+                alert("save failed -- maybe too many localStorage items?")
+                return
+            }
             WorkspaceView.lastLoadedContents = newContents
-            WorkspaceView.currentItemIndex = currentJournal.itemCount() - 1
+            WorkspaceView.currentItemIndex = reference
         },
 
         confirmClear(promptText) {
@@ -181,7 +186,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 alert("To open a snippet in its own window, you need to\nnavigate to a snippet from local storage first or save a new one.")
                 return
             }
-            window.open("#open=" + (parseInt(WorkspaceView.currentItemIndex) + 1))
+            window.open("#open=" + WorkspaceView.currentItemIndex)
         },
         
         importText() {
@@ -201,7 +206,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             FileUtils.saveToFile(provisionalFileName, fileContents)
         },
 
-        skip(offset) {
+        skip(delta) {
             if (!currentJournal.itemCount()) {
                 WorkspaceView.toast("No journal items to display. Try saving one first -- or show the example journal in the editor and then load it.")
                 return
@@ -211,11 +216,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 return
             }
             if (!WorkspaceView.confirmClear()) return
-            if (WorkspaceView.currentItemIndex === null) {
-                WorkspaceView.currentItemIndex = (offset >= 0 ?  0 : currentJournal.itemCount() - 1)
-            } else {
-                WorkspaceView.currentItemIndex = (currentJournal.itemCount() + WorkspaceView.currentItemIndex + offset) % currentJournal.itemCount()
-            }
+            WorkspaceView.currentItemIndex = currentJournal.skip(WorkspaceView.currentItemIndex, delta, "wrap")
             WorkspaceView.setEditorContents(currentJournal.getItem(WorkspaceView.currentItemIndex))
         },
 
@@ -274,11 +275,17 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("a.ml2", { target: "_blank", href: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" }, "JavaScript"),
                 m("a.ml2", { target: "_blank", href: "https://arthurclemens.github.io/mithril-template-converter" }, "HTML->Mithril"),
                 // Useful: 
-                m("h4.ba.pa1", 
+                m("h4.ba.pa1",
                     m("button.ma1", { onclick: WorkspaceView.previous, title: "Go to earlier snippet (or wrap around)" }, "< Previous"),
                     m("button.ma1", { onclick: WorkspaceView.next, title: "Go to later snippet (or wrap around)" }, "Next >"),
                     "JavaScript snippet ",
-                    (WorkspaceView.currentItemIndex === null ? "???" : WorkspaceView.currentItemIndex + 1),
+                    (WorkspaceView.currentItemIndex === null ? "???" : ("" + WorkspaceView.currentItemIndex).substring(0, 8)),
+                    ("" + WorkspaceView.currentItemIndex).length > 8 ? m("span", {title: WorkspaceView.currentItemIndex}, "...") : "",
+                    currentJournal.getCapabilities().idIsPosition ? 
+                        "" : 
+                        " : " + (currentJournal.locationForKey(WorkspaceView.currentItemIndex) === null ?
+                            "???" : 
+                            (parseInt(currentJournal.locationForKey(WorkspaceView.currentItemIndex)) + 1)),
                     " of ",
                     currentJournal.itemCount()
                 ),

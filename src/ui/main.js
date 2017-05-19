@@ -11,7 +11,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage"], funct
     
     if (hash && hash.startsWith("#open=")) {
         const itemIndex = hash.substring(6)
-        const item = JournalUsingLocalStorage.getItem(parseInt(itemIndex) - 1)
+        const item = JournalUsingLocalStorage.getItem(itemIndex)
         if (item) {
             eval(item)
         }
