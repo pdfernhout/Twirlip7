@@ -5,8 +5,8 @@
   "repository": "https://github.com/pdfernhout/Twirlip7",
   "main": "server.js",
   "scripts": {
-    "test": "npm run test",
-    "server": "node src/server.js"
+    "test": "ospec",
+    "start": "node src/server.js"
   },
   "author": "Paul D. Fernhout",
   "license": "MIT",
@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "eslint": "3.19.0",
+    "ospec": "1.2.3",
     "tachyons": "4.7.0",
     "three.js": "0.77.1"
   }
