@@ -6,7 +6,8 @@ As an experiment, questions include how could these snippets be stored, retrieve
 
 The log is stored in local storage by default (or memory if desired).
 The log of snippets can be exported or imported as JSON.
-However, all that may change as the experiment progresses in new directions.
+
+However, all that may change as the experiment progresses in new directions. For example, as one possibililty, these snippets and content they generate might someday be distributed through the decentralized Matrix.org.
 
 The IDE supports some functionality inspired by the Smalltalk "Workspace". You can select a section of code in the editor and then "do it" to evaluate the code, "print it" to insert the evaluation result in the editor, or "inspect it" to see the evaluation result (in the JavaScript console in this case). If you don't select anything specific, all the code in the editor is evaluated.
 
@@ -21,4 +22,8 @@ No build step (yet).
 
 ### License: MIT
 
-![Twirlip7 Screenshot showing F-to-C snippet](screenshots/Twirlip7_Screenshot_showing_F-to-C_snippet_2017-05-19.png?raw=true "Twirlip7 Screenshot showing F-to-C snippet")
+Screenshot of Twirlip7 editor showing a code snippet with a simple temperature convertor in Mithril (after having pressed "Do it"):
+![Twirlip7 Screenshot showing F-to-C snippet in editor](screenshots/Twirlip7_Screenshot_showing_F-to-C_snippet_2017-05-19.png?raw=true "Twirlip7 Screenshot showing F-to-C snippet in editor after pressing "Do it")
+
+Screenshot showing the same code snippet opened in a new tab as a stand-alone-looking app (after having pressed "Open it"):
+![Twirlip7 Screenshot showing F-to-C snippet opened in a new tab](screenshots/Twirlip7_Screenshot_showing_F-to-C_opened_2017-05-19.png?raw=true "Twirlip7 Screenshot showing F-to-C snippet opened as an app running in a new tab after pressing "Open it")
