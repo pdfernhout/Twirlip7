@@ -24,7 +24,7 @@ define(["vendor/sha256"], function(sha256) {
             const hash = "" + sha256.sha256(item)
             if (JournalUsingLocalStorage.getItem(hash)) return hash
             const itemCount = JournalUsingLocalStorage.itemCount()
-            const location = itemCount;
+            const location = itemCount
             try {
                 localStorage.setItem(hashToItemPrefix + hash, item)
                 localStorage.setItem(hashToLocationPrefix + hash, "" + location)
@@ -52,10 +52,10 @@ define(["vendor/sha256"], function(sha256) {
         },
 
         textForJournal() {
-            const itemCount = JournalUsingLocalStorage.itemCount();
+            const itemCount = JournalUsingLocalStorage.itemCount()
             const items = []
             for (let i = 0; i < itemCount; i++) {
-                const item = JournalUsingLocalStorage.getItemForLocation(i);
+                const item = JournalUsingLocalStorage.getItemForLocation(i)
                 items.push(item)
             }
             return JSON.stringify(items, null, 4)
@@ -64,7 +64,7 @@ define(["vendor/sha256"], function(sha256) {
         clearItems() {
             // record keys to delete first to avoid modifying localStorage when we traverse it
             const keysToDelete = []
-            const length = localStorage.length;
+            const length = localStorage.length
             for (let i = 0; i < length; i++) {
                 const key = localStorage.key(i)
                 if (key.startsWith(hashToItemPrefix)
@@ -81,15 +81,15 @@ define(["vendor/sha256"], function(sha256) {
         },
         
         loadFromJournalText(journalText) {
-            JournalUsingLocalStorage.clearItems();
+            JournalUsingLocalStorage.clearItems()
             const items = JSON.parse(journalText)
             for (let item of items) { JournalUsingLocalStorage.addItem(item) }
         },
         
         locationForKey(key) {
-            const searchKey = hashToLocationPrefix + key;
+            const searchKey = hashToLocationPrefix + key
             const locationString = localStorage.getItem(searchKey)
-            if (!locationString) return null;
+            if (!locationString) return null
             return parseInt(locationString)
         },
         
@@ -102,7 +102,7 @@ define(["vendor/sha256"], function(sha256) {
                 // since want +1 to go to 0 or -1 to go to end
                 ((delta <= 0) ? 0 : itemCount - 1) :
                 JournalUsingLocalStorage.locationForKey(reference)
-            if (start === null) start = 0; 
+            if (start === null) start = 0
             let location
             if (wrap) {
                 delta = delta % itemCount
