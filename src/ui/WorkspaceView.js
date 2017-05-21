@@ -272,10 +272,11 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     { hidden: WorkspaceView.toastMessages.length === 0 },
                     WorkspaceView.toastMessages.length ? WorkspaceView.toastMessages[0].message : ""
                 ),
-                m("a.ml2", { target: "_blank", href: "https://github.com/pdfernhout/Twirlip7" }, "About Twirlip"),
+                m("a.ml2", { target: "_blank", href: "https://github.com/pdfernhout/Twirlip7" }, "About Twirlip7"),
                 m("span.ml2", "which uses:"),
                 m("a.ml2", { target: "_blank", href: "https://mithril.js.org/" }, "Mithril.js"),
                 m("a.ml2", { target: "_blank", href: "http://tachyons.io/" }, "Tachyons.js"),
+                m("a.ml2", { target: "_blank", href: "https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts" }, "Ace"),
                 m("a.ml2", { target: "_blank", href: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" }, "JavaScript"),
                 m("a.ml2", { target: "_blank", href: "https://arthurclemens.github.io/mithril-template-converter" }, "HTML->Mithril"),
                 // Useful: 
