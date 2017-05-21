@@ -18,9 +18,14 @@ define([], function() {
         },
 
         addItem(item) {
+            for (let i = 0; i < JournalUsingMemory.items.length; i++) {
+                if (item === JournalUsingMemory.items[i]) {
+                    return { id: "" + (i + 1), existed: true }
+                }
+            }
             const location = JournalUsingMemory.items.length
             JournalUsingMemory.items.push(item)
-            return { id: "" + (location + 1), added: true }
+            return { id: "" + (location + 1), existed: false }
         },
 
         getItem(reference) {
