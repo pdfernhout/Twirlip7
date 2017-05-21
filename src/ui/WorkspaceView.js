@@ -206,7 +206,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             FileUtils.saveToFile(provisionalFileName, fileContents)
         },
 
-        skip(delta) {
+        skip(delta, wrap) {
             if (!currentJournal.itemCount()) {
                 WorkspaceView.toast("No journal items to display. Try saving one first -- or show the example journal in the editor and then load it.")
                 return
@@ -216,13 +216,17 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 return
             }
             if (!WorkspaceView.confirmClear()) return
-            WorkspaceView.currentItemIndex = currentJournal.skip(WorkspaceView.currentItemIndex, delta, "wrap")
+            WorkspaceView.currentItemIndex = currentJournal.skip(WorkspaceView.currentItemIndex, delta, wrap)
             WorkspaceView.setEditorContents(currentJournal.getItem(WorkspaceView.currentItemIndex))
         },
 
-        previous() { WorkspaceView.skip(-1) },
+        goFirst() { WorkspaceView.skip(-1000000) },
 
-        next() { WorkspaceView.skip(1) },
+        goPrevious() { WorkspaceView.skip(-1) },
+
+        goNext() { WorkspaceView.skip(1) },
+
+        goLast() { WorkspaceView.skip(1000000) },
 
         showJournal() {
             if (!WorkspaceView.confirmClear()) return
@@ -276,9 +280,11 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("a.ml2", { target: "_blank", href: "https://arthurclemens.github.io/mithril-template-converter" }, "HTML->Mithril"),
                 // Useful: 
                 m("h4.ba.pa1",
-                    m("button.ma1", { onclick: WorkspaceView.previous, title: "Go to earlier snippet (or wrap around)" }, "< Previous"),
-                    m("button.ma1", { onclick: WorkspaceView.next, title: "Go to later snippet (or wrap around)" }, "Next >"),
-                    "JavaScript snippet ",
+                    m("button.ma1", { onclick: WorkspaceView.goFirst, title: "Go to first snippet" }, "|<"),
+                    m("button.ma1", { onclick: WorkspaceView.goPrevious, title: "Go to earlier snippet" }, "< Previous"),
+                    m("button.ma1", { onclick: WorkspaceView.goNext, title: "Go to later snippet" }, "Next >"),
+                    m("button.ma1", { onclick: WorkspaceView.goLast, title: "Go to last snippet" }, ">|"),
+                   "JavaScript snippet ",
                     (WorkspaceView.currentItemIndex === null ? "???" : ("" + WorkspaceView.currentItemIndex).substring(0, 8)),
                     ("" + WorkspaceView.currentItemIndex).length > 8 ? m("span", {title: WorkspaceView.currentItemIndex}, "...") : "",
                     currentJournal.getCapabilities().idIsPosition ? 
