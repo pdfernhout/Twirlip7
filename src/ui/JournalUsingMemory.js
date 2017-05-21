@@ -20,7 +20,7 @@ define([], function() {
         addItem(item) {
             const location = JournalUsingMemory.items.length
             JournalUsingMemory.items.push(item)
-            return "" + (location + 1)
+            return { id: "" + (location + 1), added: true }
         },
 
         getItem(reference) {

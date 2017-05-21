@@ -22,7 +22,7 @@ define(["vendor/sha256"], function(sha256) {
 
         addItem(item) {
             const hash = "" + sha256.sha256(item)
-            if (JournalUsingLocalStorage.getItem(hash)) return hash
+            if (JournalUsingLocalStorage.getItem(hash)) return { id: hash, existed: true }
             const itemCount = JournalUsingLocalStorage.itemCount()
             const location = itemCount
             try {
@@ -33,9 +33,9 @@ define(["vendor/sha256"], function(sha256) {
             } catch (e) {
                 // Probably storage is full
                 console.log("addItem failed", location, hash, e)
-                return null
+                return { id: null, existed: false, error: e}
             }
-            return hash
+            return { id: hash, existed: false }
         },
 
         getItem(hash) {

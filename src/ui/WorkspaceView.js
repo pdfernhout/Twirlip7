@@ -129,13 +129,18 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
         save() {
             const newContents = WorkspaceView.getEditorContents()
-            const reference = currentJournal.addItem(newContents)
-            if (reference === null) {
-                alert("save failed -- maybe too many localStorage items?")
+            const addResult = currentJournal.addItem(newContents)
+            if (addResult.error) {
+                alert("save failed -- maybe too many localStorage items?\n" + addResult.error)
                 return
             }
+            if (addResult.existed) {
+                WorkspaceView.toast("Item already saved", 1000)
+            } else {
+                WorkspaceView.toast("Saved item as:\n" + addResult.id, 2000)
+            }
             WorkspaceView.lastLoadedContents = newContents
-            WorkspaceView.currentItemIndex = reference
+            WorkspaceView.currentItemIndex = addResult.id
         },
 
         confirmClear(promptText) {
