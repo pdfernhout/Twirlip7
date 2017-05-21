@@ -273,7 +273,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
         view() {
             return m("main.ma2", [
-                m("div#toastDiv.fixed.top-2.left-2.w-40.pa2.fieldset.bg-gold.pl3.pr3.tc.o-90.z-max", 
+                m("div#toastDiv.fixed.top-2.left-2.pa2.fieldset.bg-gold.pl3.pr3.tc.o-90.z-max", 
                     { hidden: WorkspaceView.toastMessages.length === 0 },
                     WorkspaceView.toastMessages.length ? WorkspaceView.toastMessages[0].message : ""
                 ),
