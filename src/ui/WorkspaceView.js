@@ -61,11 +61,20 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         m.mount(div, ClosableComponent)
     }
     
-    // setup twirlip7 global for use by evaluated code
-    if (!window.twirlip7) {
-        window.twirlip7 = {}
-        if (!window.twirlip7.show) {
-            window.twirlip7.show = show
+    function setupTwirlip7Global() {
+        // setup Twirlip7 global for use by evaluated code
+        if (!window.Twirlip7) {
+            window.Twirlip7 = {}
+            if (!window.Twirlip7.show) window.Twirlip7.show = show
+            if (!window.Twirlip7.WorkspaceView) window.Twirlip7.WorkspaceView = WorkspaceView
+            if (!window.Twirlip7.FileUtils) window.Twirlip7.FileUtils = FileUtils
+            if (!window.Twirlip7.JournalUsingLocalStorage) window.Twirlip7.JournalUsingLocalStorage = JournalUsingLocalStorage
+            if (!window.Twirlip7.JournalUsingMemory) window.Twirlip7.JournalUsingMemory = JournalUsingMemory
+            if (!window.Twirlip7.getCurrentJournal) {
+                window.Twirlip7.getCurrentJournal = () => {
+                    return currentJournal
+                }
+            }
         }
     }
 
@@ -359,5 +368,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
     }
 
+    setupTwirlip7Global()
+    
     return WorkspaceView
 })
