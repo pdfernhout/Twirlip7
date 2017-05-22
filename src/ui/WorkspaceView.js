@@ -35,9 +35,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     console.log("Error in show function", e)
                     subview = m("div.ba.ma2.pa2.bg-red", "Error in show function: " + e)
                 }
-                const isShown = location.hash.startsWith("#open=")
+                const isCloseButtonShown = location.hash.startsWith("#open=")
                 return m("div.ba.ma3.pa3.bg-light-purple" + config.extraStyling,
-                    isShown ?
+                    subview,
+                    isCloseButtonShown ?
                         [] :
                         m("button.fr", {
                             onclick: function () {
@@ -51,8 +52,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                                 m.mount(div, null)
                                 document.body.removeChild(div)
                             }
-                        }, "X"),
-                    subview
+                        }, "X")
                 )
             }
         }
