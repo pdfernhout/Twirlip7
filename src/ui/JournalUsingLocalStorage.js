@@ -2,9 +2,10 @@ define(["vendor/sha256"], function(sha256) {
     "use strict"
     /* global localStorage */
     
-    const hashToItemPrefix = "h2i_"
-    const hashToLocationPrefix = "h2l_"
-    const locationToHashPrefix = "l2h_"
+    const hashToItemPrefix = "_h2i_"
+    const hashToLocationPrefix = "_h2l_"
+    const locationToHashPrefix = "_l2h_"
+    const itemCountKey = "_itemCounter"
     
     const JournalUsingLocalStorage = {
 
@@ -29,7 +30,7 @@ define(["vendor/sha256"], function(sha256) {
                 localStorage.setItem(hashToItemPrefix + hash, item)
                 localStorage.setItem(hashToLocationPrefix + hash, "" + location)
                 localStorage.setItem(locationToHashPrefix + location, hash)
-                localStorage.setItem("_itemCount", "" + (itemCount + 1))
+                localStorage.setItem(itemCountKey, "" + (itemCount + 1))
             } catch (e) {
                 // Probably storage is full
                 console.log("addItem failed", location, hash, e)
@@ -47,7 +48,7 @@ define(["vendor/sha256"], function(sha256) {
         },
         
         itemCount() {
-            const itemCountString = localStorage.getItem("_itemCount") || "0"
+            const itemCountString = localStorage.getItem(itemCountKey) || "0"
             return parseInt(itemCountString)
         },
 
@@ -70,7 +71,7 @@ define(["vendor/sha256"], function(sha256) {
                 if (key.startsWith(hashToItemPrefix)
                     || key.startsWith(hashToLocationPrefix)
                     || key.startsWith(locationToHashPrefix)
-                    || key === "_itemCount"
+                    || key === itemCountKey
                 ) {
                     keysToDelete.push(key)
                 }
@@ -97,8 +98,8 @@ define(["vendor/sha256"], function(sha256) {
             // TODO: Need to fix this so can skip over non-prefixed items if store other information
             const itemCount = JournalUsingLocalStorage.itemCount()
             if (itemCount === 0) return null
-            let start = (!reference) ? 
-                // convoluted start if reference is null or empty, 
+            let start = (!reference) ?
+                // convoluted start if reference is null or empty,
                 // since want +1 to go to 0 or -1 to go to end
                 ((delta <= 0) ? 0 : itemCount - 1) :
                 JournalUsingLocalStorage.locationForKey(reference)
