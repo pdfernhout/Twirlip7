@@ -287,13 +287,18 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.toastMessages.push({message, delay})
             if ( WorkspaceView.toastMessages.length === 1) { removeToastAfterDelay() }
         },
-
-        view() {
-            return m("main.ma2", [
-                m("div#toastDiv.fixed.top-2.left-2.pa2.fieldset.bg-gold.pl3.pr3.tc.o-90.z-max", 
-                    { hidden: WorkspaceView.toastMessages.length === 0 },
-                    WorkspaceView.toastMessages.length ? WorkspaceView.toastMessages[0].message : ""
-                ),
+        
+        // View functions which are composed into one big view at the end
+        
+        viewToast() {
+           return m("div#toastDiv.fixed.top-2.left-2.pa2.fieldset.bg-gold.pl3.pr3.tc.o-90.z-max", 
+                { hidden: WorkspaceView.toastMessages.length === 0 },
+                WorkspaceView.toastMessages.length ? WorkspaceView.toastMessages[0].message : ""
+            ) 
+        },
+        
+        viewAbout() {
+            return m("div#about", [
                 m("a.ml2", { target: "_blank", href: "https://github.com/pdfernhout/Twirlip7" }, "About Twirlip7"),
                 m("span.ml2", "which uses:"),
                 m("a.ml2", { target: "_blank", href: "https://mithril.js.org/" }, "Mithril.js"),
@@ -301,69 +306,109 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("a.ml2", { target: "_blank", href: "https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts" }, "Ace"),
                 m("a.ml2", { target: "_blank", href: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" }, "JavaScript"),
                 m("a.ml2", { target: "_blank", href: "https://arthurclemens.github.io/mithril-template-converter" }, "HTML->Mithril"),
-                // Useful: 
-                m("h4.ba.pa1",
-                    m("button.ma1", { onclick: WorkspaceView.goFirst, title: "Go to first snippet" }, "|<"),
-                    m("button.ma1", { onclick: WorkspaceView.goPrevious, title: "Go to earlier snippet" }, "< Previous"),
-                    m("button.ma1", { onclick: WorkspaceView.goNext, title: "Go to later snippet" }, "Next >"),
-                    m("button.ma1", { onclick: WorkspaceView.goLast, title: "Go to last snippet" }, ">|"),
-                   "JavaScript snippet ",
-                    (WorkspaceView.currentItemIndex === null ? "???" : ("" + WorkspaceView.currentItemIndex).substring(0, 8)),
-                    ("" + WorkspaceView.currentItemIndex).length > 8 ? m("span", {title: WorkspaceView.currentItemIndex}, "...") : "",
-                    currentJournal.getCapabilities().idIsPosition ? 
-                        "" : 
-                        " : " + (currentJournal.locationForKey(WorkspaceView.currentItemIndex) === null ?
-                            "???" : 
-                            (parseInt(currentJournal.locationForKey(WorkspaceView.currentItemIndex)) + 1)),
-                    " of ",
-                    currentJournal.itemCount()
-                ),
-                m("input#fileInput", { "type" : "file" , "hidden" : true } ),
-                m("div.w-100#editor", {
-                    style: {
-                        height: WorkspaceView.aceEditorHeight + "rem"
-                    },
-                    oncreate: function() {
-                        WorkspaceView.editor = ace.edit("editor")
-                        WorkspaceView.editor.getSession().setMode("ace/mode/javascript")
-                        WorkspaceView.editor.getSession().setUseSoftTabs(true)
-                        WorkspaceView.editor.$blockScrolling = Infinity 
-                    },
-                    onupdate: function() {
-                        WorkspaceView.editor.resize()
-                    }
-                }),
-                m("div.bg-light-gray", {
-                    // splitter for resizing the editor's height
-                    style: { cursor: "ns-resize", height: "0.33rem" },
-                    draggable: true,
-                    ondragstart: (event) => {
-                        dragOriginY = event.screenY
-                        event.dataTransfer.setData("Text", event.target.id)
-                        event.dataTransfer.effectAllowed = "none"
-                    },
-                    ondragend: (event) => {
-                        const yDifference = event.screenY - dragOriginY
-                        const lineDifference = Math.floor(yDifference / WorkspaceView.editor.renderer.lineHeight)
-                        WorkspaceView.aceEditorHeight = parseInt(WorkspaceView.aceEditorHeight) + lineDifference
-                        if (WorkspaceView.aceEditorHeight < 5) { WorkspaceView.aceEditorHeight = 5 }
-                        if (WorkspaceView.aceEditorHeight > 100) { WorkspaceView.aceEditorHeight = 100 }
-                    },
-                }),
+            ])
+        },
+        
+        viewNavigate() {
+            return m("h4.ba.pa1",
+                m("button.ma1", { onclick: WorkspaceView.goFirst, title: "Go to first snippet" }, "|<"),
+                m("button.ma1", { onclick: WorkspaceView.goPrevious, title: "Go to earlier snippet" }, "< Previous"),
+                m("button.ma1", { onclick: WorkspaceView.goNext, title: "Go to later snippet" }, "Next >"),
+                m("button.ma1", { onclick: WorkspaceView.goLast, title: "Go to last snippet" }, ">|"),
+               "JavaScript snippet ",
+                (WorkspaceView.currentItemIndex === null ? "???" : ("" + WorkspaceView.currentItemIndex).substring(0, 8)),
+                ("" + WorkspaceView.currentItemIndex).length > 8 ? m("span", {title: WorkspaceView.currentItemIndex}, "...") : "",
+                currentJournal.getCapabilities().idIsPosition ? 
+                    "" : 
+                    " : " + (currentJournal.locationForKey(WorkspaceView.currentItemIndex) === null ?
+                        "???" : 
+                        (parseInt(currentJournal.locationForKey(WorkspaceView.currentItemIndex)) + 1)),
+                " of ",
+                currentJournal.itemCount()
+            )
+        },
+        
+        viewFileInput() {
+            return m("input#fileInput", { "type" : "file" , "hidden" : true } )
+        },
+        
+        viewEditor() {
+            return m("div.w-100#editor", {
+                style: {
+                    height: WorkspaceView.aceEditorHeight + "rem"
+                },
+                oncreate: function() {
+                    WorkspaceView.editor = ace.edit("editor")
+                    WorkspaceView.editor.getSession().setMode("ace/mode/javascript")
+                    WorkspaceView.editor.getSession().setUseSoftTabs(true)
+                    WorkspaceView.editor.$blockScrolling = Infinity 
+                },
+                onupdate: function() {
+                    WorkspaceView.editor.resize()
+                }
+            })
+        },
+        
+        viewSplitter() {
+            return m("div.bg-light-gray", {
+                // splitter for resizing the editor's height
+                style: { cursor: "ns-resize", height: "0.33rem" },
+                draggable: true,
+                ondragstart: (event) => {
+                    dragOriginY = event.screenY
+                    event.dataTransfer.setData("Text", event.target.id)
+                    event.dataTransfer.effectAllowed = "none"
+                },
+                ondragend: (event) => {
+                    const yDifference = event.screenY - dragOriginY
+                    const lineDifference = Math.floor(yDifference / WorkspaceView.editor.renderer.lineHeight)
+                    WorkspaceView.aceEditorHeight = parseInt(WorkspaceView.aceEditorHeight) + lineDifference
+                    if (WorkspaceView.aceEditorHeight < 5) { WorkspaceView.aceEditorHeight = 5 }
+                    if (WorkspaceView.aceEditorHeight > 100) { WorkspaceView.aceEditorHeight = 100 }
+                },
+            })
+        },
+        
+        viewEvaluateButtons() {
+            return [
                 m("button.ma1", { onclick: WorkspaceView.doIt, title: "Evaluate selected code" }, "Do it"),
                 m("button.ma1", { onclick: WorkspaceView.printIt, title: "Evaluate code and insert result in editor" }, "Print it"),
                 m("button.ma1", { onclick: WorkspaceView.inspectIt, title: "Evaluate code and log result to console"  }, "Inspect it"),
                 m("button.ma1", { onclick: WorkspaceView.openIt, title: "Open current saved snippet in a new window" }, "Open it"),
-                m("span.pa1"),
+            ]
+        },
+        
+        viewEditorButtons() {
+            return [
                 m("button.ma1", { onclick: WorkspaceView.save, title: "Save current snippet into the journal"  }, "Save"),
                 m("button.ma1", { onclick: WorkspaceView.clear, title: "Clear out text in editor" }, "Clear"),
                 m("button.ma1", { onclick: WorkspaceView.importText, title: "Load a file into editor" }, "Import"),
                 m("button.ma1", { onclick: WorkspaceView.exportText, title: "Save current editor text to a file" }, "Export"),
-                m("br"),
+            ]
+        },
+        
+        viewJournalButtons() {
+            return [
                 m("button", { onclick: WorkspaceView.changeJournal, title: "Change storage location of snippets" }, "Journal: " + WorkspaceView.journalChoice),
                 m("button.ma1", { onclick: WorkspaceView.showJournal, title: "Put JSON for journal contents into editor" }, "Show current journal"),
                 m("button.ma1", { onclick: WorkspaceView.showExampleJournal, title: "Put a journal of sample snippets as JSON into editor (for loading afterwards)" }, "Show example journal"),
                 m("button.ma1", { onclick: WorkspaceView.loadJournal, title: "Load JSON journal from editor -- replacing all previous snippets!" }, "Load journal"),
+            ]
+        },
+
+        view() {
+            return m("main.ma2", [
+                WorkspaceView.viewToast(),
+                WorkspaceView.viewAbout(),
+                WorkspaceView.viewNavigate(),
+                WorkspaceView.viewFileInput(),
+                WorkspaceView.viewEditor(),
+                WorkspaceView.viewSplitter(),
+                WorkspaceView.viewEvaluateButtons(),
+                m("span.pa1"),
+                WorkspaceView.viewEditorButtons(),
+                m("br"),
+                WorkspaceView.viewJournalButtons(),
             ])
         },
     }
