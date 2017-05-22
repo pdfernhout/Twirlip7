@@ -6,7 +6,8 @@ module.exports = {
     "globals": {
         "define": true,
         "requirejs": true,
-        "m": true
+        "m": true,
+        "twirlip7": true
     },
     "extends": "eslint:recommended",
     "rules": {

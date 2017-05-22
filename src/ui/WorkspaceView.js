@@ -16,7 +16,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
     let dragOriginY
     
     // Convenience function which examples could use to put up closeable views
-    window.show = function(viewFunction, config) {
+    function show(viewFunction, config) {
         // config supports extraStyling and onclose
         if (typeof config === "string") {
             config = { extraStyling: config }
@@ -60,6 +60,14 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         document.body.appendChild(div)
         m.mount(div, ClosableComponent)
     }
+    
+    // setup twirlip7 global for use by evaluated code
+    if (!window.twirlip7) {
+        window.twirlip7 = {}
+        if (!window.twirlip7.show) {
+            window.twirlip7.show = show
+        }
+    }
 
     const WorkspaceView = {
         editor: null,
@@ -75,7 +83,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         
         oninit() {
             if (currentJournal.itemCount() === 0) {
-                window.show(function () { 
+                show(function () { 
                     return m("div", `To get started with some example code snippets,
                         click "Show example journal", then "Load journal", then "Next", and then "Do it".
                         Use "Previous" and "Next" to scroll through more example snippets.`)

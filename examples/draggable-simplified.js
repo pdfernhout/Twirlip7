@@ -9,7 +9,7 @@ const draggable = {
 
 let dragStart
 
-show(() => {
+twirlip7.show(() => {
     return m("div.di.ba.pa2.ma2.relative.bg-green", {
             draggable: true,
             style: {

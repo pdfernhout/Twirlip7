@@ -1,6 +1,6 @@
 // svg example
 
-show(() => {
+twirlip7.show(() => {
     return m("svg", { width: 200, height: 200},
         m("circle", {
             cx: 100, 

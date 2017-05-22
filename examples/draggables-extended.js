@@ -18,7 +18,7 @@ function makeNewItem(context) {
 
 let dragStart
 
-show(() => {
+twirlip7.show(() => {
     return m("div.bg-gray.h5.w100.relative", { ondragover: (e) => e.preventDefault(), ondrop: (e) => e.preventDefault() },
         Object.keys(draggables).map((number) => m("div.di.ba.pa2.ma2.bg-green.absolute", {
             draggable: true,

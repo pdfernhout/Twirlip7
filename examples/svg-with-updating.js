@@ -11,7 +11,7 @@ function update() {
 }
 const interval = setInterval(update, 100);
 
-show(() => {
+twirlip7.show(() => {
     return m("svg", { width: 600, height: 200},
         m("rect[height='200'][width='600'][x='0'][y='0']", {
             style: {"stroke": "black", "fill": "none", "stroke-width": "1"}
