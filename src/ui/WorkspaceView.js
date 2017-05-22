@@ -36,11 +36,11 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     subview = m("div.ba.ma2.pa2.bg-red", "Error in show function: " + e)
                 }
                 const isCloseButtonShown = location.hash.startsWith("#open=")
-                return m("div.ba.ma3.pa3.bg-light-purple" + config.extraStyling,
+                return m("div.ba.ma3.pa3.bg-light-purple.relative" + config.extraStyling,
                     subview,
                     isCloseButtonShown ?
                         [] :
-                        m("button.fr", {
+                        m("button.absolute.right-1.top-1", {
                             onclick: function () {
                                 if (config.onclose) {
                                     try {
