@@ -90,6 +90,9 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         aceEditorHeight: 20,
         toastMessages: [],
         
+        // to support user-defined extensions
+        extensions: {},
+        
         oninit() {
             if (currentJournal.itemCount() === 0) {
                 show(function () { 
@@ -288,6 +291,43 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             if ( WorkspaceView.toastMessages.length === 1) { removeToastAfterDelay() }
         },
         
+        // Extension sections are intended to be user-defined
+        // extension example: {id: "hello", tags: "header", code: (phase, extension) => m("div", "Hello from extension") }
+        
+        extensionsCallForTag(tag, phase) {
+            const result = []
+            const sortedKeys = Object.keys(WorkspaceView.extensions).sort()
+            for (let key of sortedKeys) {
+                const extension = WorkspaceView.extensions[key]
+                if (!extension) continue
+                if (extension.tags && (tag === extension.tags || extension.tags[tag])) {
+                    if (extension.code) {
+                        const callResult = extension.code(phase, extension)
+                        result.push(callResult)
+                    } else {
+                        console.log("no code for extension", extension.id)
+                    }
+                }
+            }
+            return result
+        },
+        
+        extensionsInstall(extension) {
+            if (!extension.id) {
+                console.log("no id for extension to install\n" + JSON.stringify(extension))
+                return
+            }
+            WorkspaceView.extensions[extension.id] = extension
+        },
+        
+        extensionsUninstall(extension) {
+            if (!extension.id) {
+                console.log("no id for extension to uninstall\n" + JSON.stringify(extension))
+                return
+            }
+            delete WorkspaceView.extensions[extension.id]
+        },
+        
         // View functions which are composed into one big view at the end
         
         viewToast() {
@@ -404,19 +444,34 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             ]
         },
         
+        viewExtensionsHeader() {
+            return m("#extensionsHeader", WorkspaceView.extensionsCallForTag("header", "view"))
+        },
+        
+        viewExtensionsMiddle() {
+            return m("#extensionsMiddle", WorkspaceView.extensionsCallForTag("middle", "view"))
+        },
+        
+        viewExtensionsFooter() {
+            return m("#extensionsFooter", WorkspaceView.extensionsCallForTag("footer", "view"))
+        },
+        
         viewMain() {
             return [
                 WorkspaceView.viewToast(),
+                WorkspaceView.viewFileInput(),
+                WorkspaceView.viewExtensionsHeader(),
                 WorkspaceView.viewAbout(),
                 WorkspaceView.viewNavigate(),
-                WorkspaceView.viewFileInput(),
                 WorkspaceView.viewEditor(),
                 WorkspaceView.viewSplitter(),
+                WorkspaceView.viewExtensionsMiddle(),
                 WorkspaceView.viewEvaluateButtons(),
                 WorkspaceView.viewSpacer(),
                 WorkspaceView.viewEditorButtons(),
                 WorkspaceView.viewBreak(),
                 WorkspaceView.viewJournalButtons(),
+                WorkspaceView.viewExtensionsFooter(),
             ]
         },
 
