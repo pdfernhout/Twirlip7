@@ -292,7 +292,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
         
         // Extension sections are intended to be user-defined
-        // extension example: {id: "hello", tags: "header", code: (phase, extension) => m("div", "Hello from extension") }
+        // extension example: {id: "hello", tags: "header", code: (context) => m("div", "Hello from extension") }
         
         extensionsCallForTag(tag, phase) {
             const result = []
@@ -302,7 +302,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 if (!extension) continue
                 if (extension.tags && (tag === extension.tags || extension.tags[tag])) {
                     if (extension.code) {
-                        const callResult = extension.code(phase, extension)
+                        const callResult = extension.code({tag, phase, extension})
                         result.push(callResult)
                     } else {
                         console.log("no code for extension", extension.id)
