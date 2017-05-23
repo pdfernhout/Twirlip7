@@ -97,7 +97,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             if (currentJournal.itemCount() === 0) {
                 show(function () { 
                     return m("div", `To get started with some example code snippets,
-                        click "Show example journal", then "Load journal", then "Next", and then "Do it".
+                        click "Show example journal", then "Load journal", then "Previous", and then "Do it".
                         Use "Previous" and "Next" to scroll through more example snippets.`)
                 })
             }
