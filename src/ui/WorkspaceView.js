@@ -377,6 +377,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("button.ma1", { onclick: WorkspaceView.openIt, title: "Open current saved snippet in a new window" }, "Open it"),
             ]
         },
+                
+        viewSpacer() {
+            return m("span.pa1")
+        },
         
         viewEditorButtons() {
             return [
@@ -387,6 +391,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             ]
         },
         
+        viewBreak() {
+            return m("br")
+        },
+        
         viewJournalButtons() {
             return [
                 m("button", { onclick: WorkspaceView.changeJournal, title: "Change storage location of snippets" }, "Journal: " + WorkspaceView.journalChoice),
@@ -395,9 +403,9 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("button.ma1", { onclick: WorkspaceView.loadJournal, title: "Load JSON journal from editor -- replacing all previous snippets!" }, "Load journal"),
             ]
         },
-
-        view() {
-            return m("main.ma2", [
+        
+        viewMain() {
+            return [
                 WorkspaceView.viewToast(),
                 WorkspaceView.viewAbout(),
                 WorkspaceView.viewNavigate(),
@@ -405,11 +413,15 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 WorkspaceView.viewEditor(),
                 WorkspaceView.viewSplitter(),
                 WorkspaceView.viewEvaluateButtons(),
-                m("span.pa1"),
+                WorkspaceView.viewSpacer(),
                 WorkspaceView.viewEditorButtons(),
-                m("br"),
+                WorkspaceView.viewBreak(),
                 WorkspaceView.viewJournalButtons(),
-            ])
+            ]
+        },
+
+        view() {
+            return m("#main.ma2", WorkspaceView.viewMain())
         },
     }
 
