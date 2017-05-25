@@ -108,7 +108,13 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             if (WorkspaceView.currentItemIndex === null) {
                 WorkspaceView.setEditorContents("")
             } else {
-                WorkspaceView.setEditorContents(currentJournal.getItem(WorkspaceView.currentItemIndex))
+                let text = currentJournal.getItem(WorkspaceView.currentItemIndex)
+                if (text === null || text === undefined) {
+                    WorkspaceView.currentItemIndex = null
+                    WorkspaceView.saveCurrentItemIndex()
+                    text = ""
+                }
+                WorkspaceView.setEditorContents(text)
             }
         },
 
