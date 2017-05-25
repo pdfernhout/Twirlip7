@@ -19,5 +19,9 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage"], funct
         const root = document.body
         // WorkspaceView could be null if hash is 
         m.mount(root, WorkspaceView)
+        setTimeout(() => {
+            WorkspaceView.restoreCurrentItemIndex()
+            m.redraw()
+        }, 0)
     }
 })

@@ -345,7 +345,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         // View functions which are composed into one big view at the end
         
         viewToast() {
-           return m("div#toastDiv.fixed.top-2.left-2.pa2.fieldset.bg-gold.pl3.pr3.tc.o-90.z-max", 
+            return m("div#toastDiv.fixed.top-2.left-2.pa2.fieldset.bg-gold.pl3.pr3.tc.o-90.z-max", 
                 { hidden: WorkspaceView.toastMessages.length === 0 },
                 WorkspaceView.toastMessages.length ? WorkspaceView.toastMessages[0].message : ""
             ) 
@@ -495,10 +495,6 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
     }
 
     setupTwirlip7Global()
-    setTimeout(() => {
-        WorkspaceView.restoreCurrentItemIndex()
-        m.redraw()
-    }, 0)
     
     return WorkspaceView
 })
