@@ -2,11 +2,13 @@ define([], function() {
     "use strict"
 
     const EvalUtils = {
-        
+
         evalOrError(text) {
             let result
             try {
-                result = EvalUtils.eval("(" + text + ")")
+                // object defintions produce syntax error unless within parens
+                if (text.match(/^\s*{/)) text = "(" + text + ")"
+                result = EvalUtils.eval(text)
             } catch (error) {
                 result = error
             }
