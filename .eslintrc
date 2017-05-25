@@ -1,4 +1,4 @@
-module.exports = {
+{
     "env": {
         "browser": true,
         "es6": true
@@ -7,7 +7,7 @@ module.exports = {
         "define": true,
         "requirejs": true,
         "m": true,
-        "twirlip7": true
+        "Twirlip7": true
     },
     "extends": "eslint:recommended",
     "rules": {
@@ -29,4 +29,4 @@ module.exports = {
         ],
         "no-console":  "off"
     }
-};
+}
