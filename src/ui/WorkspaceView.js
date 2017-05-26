@@ -142,6 +142,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             }
             WorkspaceView.editor.selection.clearSelection()
             WorkspaceView.editor.selection.moveCursorFileStart()
+            // Replace undoManager since getUndoManager().reset() does not see to work well enough here
+            WorkspaceView.editor.getSession().setUndoManager(new ace.UndoManager())
         },
 
         getEditorContents() {
@@ -266,6 +268,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
         
         goToKey(key) {
+            // Fist check is to prevent losing redo stack if not moving
+            if (key === WorkspaceView.currentItemIndex && !WorkspaceView.isEditorDirty()) return
             if (!WorkspaceView.confirmClear()) return
             WorkspaceView.currentItemIndex = key
             const item = currentJournal.getItem(WorkspaceView.currentItemIndex) || ""
@@ -378,6 +382,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
         
         viewNavigate() {
+            const undoManager = WorkspaceView.editor && WorkspaceView.editor.getSession().getUndoManager()
             return m("h4.ba.pa1",
                 m("button.ma1", { onclick: WorkspaceView.goFirst, title: "Go to first snippet" }, "|<"),
                 m("button.ma1", { onclick: WorkspaceView.goPrevious, title: "Go to earlier snippet" }, "< Previous"),
@@ -394,6 +399,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 " of ",
                 currentJournal.itemCount(),
                 WorkspaceView.viewEditorMode(),
+                undoManager ? [
+                    m("button.ma1", {onclick: () => undoManager.undo(), disabled: !undoManager.hasUndo() }, "< Undo"),
+                    m("button.ma1", {onclick: () => undoManager.redo(), disabled: !undoManager.hasRedo() }, "Redo >"),
+                ] : [],
                 WorkspaceView.viewDirty()
             )
         },
@@ -435,7 +444,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         const isEditorDirty = WorkspaceView.isEditorDirty()
                         if (isEditorDirty !== WorkspaceView.wasEditorDirty) {
                             WorkspaceView.wasEditorDirty = isEditorDirty
-                            m.redraw()
+                            // Use setTimeout to give undo manager some time to update itself
+                            setTimeout(m.redraw, 0)
                         }
                     })
                 },
