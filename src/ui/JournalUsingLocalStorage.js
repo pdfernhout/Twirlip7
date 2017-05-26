@@ -94,6 +94,10 @@ define(["vendor/sha256"], function(sha256) {
             return parseInt(locationString)
         },
         
+        keyForLocation(location) {
+            return localStorage.getItem(locationToHashPrefix + location)
+        },
+        
         skip(reference, delta, wrap) {
             // TODO: Need to fix this so can skip over non-prefixed items if store other information
             const itemCount = JournalUsingLocalStorage.itemCount()

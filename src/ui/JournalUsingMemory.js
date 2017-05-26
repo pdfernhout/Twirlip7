@@ -33,6 +33,10 @@ define([], function() {
             const location = parseFloat(reference) - 1
             return JournalUsingMemory.items[location]
         },
+        
+        getItemForLocation(location) {
+            return JournalUsingMemory.getItem("" + (location + 1))
+        },
 
         itemCount() {
             return JournalUsingMemory.items.length
@@ -44,6 +48,14 @@ define([], function() {
 
         loadFromJournalText(journalText) {
             JournalUsingMemory.items = JSON.parse(journalText)
+        },
+        
+        locationForKey(key) {
+            return parseInt(key) - 1
+        },
+        
+        keyForLocation(location) {
+            return "" + (location + 1)
         },
         
         skip(reference, delta, wrap) {

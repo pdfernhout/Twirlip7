@@ -253,9 +253,15 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 WorkspaceView.toast("Only one journal item to display. Try saving another one first.")
                 return
             }
+            const key = currentJournal.skip(WorkspaceView.currentItemIndex, delta, wrap)
+            WorkspaceView.goToKey(key)
+        },
+        
+        goToKey(key) {
             if (!WorkspaceView.confirmClear()) return
-            WorkspaceView.currentItemIndex = currentJournal.skip(WorkspaceView.currentItemIndex, delta, wrap)
-            WorkspaceView.setEditorContents(currentJournal.getItem(WorkspaceView.currentItemIndex))
+            WorkspaceView.currentItemIndex = key
+            const item = currentJournal.getItem(WorkspaceView.currentItemIndex) || ""
+            WorkspaceView.setEditorContents(item)
             WorkspaceView.saveCurrentItemIndex()
         },
 
