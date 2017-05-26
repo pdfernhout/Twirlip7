@@ -392,14 +392,14 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
         
         viewEditorMode() {
-            function changeMode() {
-                console.log("modes", modelist.modes.map(mode => mode.mode))
-                const newEditorMode = prompt("Editor mode", WorkspaceView.editorMode)
-                if (!newEditorMode) return
+            function selectChanged(event) {
+                const newEditorMode = event.target.value
                 WorkspaceView.editorMode = newEditorMode
                 WorkspaceView.editor.getSession().setMode(WorkspaceView.editorMode)
             }
-            return m("button.ma2", { onclick: changeMode }, WorkspaceView.editorMode)
+            return m("select.ma2", { onchange: selectChanged }, 
+                modelist.modes.map(mode => m("option", { value: mode.mode, selected: WorkspaceView.editorMode === mode.mode }, mode.name))
+            )
         },
         
         
