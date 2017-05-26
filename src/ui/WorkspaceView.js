@@ -1,9 +1,10 @@
-define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorage", "ace/ace", "exampleJournal"], function(
+define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorage", "ace/ace", "ace/ext/modelist", "exampleJournal"], function(
     FileUtils,
     EvalUtils,
     JournalUsingMemory,
     JournalUsingLocalStorage,
     ace,
+    modelist,
     exampleJournal
 ) {
     "use strict"
@@ -85,6 +86,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         journalChoice: "local storage",
         aceEditorHeight: 20,
         toastMessages: [],
+        editorMode: "ace/mode/javascript",
         
         // to support user-defined extensions
         extensions: {},
@@ -384,9 +386,22 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         "???" : 
                         (parseInt(currentJournal.locationForKey(WorkspaceView.currentItemIndex)) + 1)),
                 " of ",
-                currentJournal.itemCount()
+                currentJournal.itemCount(),
+                WorkspaceView.viewEditorMode()
             )
         },
+        
+        viewEditorMode() {
+            function changeMode() {
+                console.log("modes", modelist.modes.map(mode => mode.mode))
+                const newEditorMode = prompt("Editor mode", WorkspaceView.editorMode)
+                if (!newEditorMode) return
+                WorkspaceView.editorMode = newEditorMode
+                WorkspaceView.editor.getSession().setMode(WorkspaceView.editorMode)
+            }
+            return m("button.ma2", { onclick: changeMode }, WorkspaceView.editorMode)
+        },
+        
         
         viewFileInput() {
             return m("input#fileInput", { "type" : "file" , "hidden" : true } )
@@ -399,7 +414,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 },
                 oncreate: function() {
                     WorkspaceView.editor = ace.edit("editor")
-                    WorkspaceView.editor.getSession().setMode("ace/mode/javascript")
+                    WorkspaceView.editor.getSession().setMode(WorkspaceView.editorMode)
                     WorkspaceView.editor.getSession().setUseSoftTabs(true)
                     WorkspaceView.editor.$blockScrolling = Infinity 
                 },

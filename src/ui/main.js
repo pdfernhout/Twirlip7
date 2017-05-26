@@ -1,5 +1,8 @@
 requirejs.config({
-    paths: { ace: ["vendor/ace"] }
+    paths: { ace: ["vendor/ace"] },
+    bundles: {
+        "vendor/ace/ext-modelist": ["ace/ext/modelist"]
+    }
 })
 
 requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage"], function(mDiscardAsMadeGlobal, WorkspaceView, JournalUsingLocalStorage) {
