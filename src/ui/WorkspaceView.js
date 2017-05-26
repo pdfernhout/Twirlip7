@@ -383,14 +383,16 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         
         viewNavigate() {
             const undoManager = WorkspaceView.editor && WorkspaceView.editor.getSession().getUndoManager()
+            const itemIdentifier = (WorkspaceView.currentItemIndex === null) ? 
+                "???" : 
+                ("" + WorkspaceView.currentItemIndex).substring(0, 12) + ((("" + WorkspaceView.currentItemIndex).length > 12) ? "..." : "")
             return m("h4.ba.pa1",
                 m("button.ma1", { onclick: WorkspaceView.goFirst, title: "Go to first snippet" }, "|<"),
                 m("button.ma1", { onclick: WorkspaceView.goPrevious, title: "Go to earlier snippet" }, "< Previous"),
                 m("button.ma1", { onclick: WorkspaceView.goNext, title: "Go to later snippet" }, "Next >"),
                 m("button.ma1", { onclick: WorkspaceView.goLast, title: "Go to last snippet" }, ">|"),
-               "JavaScript snippet ",
-                (WorkspaceView.currentItemIndex === null ? "???" : ("" + WorkspaceView.currentItemIndex).substring(0, 8)),
-                ("" + WorkspaceView.currentItemIndex).length > 8 ? m("span", {title: WorkspaceView.currentItemIndex}, "...") : "",
+               "Item ",
+                m("span", { title: WorkspaceView.currentItemIndex }, itemIdentifier),
                 currentJournal.getCapabilities().idIsPosition ? 
                     "" : 
                     " : " + (currentJournal.locationForKey(WorkspaceView.currentItemIndex) === null ?
