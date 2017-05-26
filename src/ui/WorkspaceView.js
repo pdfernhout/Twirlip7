@@ -87,6 +87,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         aceEditorHeight: 20,
         toastMessages: [],
         editorMode: "ace/mode/javascript",
+        wasEditorDirty: false,
         
         // to support user-defined extensions
         extensions: {},
@@ -132,6 +133,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
         setEditorContents(newContents, isNotSaved) {
             WorkspaceView.editor.setValue(newContents)
+            WorkspaceView.wasEditorDirty = false
             if (!isNotSaved) { 
                 WorkspaceView.lastLoadedContents = newContents
             } else {
@@ -176,10 +178,14 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.currentItemIndex = addResult.id
             WorkspaceView.saveCurrentItemIndex()
         },
+        
+        isEditorDirty() {
+            return WorkspaceView.editor && (WorkspaceView.lastLoadedContents !== WorkspaceView.getEditorContents())
+        },
 
         confirmClear(promptText) {
             if (!WorkspaceView.getEditorContents()) return true
-            if (WorkspaceView.getEditorContents() === WorkspaceView.lastLoadedContents) return true
+            if (!WorkspaceView.isEditorDirty()) return true
             if (!promptText) promptText = "You have unsaved editor changes. Proceed?"
             return confirm(promptText)
         },
@@ -387,7 +393,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         (parseInt(currentJournal.locationForKey(WorkspaceView.currentItemIndex)) + 1)),
                 " of ",
                 currentJournal.itemCount(),
-                WorkspaceView.viewEditorMode()
+                WorkspaceView.viewEditorMode(),
+                WorkspaceView.viewDirty()
             )
         },
         
@@ -402,6 +409,13 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             )
         },
         
+        viewDirty() {
+            return m("span.dirty", 
+                WorkspaceView.isEditorDirty() ?
+                   "Modified" :
+                   ""
+            )
+        },
         
         viewFileInput() {
             return m("input#fileInput", { "type" : "file" , "hidden" : true } )
@@ -416,7 +430,14 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     WorkspaceView.editor = ace.edit("editor")
                     WorkspaceView.editor.getSession().setMode(WorkspaceView.editorMode)
                     WorkspaceView.editor.getSession().setUseSoftTabs(true)
-                    WorkspaceView.editor.$blockScrolling = Infinity 
+                    WorkspaceView.editor.$blockScrolling = Infinity
+                    WorkspaceView.editor.getSession().on("change", function(e) {
+                        const isEditorDirty = WorkspaceView.isEditorDirty()
+                        if (isEditorDirty !== WorkspaceView.wasEditorDirty) {
+                            WorkspaceView.wasEditorDirty = isEditorDirty
+                            m.redraw()
+                        }
+                    })
                 },
                 onupdate: function() {
                     WorkspaceView.editor.resize()
