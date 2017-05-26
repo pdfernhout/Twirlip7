@@ -34,7 +34,8 @@ Twirlip7.WorkspaceView.extensionsInstall({
                     onclick: Twirlip7.WorkspaceView.goToKey.bind(null, result.key)
                 }, "" + (result.i + 1) + ") " + result.item.substring(0, 100) + "...")
             }),
-            m("button.ma1", {onclick: search}, "Search")
+            m("button.ma1", {onclick: search}, "Search"),
+            m("button.ma1", {onclick: () => searchResults.splice(0)}, "Clear results")
         )
     }
 })
