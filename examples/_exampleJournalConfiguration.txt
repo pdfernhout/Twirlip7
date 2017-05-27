@@ -1,0 +1,49 @@
+// Example files in order to build exampleJournal.js
+
+// Basic
+alert-hello-world.js
+one-plus-one.js
+my-add.js
+
+// Counters
+counter-needs-reloading.js
+counter-closable.js
+counter-closable-styled.js
+counter-component-up-down.js
+
+// Using the show function
+show-hello.js
+
+// Mithril forms
+temperature-converter.js
+simple-done-app.js
+currency-converter-three.js
+currency-converter-many.js
+
+// More features
+iframe-example.js
+modal-dialog.js
+three-3D.js
+
+// SVG
+svg-example.js
+svg-with-updating.js
+svg-with-dragging.js
+svg-multi-drag.js
+
+// HTML draggables
+draggables-extended.js
+draggables-better.js
+draggable-simplified.js
+
+// Extending the editor
+extension-simple.js
+extension-search.js
+
+// Adding to the journal
+journal-adding.js
+
+// Other file types -- user has to change editor mode
+markdown-example.md
+html-example.html
+fortran-example.txt
