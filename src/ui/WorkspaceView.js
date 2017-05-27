@@ -96,8 +96,9 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             if (currentJournal.itemCount() === 0) {
                 show(function () { 
                     return [
+                        m("div", "Thanks for trying Twirlip7, an experimental Mithril.js playground -- with aspirations towards becoming a distributed social semantic desktop."),
                         m("div", "To get started with some example code snippets, click \"Show example journal\", then \"Load journal\", then \"Next\", and then \"Do it\"."),
-                        m("div", "Use \"Previous\" and \"Next\" to scroll through more example snippets.")
+                        m("div", "Use \"Previous\" and \"Next\" to scroll through more example snippets. \"Inspect it\" puts evaluation results for selected text into the console log.")
                     ]
                 })
             }
@@ -372,12 +373,13 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         
         viewAbout() {
             return m("div#about", [
-                m("a.ml2", { target: "_blank", href: "https://github.com/pdfernhout/Twirlip7" }, "About Twirlip7"),
-                m("span.ml2", "which uses:"),
-                m("a.ml2", { target: "_blank", href: "https://mithril.js.org/" }, "Mithril.js"),
+                m("a.ml2", { target: "_blank", href: "https://github.com/pdfernhout/Twirlip7" }, "Twirlip7"),
+                m("span.ml1", "uses:"),
+                m("a.ml1", { target: "_blank", href: "https://mithril.js.org/" }, "Mithril.js"),
                 m("a.ml2", { target: "_blank", href: "http://tachyons.io/" }, "Tachyons.js"),
                 m("a.ml2", { target: "_blank", href: "https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts" }, "Ace"),
                 m("a.ml2", { target: "_blank", href: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" }, "JavaScript"),
+                m("span.ml2", "| Useful:"),
                 m("a.ml2", { target: "_blank", href: "https://arthurclemens.github.io/mithril-template-converter" }, "HTML->Mithril"),
             ])
         },
