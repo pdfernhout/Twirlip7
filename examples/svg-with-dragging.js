@@ -1,11 +1,11 @@
-// svg example with dragging of one circle
+// SVG example with dragging of one circle
 // May not keep up with fast drags
 
 let draggedItem = null;
 let dragStart = {}
 let objectStart = {}
 
-twirlip7.show(() => {
+Twirlip7.show(() => {
     return m("svg", { width: 600, height: 200},
         m("rect[height='200'][width='600'][x='0'][y='0']", {
             style: {"stroke": "black", "fill": "none", "stroke-width": "1"}

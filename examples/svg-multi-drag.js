@@ -1,4 +1,4 @@
-// svg example with dragging of three circles
+// SVG example with dragging of three circles
 // May not keep up with fast drags
 // Also issues when drag lower-Z circle over upper-Z circle
 
@@ -29,7 +29,7 @@ function onmouseupCircle() {
     console.log("stop dragging", draggedItem)
 }
 
-twirlip7.show(() => {
+Twirlip7.show(() => {
     return m("svg", { width: 600, height: 200},
         m("rect[height='200'][width='600'][x='0'][y='0']", {
             style: {"stroke": "black", "fill": "none", "stroke-width": "1"}

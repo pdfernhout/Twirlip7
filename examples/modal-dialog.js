@@ -34,7 +34,7 @@ function showModal(content) {
     ])
 }
 
-twirlip7.show(() => {
+Twirlip7.show(() => {
     return m("div", [
         m("button", {onclick: () => modalVisible = true}, "Open modal"),
         modalVisible ? showModal(m("div", ["My Modal", m("hr"), new Date().toISOString()])) : "Modal closed"

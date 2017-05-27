@@ -1,15 +1,15 @@
-// simplification of draggables example
+// HTML dragging example simplification to one item
 
 const draggable = {
     x: 0,
     y: 0,
-    "name": "In memory of James R. Beniger",
-    action: () => open("https://en.wikipedia.org/wiki/Beniger,_James_R.") 
+    "name": "Twirlip",
+    action: () => open("https://github.com/pdfernhout/Twirlip7") 
 }
 
 let dragStart
 
-twirlip7.show(() => {
+Twirlip7.show(() => {
     return m("div.di.ba.pa2.ma2.relative.bg-green", {
             draggable: true,
             style: {
