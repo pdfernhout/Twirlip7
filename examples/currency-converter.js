@@ -84,7 +84,7 @@ Twirlip7.show(() => {
     if (model.precisionError) borderColorClass = ".b--yellow"
     if (model.currencyError) borderColorClass = ".b--red"
     
-    return m("div.br4..bw3.b--solid" + borderColorClass, { id: "currency-converter" }, [
+    return m("div.br4.bw3.b--solid" + borderColorClass, { id: "currency-converter" }, [
         m(".pa3.f3", "Currency Converter"),
         m("div.ml3", [
             "Precision: ",
