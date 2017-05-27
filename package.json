@@ -7,7 +7,7 @@
   "scripts": {
     "test": "ospec",
     "start": "node src/server.js",
-    "build": "node utils/buildExampleJournal.js"
+    "buildExampleJournal": "node utils/buildExampleJournal.js"
   },
   "author": "Paul D. Fernhout",
   "license": "MIT",
