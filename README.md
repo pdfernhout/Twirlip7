@@ -1,11 +1,13 @@
 ### Yet another experiment towards a social semantic desktop
 
-Right now, this is just a simple IDE for playing with JavaScript which can store snippets in a log.
+Try it here: http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html
+
+Right now, this is just a simple IDE for playing with JavaScript and Mithril.js which stores snippets of code or text in a local journal.
 
 As an experiment, questions include how could these snippets be stored, retrieved, visualized, referenced, annotated, shared, versioned, or discussed? The goal of the experiment is to explore such ideas as another step towards a social semantic desktop.
 
-The log is stored in local storage by default (or memory if desired).
-The log of snippets can be exported or imported as JSON.
+The journal is stored in local storage by default (or memory if desired).
+The journal of snippets can be exported or imported as JSON.
 
 However, all that may change as the experiment progresses in new directions. For example, as one possibililty, these snippets and content they generate might someday be distributed through the decentralized Matrix.org.
 
@@ -15,10 +17,9 @@ To test this, click "Show example log" which will put some JSON text in the edit
 
 The UI uses Mithril.js, Tachyons.js, RequireJS, and the ACE editor in plain JavaScript. The UI currently expects ES6 in a modern browser.
 
-The Server uses Node.js with Express to server the UI files. Eventually the server may do something more than just serving files. Using the server requires running "npm install" to load the supporting npm modules and then "npm run server" to run the server. However you don't actually need to install and run the server yet as you can just load the files directly into your browser -- including from this test link:  
-http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html
+The Server uses Node.js with Express to server the UI files. Eventually the server may do something more than just serving files. Using the server requires running "npm install" to load the supporting npm modules and then "npm run server" to run the server. However you don't actually need to install and run the server yet as you can just load the files directly into your browser.
 
-No build step (yet).
+No required build step (yet). You can use "npm buildExampleJournal" to rebuild the code for the example journal from individual source files.
 
 ### License: MIT
 
