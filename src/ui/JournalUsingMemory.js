@@ -61,11 +61,23 @@ define([], function() {
         skip(reference, delta, wrap) {
             const itemCount = JournalUsingMemory.itemCount()
             if (itemCount === 0) return null
-            const start = (!reference || reference === "0") ? 
-                // convoluted start if reference is null or empty or 0, 
-                // since want +1 to go to 0 or -1 to go to end
-                ((delta <= 0) ? 0 : itemCount - 1) :
-                parseInt(reference) - 1
+            let start = (!reference || reference === "0") ? null : parseInt(reference) - 1
+            if (start === null) {
+                if (wrap) {
+                    // when wrapping, want +1 to go to 0 or -1 to go to end
+                    if (delta === 0) {
+                        start = 0
+                    } else if (delta > 0) {
+                        start = -1
+                    } else {
+                        start = itemCount
+                    }
+                } else {
+                    // if not wrapping, negative deltas get us nowhere, and positive deltas go from start
+                    start = -1
+                }
+            }
+            
             let location = start + delta
             if (wrap) {
                 delta = delta % itemCount

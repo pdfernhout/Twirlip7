@@ -102,12 +102,22 @@ define(["vendor/sha256"], function(sha256) {
             // TODO: Need to fix this so can skip over non-prefixed items if store other information
             const itemCount = JournalUsingLocalStorage.itemCount()
             if (itemCount === 0) return null
-            let start = (!reference) ?
-                // convoluted start if reference is null or empty,
-                // since want +1 to go to 0 or -1 to go to end
-                ((delta <= 0) ? 0 : itemCount - 1) :
-                JournalUsingLocalStorage.locationForKey(reference)
-            if (start === null) start = 0
+            let start = (!reference) ? null : JournalUsingLocalStorage.locationForKey(reference)
+            if (start === null) {
+                if (wrap) {
+                    // when wrapping, want +1 to go to 0 or -1 to go to end
+                    if (delta === 0) {
+                        start = 0
+                    } else if (delta > 0) {
+                        start = -1
+                    } else {
+                        start = itemCount
+                    }
+                } else {
+                    // if not wrapping, negative deltas get us nowhere, and positive deltas go from start
+                    start = -1
+                }
+            }
             let location
             if (wrap) {
                 delta = delta % itemCount
