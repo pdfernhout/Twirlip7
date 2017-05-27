@@ -7,7 +7,8 @@
         "define": true,
         "requirejs": true,
         "m": true,
-        "Twirlip7": true
+        "Twirlip7": true,
+        "open": true
     },
     "extends": "eslint:recommended",
     "rules": {

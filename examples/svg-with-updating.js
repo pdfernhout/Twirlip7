@@ -1,15 +1,15 @@
 // SVG example with updating
 // Seems to flicker slightly
 
-let x = 100;
-let y = 100;
+let x = 100
+let y = 100
 
 function update() {
-    x += 1;
-    y -= 0.25;
+    x += 1
+    y -= 0.25
     m.redraw()
 }
-const interval = setInterval(update, 100);
+const interval = setInterval(update, 100)
 
 Twirlip7.show(() => {
     return m("svg", { width: 600, height: 200},

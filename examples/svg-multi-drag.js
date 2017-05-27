@@ -2,7 +2,7 @@
 // May not keep up with fast drags
 // Also issues when drag lower-Z circle over upper-Z circle
 
-let draggedItem = null;
+let draggedItem = null
 let dragStart = {}
 let objectStart = {}
 
@@ -68,4 +68,4 @@ Twirlip7.show(() => {
             onmouseup: onmouseupCircle,
         })
     )
-}, { onclose: () => clearInterval(interval) })
+})

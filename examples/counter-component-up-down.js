@@ -8,16 +8,16 @@ function testButtonClicked(increment) {
 }
 
 const MyComponent = {
-  view(controller, args) {
-    return m("div.ba.ma3.pa3.bg-light-purple",
-      m("button.fr", {onclick: function () { m.mount(div, null); document.body.removeChild(div) } }, "X"),
-      "Hello world!",
-      m("br"),
-      "counter: " + counter,
-      m("button", {onclick: testButtonClicked.bind(null, -1)}, "-"),
-      m("button", {onclick: testButtonClicked.bind(null, 1)}, "+")
-    )
-  }
+    view(controller, args) {
+        return m("div.ba.ma3.pa3.bg-light-purple",
+            m("button.fr", {onclick: function () { m.mount(div, null); document.body.removeChild(div) } }, "X"),
+            "Hello world!",
+            m("br"),
+            "counter: " + counter,
+            m("button", {onclick: testButtonClicked.bind(null, -1)}, "-"),
+            m("button", {onclick: testButtonClicked.bind(null, 1)}, "+")
+        )
+    }
 }
 
 document.body.appendChild(div)

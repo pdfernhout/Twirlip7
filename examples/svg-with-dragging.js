@@ -1,7 +1,7 @@
 // SVG example with dragging of one circle
 // May not keep up with fast drags
 
-let draggedItem = null;
+let draggedItem = null
 let dragStart = {}
 let objectStart = {}
 
@@ -39,4 +39,4 @@ Twirlip7.show(() => {
             },
         })
     )
-}, { onclose: () => clearInterval(interval) })
+})

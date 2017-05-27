@@ -29,12 +29,12 @@ Twirlip7.show(() => {
             },
             ondragstart: (e) => {
                 dragStart = {x: e.screenX, y: e.screenY}
-                e.dataTransfer.setData('text/plain', number)
+                e.dataTransfer.setData("text/plain", number)
                 e.dataTransfer.effectAllowed = "move"
             },
             ondragend: (e) => {
                 const d = draggables[number]
-                const s = dragStart;
+                const s = dragStart
                 draggables[number].x = d.x + e.screenX - s.x
                 draggables[number].y = d.y + e.screenY - s.y
             },
@@ -47,5 +47,4 @@ Twirlip7.show(() => {
             }: (() => undefined)
         }, draggables[number].name || ("Drag me! " + number)))
       )
-    }, ".bg-blue.br4"
-)
+}, ".bg-blue.br4")

@@ -21,13 +21,13 @@ Twirlip7.show(() => {
             ondragstart: (e) => {
                 dragStart = {x: e.screenX, y: e.screenY}
                 console.log("ondragstart", dragStart, e)
-                e.dataTransfer.setData('text/plain', number)
+                e.dataTransfer.setData("text/plain", number)
                 e.dataTransfer.effectAllowed = "move"
             },
             ondragend: (e) => {
                 const d = draggables[number]
                 console.log("ondragend d", d)
-                const s = dragStart;
+                const s = dragStart
                 console.log("ondragend s", s)
                 draggables[number] = {x: d.x + e.screenX - s.x, y: d.y + e.screenY - s.y}
                 console.log("ondragend", draggables[number])
@@ -35,5 +35,4 @@ Twirlip7.show(() => {
             onclick: () => alert("Hello from draggable #" + number)
         }, "Drag me! " + number))
       )
-    }, ".bg-blue.br4"
-)
+}, ".bg-blue.br4")

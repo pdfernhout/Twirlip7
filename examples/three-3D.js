@@ -1,6 +1,8 @@
 // 3D display -- derived from three.js example: https://www.npmjs.com/package/three
 
 requirejs(["vendor/three"], function(three) {
+    /* global THREE */
+    
     var scene, camera, renderer
     var geometry, material, mesh
     
@@ -46,21 +48,19 @@ requirejs(["vendor/three"], function(three) {
     }
     
     Twirlip7.show(() => {
-            return m("div", {
-                id: "test",
-                style: {
-                    width: "25rem",
-                    height: "25rem",
-                },
-                oncreate(vnode) {
-                    vnode.dom.appendChild(init(vnode.dom.offsetWidth, vnode.dom.offsetHeight))
-                    animateStart()
-                },
-                onremove(vnode) {
-                    animateStop()
-                }
-            })
-        },
-        ".bg-green.br4"
-    )
+        return m("div", {
+            id: "test",
+            style: {
+                width: "25rem",
+                height: "25rem",
+            },
+            oncreate(vnode) {
+                vnode.dom.appendChild(init(vnode.dom.offsetWidth, vnode.dom.offsetHeight))
+                animateStart()
+            },
+            onremove(vnode) {
+                animateStop()
+            }
+        })
+    }, ".bg-green.br4")
 })
