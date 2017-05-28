@@ -362,6 +362,14 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             delete WorkspaceView.extensions[extension.id]
         },
         
+        getStartupItemId() {
+            return localStorage.getItem("_startupItemId")
+        },
+        
+        setStartupItemId(itemId) {
+            localStorage.setItem("_startupItemId", itemId)
+        },
+        
         // View functions which are composed into one big view at the end
         
         viewToast() {
@@ -408,7 +416,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     m("button.ma1", {onclick: () => undoManager.undo(), disabled: !undoManager.hasUndo() }, "< Undo"),
                     m("button.ma1", {onclick: () => undoManager.redo(), disabled: !undoManager.hasRedo() }, "Redo >"),
                 ] : [],
-                WorkspaceView.viewDirty()
+                WorkspaceView.viewDirty(),
+                WorkspaceView.viewStartupItem()
             )
         },
         
@@ -429,6 +438,20 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                    "Modified" :
                    ""
             )
+        },
+        
+        viewStartupItem()  {
+            const isStartupItem = WorkspaceView.getStartupItemId() === WorkspaceView.currentItemIndex
+            const buttonText = isStartupItem ? "Don't run at Startup" : "Run at startup"
+            function toggleUseAtStartup(isStartupItem, itemId) {
+                if (isStartupItem) {
+                    WorkspaceView.setStartupItemId("")
+                } else {
+                    WorkspaceView.setStartupItemId(itemId)
+                }
+                
+            }
+            return m("button", {disabled: currentJournal !== JournalUsingLocalStorage, onclick: toggleUseAtStartup.bind(null, isStartupItem, WorkspaceView.currentItemIndex)}, buttonText)
         },
         
         viewFileInput() {

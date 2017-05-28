@@ -10,21 +10,37 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage"], funct
     
     /* global location */
     
+    function runStartupItem(itemId) {
+        const item = JournalUsingLocalStorage.getItem(itemId)
+        if (item) {
+            try {
+                eval(item)
+            } catch (error) {
+                console.log("error running startup item", itemId, error, item)
+            }
+        } else {
+            console.log("startup item not found", itemId)
+        }
+    }
+    
     const hash = location.hash
     
     if (hash && hash.startsWith("#open=")) {
-        const itemIndex = hash.substring(6)
-        const item = JournalUsingLocalStorage.getItem(itemIndex)
-        if (item) {
-            eval(item)
-        }
+        const startupItemId = hash.substring(6)
+        runStartupItem(startupItemId)
     } else {
         const root = document.body
-        // WorkspaceView could be null if hash is 
         m.mount(root, WorkspaceView)
         setTimeout(() => {
             WorkspaceView.restoreCurrentItemIndex()
             m.redraw()
+            const startupItemId = localStorage.getItem("_startupItemId")
+            if (startupItemId) {
+                setTimeout(() => {
+                    runStartupItem(startupItemId)
+                    m.redraw()
+                })
+            }
         }, 0)
     }
 })
