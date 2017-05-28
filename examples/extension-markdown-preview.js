@@ -17,6 +17,9 @@ requirejs(["vendor/marked"], function(marked) {
             return m("button.ma1", {onclick: markdownPreview}, "Show markdown preview")
         }
     })
+    
+    // We need to redraw because requirejs is asynchronous and Mithril won't know to refresh when it is done
+    m.redraw()
 })
 
 // Twirlip7.WorkspaceView.extensionsUninstall({id: "markdown-preview"})
