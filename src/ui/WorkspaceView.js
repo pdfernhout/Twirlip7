@@ -416,8 +416,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     m("button.ma1", {onclick: () => undoManager.undo(), disabled: !undoManager.hasUndo() }, "< Undo"),
                     m("button.ma1", {onclick: () => undoManager.redo(), disabled: !undoManager.hasRedo() }, "Redo >"),
                 ] : [],
-                WorkspaceView.viewDirty(),
-                WorkspaceView.viewStartupItem()
+                WorkspaceView.viewDirty()
             )
         },
         
@@ -438,20 +437,6 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                    "Modified" :
                    ""
             )
-        },
-        
-        viewStartupItem()  {
-            const isStartupItem = WorkspaceView.getStartupItemId() === WorkspaceView.currentItemIndex
-            const buttonText = isStartupItem ? "Don't run at Startup" : "Run at startup"
-            function toggleUseAtStartup(isStartupItem, itemId) {
-                if (isStartupItem) {
-                    WorkspaceView.setStartupItemId("")
-                } else {
-                    WorkspaceView.setStartupItemId(itemId)
-                }
-                
-            }
-            return m("button", {disabled: currentJournal !== JournalUsingLocalStorage, onclick: toggleUseAtStartup.bind(null, isStartupItem, WorkspaceView.currentItemIndex)}, buttonText)
         },
         
         viewFileInput() {
@@ -503,12 +488,35 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             })
         },
         
+        viewStartupItem()  {
+            const helpText = "Whether to run this snippet when the editor starts up -- only one snippet can run at startup, but it can load other snippets"
+            const isStartupItem = WorkspaceView.getStartupItemId() === WorkspaceView.currentItemIndex
+            function toggleUseAtStartup(isStartupItem, itemId) {
+                if (isStartupItem) {
+                    WorkspaceView.setStartupItemId("")
+                } else {
+                    WorkspaceView.setStartupItemId(itemId)
+                }
+                
+            }
+            return [
+                m("span", {title: helpText}, "Startup with it:"), 
+                m("input[type=checkbox].ma1", {
+                    checked: isStartupItem,
+                    disabled: currentJournal !== JournalUsingLocalStorage,
+                    onclick: toggleUseAtStartup.bind(null, isStartupItem, WorkspaceView.currentItemIndex),
+                    title: helpText
+                })
+            ]
+        },
+        
         viewEvaluateButtons() {
             return [
                 m("button.ma1", { onclick: WorkspaceView.doIt, title: "Evaluate selected code" }, "Do it"),
                 m("button.ma1", { onclick: WorkspaceView.printIt, title: "Evaluate code and insert result in editor" }, "Print it"),
                 m("button.ma1", { onclick: WorkspaceView.inspectIt, title: "Evaluate code and log result to console"  }, "Inspect it"),
                 m("button.ma1", { onclick: WorkspaceView.openIt, title: "Open current saved snippet in a new window" }, "Open it"),
+                WorkspaceView.viewStartupItem()
             ]
         },
                 

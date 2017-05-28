@@ -16,7 +16,9 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage"], funct
             try {
                 eval(item)
             } catch (error) {
-                console.log("error running startup item", itemId, error, item)
+                console.log("Error running startup item", itemId)
+                console.log("Error message\n", error)
+                console.log("Beginning of item contents\n", item.substring(0,500) + (item.length > 500 ? "..." : ""))
             }
         } else {
             console.log("startup item not found", itemId)
