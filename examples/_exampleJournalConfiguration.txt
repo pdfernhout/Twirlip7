@@ -40,9 +40,6 @@ draggable-simplified.js
 extension-simple.js
 extension-search.js
 
-// Adding to the journal
-journal-adding.js
-
 // Markdown library
 markdown-library-use.js
 extension-markdown-preview.js
@@ -51,3 +48,6 @@ extension-markdown-preview.js
 markdown-example.md
 html-example.html
 fortran-example.txt
+
+// Adding to the journal
+journal-adding.js
