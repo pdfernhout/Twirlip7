@@ -11,7 +11,7 @@
 // The next example will improve on this one to have a close box.
 
 // Remember to reload before moving on to the next page to get rid of the counter.
-// You position in these tutorial snippets should be saved automatically.
+// Your position in these tutorial snippets will be saved automatically and restored after a reload.
 
 var state = {
     count: 0,
