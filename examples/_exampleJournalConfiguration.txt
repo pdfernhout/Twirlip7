@@ -45,6 +45,7 @@ journal-adding.js
 
 // Markdown library
 markdown-library-use.js
+extension-markdown-preview.js
 
 // Other file types -- user has to change editor mode
 markdown-example.md
