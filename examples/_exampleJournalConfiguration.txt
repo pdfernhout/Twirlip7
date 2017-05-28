@@ -43,6 +43,9 @@ extension-search.js
 // Adding to the journal
 journal-adding.js
 
+// Markdown library
+markdown-library-use.js
+
 // Other file types -- user has to change editor mode
 markdown-example.md
 html-example.html
