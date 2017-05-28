@@ -9,7 +9,7 @@ const inputDirectory = "../examples/"
 const exampleJournalConfigurationFileName = "_exampleJournalConfiguration.txt"
 const outputFileName = "../src/ui/exampleJournal.js"
 
-const fileTemplateStart = `// This file should not be edited by hand; it is generated using "npm buildExampleJournal" 
+const fileTemplateStart = `// This file should not be edited by hand; it is generated using "npm run buildExampleJournal" 
 define([], function() {
     return [`
     

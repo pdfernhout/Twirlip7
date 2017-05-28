@@ -1,4 +1,4 @@
-// This file should not be edited by hand; it is generated using "npm buildExampleJournal" 
+// This file should not be edited by hand; it is generated using "npm run buildExampleJournal" 
 define([], function() {
     return [
         "alert(\"Hello, world!\")\n",
