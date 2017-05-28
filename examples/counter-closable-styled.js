@@ -1,3 +1,9 @@
+// This is a modification of the previous example which adds some styling using the Tachyons CSS library.
+// Tachyons predefines many classes which do common CSS tasks.
+// You can add these classes to your div using the Mithril ".cssClass" notation after the HTML tag name.
+// If there is no leading tag name before the CSS classes, Mithril assumes it is a "div".
+// You can click on the Tachyons.js link near the top of this page later to learn more about Tachyons.
+
 var div = document.createElement("div")
 
 var state = {
@@ -9,7 +15,7 @@ var Counter = {
     view: function() {
         return m("div.ba.ma3.pa3.bg-light-purple",
             m("button.fr", {onclick: function () { m.mount(div, null); document.body.removeChild(div) } }, "X"),
-            m("div", {onclick: state.inc}, state.count)
+            m("div.ma2.f3", {onclick: state.inc}, state.count)
         )
     }
 }

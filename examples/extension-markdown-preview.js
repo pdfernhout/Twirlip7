@@ -1,5 +1,6 @@
 // Extend the application to include a markdown preview
 // To make this new button go away, you either need to reload the page or use extensionsUninstall
+// You can try using this new button on the next snippet which is in markdown.
 
 requirejs(["vendor/marked"], function(marked) {
     function markdownPreview() {

@@ -1,4 +1,4 @@
-// Currency Converter Demo For Three Currencies
+// Currency Converter demo for three currencies
 
 const minPrecision = 0
 const maxPrecision = 9

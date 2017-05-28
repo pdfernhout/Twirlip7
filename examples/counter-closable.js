@@ -1,3 +1,6 @@
+// This is a modified version of the previous example with a close box (the "X").
+// When the counter is closed, Mithril is told to unmount it which cleans up internal references.
+
 var div = document.createElement("div")
 
 var state = {

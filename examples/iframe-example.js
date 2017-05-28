@@ -1,3 +1,5 @@
+// Mithril component which embeds an iframe with a PDF document
+
 let div = document.createElement("div")
  
 const MyComponent = {

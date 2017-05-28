@@ -1,5 +1,9 @@
 [comment]: # (@Twirlip7: {"editorMode": "markdown"} @)
 
+You can set the editor mode above from "javascript" to "markdown" to get syntax highlighting for markdown.  
+You can also change it to "html" or "fortran" for other examples.  
+Remember to change it back to "javascript" later when looking at JavaScript again.
+
 Examples of using __markdown__.
 
 \`console.log("hello");\`

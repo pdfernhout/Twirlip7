@@ -1,5 +1,7 @@
 // Simple "Done" application
 
+// There is a splitter bar in the IDE under the editor that you can drag if you want to see more or less editor text at once.
+
 let doneItems = []
 let text
 
