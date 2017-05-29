@@ -8,6 +8,7 @@ let searchText = ""
 let noMatches = false
 let matchCase = false
 let matchRegex = false
+let matchWordBoundary = false
 
 function escapeRegExp(str) {
     return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&")
@@ -15,9 +16,10 @@ function escapeRegExp(str) {
 
 function search() {
     searchResults.splice(0)
-    const journal = Twirlip7.getCurrentJournal()
     if (searchText) {
-        const reString = matchRegex ? searchText : escapeRegExp(searchText)
+        const journal = Twirlip7.getCurrentJournal()
+        let reString = matchRegex ? searchText : escapeRegExp(searchText)
+        if (matchWordBoundary) reString = "\\b" + reString + "\\b"
         const re = new RegExp(reString, matchCase ? "m" : "mi")
         // Display in reverse order so most recent is at top of results
         for (let i = journal.itemCount() - 1; i >= 0; i--) {
@@ -29,6 +31,17 @@ function search() {
         }
     }
     noMatches = searchText && !searchResults.length
+}
+
+function latest() {
+    if (searchText) {
+        search()
+        if (searchResults.length) {
+            const latestResult = searchResults[0]
+            searchResults.splice(0)
+            Twirlip7.WorkspaceView.goToKey(latestResult.key)
+        }
+    }
 }
 
 function clearResults() {
@@ -61,6 +74,7 @@ Twirlip7.WorkspaceView.extensionsInstall({
                     }
                 }
             }),
+            m("button.ma1", {onclick: latest }, "Latest"),
             m("button.ma1", {onclick: search}, "Search"),
             m("span.ma1"),
             "case", 
@@ -68,6 +82,9 @@ Twirlip7.WorkspaceView.extensionsInstall({
             m("span.ma1"),
             "regex", 
             m("input[type=checkbox].ma1", { checked: matchRegex, onchange: (event) => matchRegex = event.target.checked }),
+            m("span.ma1"),
+            "word", 
+            m("input[type=checkbox].ma1", { checked: matchWordBoundary, onchange: (event) => matchWordBoundary = event.target.checked }),
             m("button.ma1", {onclick: clearResults }, "Clear results"),
             searchResults.map((result) => {
                 return m("div", {
