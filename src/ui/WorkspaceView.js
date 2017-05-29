@@ -82,7 +82,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
     const WorkspaceView = {
         editor: null,
         lastLoadedContents: "",
-        currentItemIndex: null,
+        currentItemId: null,
         journalChoice: "local storage",
         aceEditorHeight: 20,
         toastMessages: [],
@@ -104,19 +104,19 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             }
         },
         
-        saveCurrentItemIndex() {
-            localStorage.setItem("_current_" + WorkspaceView.journalChoice, WorkspaceView.currentItemIndex)
+        saveCurrentItemId() {
+            localStorage.setItem("_current_" + WorkspaceView.journalChoice, WorkspaceView.currentItemId)
         },
         
-        restoreCurrentItemIndex() {
-            WorkspaceView.currentItemIndex = localStorage.getItem("_current_" + WorkspaceView.journalChoice)
-            if (WorkspaceView.currentItemIndex === null) {
+        restoreCurrentItemId() {
+            WorkspaceView.currentItemId = localStorage.getItem("_current_" + WorkspaceView.journalChoice)
+            if (WorkspaceView.currentItemId === null) {
                 WorkspaceView.setEditorContents("")
             } else {
-                let text = currentJournal.getItem(WorkspaceView.currentItemIndex)
+                let text = currentJournal.getItem(WorkspaceView.currentItemId)
                 if (text === null || text === undefined) {
-                    WorkspaceView.currentItemIndex = null
-                    WorkspaceView.saveCurrentItemIndex()
+                    WorkspaceView.currentItemId = null
+                    WorkspaceView.saveCurrentItemId()
                     text = ""
                 }
                 WorkspaceView.setEditorContents(text)
@@ -127,10 +127,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             const oldChoice = WorkspaceView.journalChoice
             const newChoice = (WorkspaceView.journalChoice === "memory" ? "local storage": "memory")
 
-            WorkspaceView.saveCurrentItemIndex()
+            WorkspaceView.saveCurrentItemId()
             WorkspaceView.journalChoice = newChoice
             currentJournal = (newChoice === "memory" ? JournalUsingMemory : JournalUsingLocalStorage)
-            WorkspaceView.restoreCurrentItemIndex()
+            WorkspaceView.restoreCurrentItemId()
         },
 
         setEditorContents(newContents, isNotSaved) {
@@ -139,8 +139,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             if (!isNotSaved) { 
                 WorkspaceView.lastLoadedContents = newContents
             } else {
-                WorkspaceView.currentItemIndex = null
-                WorkspaceView.saveCurrentItemIndex()
+                WorkspaceView.currentItemId = null
+                WorkspaceView.saveCurrentItemId()
             }
             WorkspaceView.editor.selection.clearSelection()
             WorkspaceView.editor.selection.moveCursorFileStart()
@@ -180,8 +180,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 WorkspaceView.toast("Saved item as:\n" + addResult.id, 2000)
             }
             WorkspaceView.lastLoadedContents = newContents
-            WorkspaceView.currentItemIndex = addResult.id
-            WorkspaceView.saveCurrentItemIndex()
+            WorkspaceView.currentItemId = addResult.id
+            WorkspaceView.saveCurrentItemId()
         },
         
         isEditorDirty() {
@@ -198,8 +198,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         clear() {
             if (!WorkspaceView.confirmClear()) return
             WorkspaceView.setEditorContents("")
-            WorkspaceView.currentItemIndex = null
-            WorkspaceView.saveCurrentItemIndex()
+            WorkspaceView.currentItemId = null
+            WorkspaceView.saveCurrentItemId()
         },
 
         doIt() {
@@ -233,11 +233,11 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 alert("Snippets need to be in the local storage journal (not memory)\nto be opened in a new window.")
                 return
             }
-            if (WorkspaceView.currentItemIndex === null) {
+            if (WorkspaceView.currentItemId === null) {
                 alert("To open a snippet in its own window, you need to\nnavigate to a snippet from local storage first or save a new one.")
                 return
             }
-            window.open("#open=" + WorkspaceView.currentItemIndex)
+            window.open("#open=" + WorkspaceView.currentItemId)
         },
         
         importText() {
@@ -266,18 +266,18 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 WorkspaceView.toast("Only one journal item to display. Try saving another one first.")
                 return
             }
-            const key = currentJournal.skip(WorkspaceView.currentItemIndex, delta, wrap)
+            const key = currentJournal.skip(WorkspaceView.currentItemId, delta, wrap)
             WorkspaceView.goToKey(key)
         },
         
         goToKey(key) {
             // Fist check is to prevent losing redo stack if not moving
-            if (key === WorkspaceView.currentItemIndex && !WorkspaceView.isEditorDirty()) return
+            if (key === WorkspaceView.currentItemId && !WorkspaceView.isEditorDirty()) return
             if (!WorkspaceView.confirmClear()) return
-            WorkspaceView.currentItemIndex = key
-            const item = currentJournal.getItem(WorkspaceView.currentItemIndex) || ""
+            WorkspaceView.currentItemId = key
+            const item = currentJournal.getItem(WorkspaceView.currentItemId) || ""
             WorkspaceView.setEditorContents(item)
-            WorkspaceView.saveCurrentItemIndex()
+            WorkspaceView.saveCurrentItemId()
         },
 
         goFirst() { WorkspaceView.skip(-1000000) },
@@ -291,7 +291,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         showJournal() {
             if (!WorkspaceView.confirmClear()) return
             WorkspaceView.setEditorContents(currentJournal.textForJournal())
-            WorkspaceView.currentItemIndex = null
+            WorkspaceView.currentItemId = null
         },
 
         replaceJournal() {
@@ -302,7 +302,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 WorkspaceView.toast("Problem replacing journal from editor:\n" + error)
                 return
             }
-            WorkspaceView.currentItemIndex = null
+            WorkspaceView.currentItemId = null
             // Update lastLoadedContents in case pasted in contents to avoid warning later since data was processed as intended
             WorkspaceView.lastLoadedContents = WorkspaceView.getEditorContents()
             WorkspaceView.toast("Replaced journal from editor")
@@ -322,7 +322,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 WorkspaceView.toast("Problem merging journal from editor:\n" + error)
                 return
             }
-            WorkspaceView.currentItemIndex = null
+            WorkspaceView.currentItemId = null
             // Update lastLoadedContents in case pasted in contents to avoid warning later since data was processed as intended
             WorkspaceView.lastLoadedContents = WorkspaceView.getEditorContents()
         },
@@ -428,21 +428,21 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         
         viewNavigate() {
             const undoManager = WorkspaceView.editor && WorkspaceView.editor.getSession().getUndoManager()
-            const itemIdentifier = (WorkspaceView.currentItemIndex === null) ? 
+            const itemIdentifier = (WorkspaceView.currentItemId === null) ? 
                 "???" : 
-                ("" + WorkspaceView.currentItemIndex).substring(0, 12) + ((("" + WorkspaceView.currentItemIndex).length > 12) ? "..." : "")
+                ("" + WorkspaceView.currentItemId).substring(0, 12) + ((("" + WorkspaceView.currentItemId).length > 12) ? "..." : "")
             return m("h4.ba.pa1",
                 m("button.ma1", { onclick: WorkspaceView.goFirst, title: "Go to first snippet" }, "|<"),
                 m("button.ma1", { onclick: WorkspaceView.goPrevious, title: "Go to earlier snippet" }, "< Previous"),
                 m("button.ma1", { onclick: WorkspaceView.goNext, title: "Go to later snippet" }, "Next >"),
                 m("button.ma1", { onclick: WorkspaceView.goLast, title: "Go to last snippet" }, ">|"),
                "Item ",
-                m("span", { title: WorkspaceView.currentItemIndex }, itemIdentifier),
+                m("span", { title: WorkspaceView.currentItemId }, itemIdentifier),
                 currentJournal.getCapabilities().idIsPosition ? 
                     "" : 
-                    " : " + (currentJournal.locationForKey(WorkspaceView.currentItemIndex) === null ?
+                    " : " + (currentJournal.locationForKey(WorkspaceView.currentItemId) === null ?
                         "???" : 
-                        (parseInt(currentJournal.locationForKey(WorkspaceView.currentItemIndex)) + 1)),
+                        (parseInt(currentJournal.locationForKey(WorkspaceView.currentItemId)) + 1)),
                 " of ",
                 currentJournal.itemCount(),
                 WorkspaceView.viewEditorMode(),
@@ -536,7 +536,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         viewStartupItem()  {
             const helpText = "Whether to run this snippet when the editor starts up -- snippets run in the order they were added"
             const startupInfo = WorkspaceView.getStartupInfo()
-            const isStartupItem = startupInfo.startupItemIds.indexOf(WorkspaceView.currentItemIndex) !== -1
+            const isStartupItem = startupInfo.startupItemIds.indexOf(WorkspaceView.currentItemId) !== -1
             function toggleUseAtStartup(isStartupItem, itemId) {
                 const startupInfo = WorkspaceView.getStartupInfo()
                 if (isStartupItem) {
@@ -556,7 +556,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("input[type=checkbox].ma1", {
                     checked: isStartupItem,
                     disabled: currentJournal !== JournalUsingLocalStorage,
-                    onclick: toggleUseAtStartup.bind(null, isStartupItem, WorkspaceView.currentItemIndex),
+                    onclick: toggleUseAtStartup.bind(null, isStartupItem, WorkspaceView.currentItemId),
                     title: helpText
                 })
             ]

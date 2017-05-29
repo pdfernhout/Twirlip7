@@ -36,7 +36,7 @@ function clearResults() {
 }
 
 function load(key) {
-    Twirlip7.WorkspaceView.currentItemIndex = key
+    Twirlip7.WorkspaceView.currentItemId = key
 }
 
 Twirlip7.WorkspaceView.extensionsInstall({
