@@ -47,7 +47,18 @@ Twirlip7.WorkspaceView.extensionsInstall({
         return m("div",
             m("hr"),
             "Find items matching:",
-            m("input.ma1", { value: searchText, onchange: (event) => searchText = event.target.value }),
+            m("input.ma1", {
+                value: searchText,
+                onkeydown: (event) => {
+                    searchText = event.target.value
+                    if (event.keyCode === 13) {
+                        search()
+                    } else {
+                        // Prevent excessive redrawing for every keypress in input field
+                        event.redraw = false
+                    }
+                }
+            }),
             m("button.ma1", {onclick: search}, "Search"),
             m("span.ma1"),
             "case", 
