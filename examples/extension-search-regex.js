@@ -1,6 +1,6 @@
 // Extend the application with more complex search functionality supporting regex and case-insenstive matches
-// Put the extension in the footer so the changing results do not make the editor go up ansd down on the page
-// To make this new extension go away, you either need to reload the page or use extensionsUninstall
+// Put the extension in the footer so the changing results do not make the editor go up and down on the page.
+// To make this new extension go away, you either need to reload the page or use extensionsUninstall.
 // If you want this extention to install automatically at startup, check "Bootstrap it".
 
 const searchResults = []
@@ -23,7 +23,6 @@ function search() {
             const item = journal.getItemForLocation(i)
             if (item && item.match(re)) {
                 const key = journal.keyForLocation(i)
-                console.log("item", i, key)
                 searchResults.push({i, key, item})
             }
         }
