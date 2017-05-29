@@ -1,5 +1,6 @@
-// Extend the application
+// Extend the application with search functionality
 // To make this new button go away, you either need to reload the page or use extensionsUninstall
+// If you want this extention to install automatically at startup, check "Bootstrap it".
 
 const searchResults = []
 
