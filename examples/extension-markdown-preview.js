@@ -1,7 +1,5 @@
 // Extend the application to include a markdown preview
-// To make this new button go away, you either need to reload the page or use extensionsUninstall
 // You can try using this new button on the next snippet which is in markdown.
-// If you want this extention to install automatically at startup, check "Bootstrap it".
 
 requirejs(["vendor/marked"], function(marked) {
     function markdownPreview() {

@@ -1,6 +1,5 @@
 // Extend the application with more complex search functionality supporting regex and case-insenstive matches
 // Put the extension in the footer so the changing results do not make the editor go up and down on the page.
-// To make this new extension go away, you either need to reload the page or use extensionsUninstall.
 // If you want this extention to install automatically at startup, check "Bootstrap it".
 
 const searchResults = []
@@ -74,17 +73,20 @@ Twirlip7.WorkspaceView.extensionsInstall({
                     }
                 }
             }),
-            m("button.ma1", {onclick: latest }, "Latest"),
-            m("button.ma1", {onclick: search}, "Search"),
-            m("span.ma1"),
-            "case", 
-            m("input[type=checkbox].ma1", { checked: matchCase, onchange: (event) => matchCase = event.target.checked }),
-            m("span.ma1"),
-            "regex", 
-            m("input[type=checkbox].ma1", { checked: matchRegex, onchange: (event) => matchRegex = event.target.checked }),
-            m("span.ma1"),
-            "word", 
-            m("input[type=checkbox].ma1", { checked: matchWordBoundary, onchange: (event) => matchWordBoundary = event.target.checked }),
+            m("button.ma1", { onclick: latest, title: "Load editor with last matching search result" }, "Latest"),
+            m("button.ma1", { onclick: search }, "Search"),
+            m("span.ma1", { title: "Whether the search is case-sensitive" },
+                "case", 
+                m("input[type=checkbox].ma1", { checked: matchCase, onchange: (event) => matchCase = event.target.checked })
+            ),
+            m("span.ma1", { title: "Whether the search uses regular expressions" },
+                "regex", 
+                m("input[type=checkbox].ma1", { checked: matchRegex, onchange: (event) => matchRegex = event.target.checked })
+            ),
+            m("span.ma1",  { title: "Whether the search only matches on word boundaries" },
+                "word", 
+                m("input[type=checkbox].ma1", { checked: matchWordBoundary, onchange: (event) => matchWordBoundary = event.target.checked })
+            ),
             m("button.ma1", {onclick: clearResults }, "Clear results"),
             searchResults.map((result) => {
                 return m("div", {
