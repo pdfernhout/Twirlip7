@@ -1,4 +1,4 @@
-// Extend the application with more complex search functionality supporting regex and case-insenstive matches
+// Extend the application with more complex search functionality supporting regex and case-insensitive matches
 // Put the extension in the footer so the changing results do not make the editor go up and down on the page.
 // If you want this extention to install automatically at startup, check "Bootstrap it".
 
