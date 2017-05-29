@@ -19,7 +19,8 @@ function search() {
     if (searchText) {
         const reString = matchRegex ? searchText : escapeRegExp(searchText)
         const re = new RegExp(reString, matchCase ? "m" : "mi")
-        for (let i = 0; i < journal.itemCount(); i++) {
+        // Display in reverse order so most recent is at top of results
+        for (let i = journal.itemCount() - 1; i >= 0; i--) {
             const item = journal.getItemForLocation(i)
             if (item && item.match(re)) {
                 const key = journal.keyForLocation(i)
