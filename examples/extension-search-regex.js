@@ -48,10 +48,6 @@ function clearResults() {
     noMatches = false
 }
 
-function load(key) {
-    Twirlip7.WorkspaceView.currentItemId = key
-}
-
 Twirlip7.WorkspaceView.extensionsInstall({
     id: "search-regex",
     // For tags, try header, middle, and footer
