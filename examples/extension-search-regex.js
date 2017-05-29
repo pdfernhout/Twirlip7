@@ -89,7 +89,7 @@ Twirlip7.WorkspaceView.extensionsInstall({
             ),
             m("button.ma1", {onclick: clearResults }, "Clear results"),
             searchResults.map((result) => {
-                return m("div", {
+                return m("div.bg-washed-yellow", {
                     title: result.item, 
                     onclick: Twirlip7.WorkspaceView.goToKey.bind(null, result.key)
                 }, "" + (result.i + 1) + ") " + result.item.substring(0, 120) + "...")
