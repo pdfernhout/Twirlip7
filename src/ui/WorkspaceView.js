@@ -362,12 +362,26 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             delete WorkspaceView.extensions[extension.id]
         },
         
-        getStartupItemId() {
-            return localStorage.getItem("_startupItemId")
+        getStartupInfo() {
+            // format: { startupItemIds: [ids...] }
+            const startupInfo = localStorage.getItem("_startup")
+            if (startupInfo) {
+                try {
+                    const startupInfoParsed = JSON.parse(startupInfo)
+                    if (startupInfoParsed.startupItemIds) {
+                        return startupInfoParsed
+                    }
+                } catch (error) {
+                    console.log("Problem parsing startup info", error)
+                    console.log("Startup infor was", startupInfo)
+                    WorkspaceView.setStartupInfo(null)
+                }
+            }
+            return { startupItemIds: [] }
         },
         
-        setStartupItemId(itemId) {
-            localStorage.setItem("_startupItemId", itemId)
+        setStartupInfo(info) {
+            localStorage.setItem("_startup", JSON.stringify(info))
         },
         
         // View functions which are composed into one big view at the end
@@ -489,18 +503,25 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
         
         viewStartupItem()  {
-            const helpText = "Whether to run this snippet when the editor starts up -- only one snippet can run at startup, but it can load other snippets"
-            const isStartupItem = WorkspaceView.getStartupItemId() === WorkspaceView.currentItemIndex
+            const helpText = "Whether to run this snippet when the editor starts up -- snippets run in the order they were added"
+            const startupInfo = WorkspaceView.getStartupInfo()
+            const isStartupItem = startupInfo.startupItemIds.indexOf(WorkspaceView.currentItemIndex) !== -1
             function toggleUseAtStartup(isStartupItem, itemId) {
+                const startupInfo = WorkspaceView.getStartupInfo()
                 if (isStartupItem) {
-                    WorkspaceView.setStartupItemId("")
+                    const index = startupInfo.startupItemIds.indexOf(itemId)
+                    if (index > -1) {
+                        startupInfo.startupItemIds.splice(index, 1)
+                        WorkspaceView.setStartupInfo(startupInfo)
+                    }
                 } else {
-                    WorkspaceView.setStartupItemId(itemId)
+                    startupInfo.startupItemIds.push(itemId)
+                    WorkspaceView.setStartupInfo(startupInfo)
                 }
                 
             }
             return [
-                m("span", {title: helpText}, "Startup with it:"), 
+                m("span", {title: helpText}, "Bootstrap it:"), 
                 m("input[type=checkbox].ma1", {
                     checked: isStartupItem,
                     disabled: currentJournal !== JournalUsingLocalStorage,

@@ -36,10 +36,12 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage"], funct
         setTimeout(() => {
             WorkspaceView.restoreCurrentItemIndex()
             m.redraw()
-            const startupItemId = localStorage.getItem("_startupItemId")
-            if (startupItemId) {
+            const startupInfo = WorkspaceView.getStartupInfo()
+            if (startupInfo.startupItemIds.length) {
                 setTimeout(() => {
-                    runStartupItem(startupItemId)
+                    for (let startupItemId of startupInfo.startupItemIds) {
+                        runStartupItem(startupItemId)
+                    }
                     m.redraw()
                 })
             }
