@@ -41,7 +41,8 @@ draggable-simplified.js
 
 // Extending the editor
 extension-simple.js
-extension-search.js
+extension-search-plain.js
+extension-search-regex.js
 
 // Markdown library
 markdown-library-use.js
