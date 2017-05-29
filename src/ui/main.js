@@ -15,13 +15,16 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage"], funct
         if (item) {
             try {
                 eval(item)
+                return "ok"
             } catch (error) {
                 console.log("Error running startup item", itemId)
                 console.log("Error message\n", error)
                 console.log("Beginning of item contents\n", item.substring(0,500) + (item.length > 500 ? "..." : ""))
+                return "failed"
             }
         } else {
             console.log("startup item not found", itemId)
+            return "missing"
         }
     }
     
@@ -39,8 +42,20 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage"], funct
             const startupInfo = WorkspaceView.getStartupInfo()
             if (startupInfo.startupItemIds.length) {
                 setTimeout(() => {
+                    const invalidStartupItems = []
                     for (let startupItemId of startupInfo.startupItemIds) {
-                        runStartupItem(startupItemId)
+                        const status = runStartupItem(startupItemId)
+                        if (status !== "ok") {
+                            console.log("Removing " +  status + " startup item from bootstrap: ", startupItemId)
+                            invalidStartupItems.push(startupItemId)
+                        }
+                    }
+                    if (invalidStartupItems.length) {
+                        for (let invalidStartupItemId of invalidStartupItems) {
+                            const index = startupInfo.startupItemIds.indexOf(invalidStartupItemId)
+                            if (index > -1) startupInfo.startupItemIds.splice(index, 1)
+                        }
+                        WorkspaceView.setStartupInfo(startupInfo)
                     }
                     m.redraw()
                 })
