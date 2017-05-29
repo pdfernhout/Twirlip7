@@ -50,6 +50,7 @@ Twirlip7.WorkspaceView.extensionsInstall({
             "Find items matching:",
             m("input.ma1", {
                 value: searchText,
+                onchange: (event) => searchText = event.target.value,
                 onkeydown: (event) => {
                     searchText = event.target.value
                     if (event.keyCode === 13) {
