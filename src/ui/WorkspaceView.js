@@ -97,7 +97,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 show(function () { 
                     return [
                         m("div", "Thanks for trying Twirlip7, an experimental Mithril.js playground -- with aspirations towards becoming a distributed social semantic desktop."),
-                        m("div", "To get started with some example code snippets, click \"Show example journal\", then \"Load journal\", then \"Next\", and then \"Do it\"."),
+                        m("div", "To get started with some example code snippets, click \"Show example journal\", then \"Merge journal\", then \"Next\", and then \"Do it\"."),
                         m("div", "Use \"Previous\" and \"Next\" to scroll through more example snippets. \"Inspect it\" puts evaluation results for selected text into the console log.")
                     ]
                 })
@@ -293,18 +293,37 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.currentItemIndex = null
         },
 
-        loadJournal() {
+        replaceJournal() {
             if (currentJournal.itemCount() && !confirm("Replace all items with entered text for a journal?")) return
             try {
                 currentJournal.loadFromJournalText(WorkspaceView.getEditorContents())
             } catch (error) {
-                WorkspaceView.toast("Problem loading journal from editor:\n" + error)
+                WorkspaceView.toast("Problem replacing journal from editor:\n" + error)
                 return
             }
             WorkspaceView.currentItemIndex = null
             // Update lastLoadedContents in case pasted in contents to avoid warning later since data was processed as intended
             WorkspaceView.lastLoadedContents = WorkspaceView.getEditorContents()
-            WorkspaceView.toast("Loaded journal from editor")
+            WorkspaceView.toast("Replaced journal from editor")
+        },
+        
+        mergeJournal() {
+            if (currentJournal.itemCount() && !confirm("Merge existing journal items with entered text for a journal?")) return
+            try {
+                let addedItemCount = 0
+                const newJournalItems = JSON.parse(WorkspaceView.getEditorContents())
+                for (let item of newJournalItems) {
+                    const addResult = currentJournal.addItem(item)
+                    if (!addResult.existed) addedItemCount++
+                }
+                WorkspaceView.toast("Added " + addedItemCount + " item" + ((addedItemCount === 1 ? "" : "s")) + " to existing journal")
+            } catch (error) {
+                WorkspaceView.toast("Problem merging journal from editor:\n" + error)
+                return
+            }
+            WorkspaceView.currentItemIndex = null
+            // Update lastLoadedContents in case pasted in contents to avoid warning later since data was processed as intended
+            WorkspaceView.lastLoadedContents = WorkspaceView.getEditorContents()
         },
 
         showExampleJournal() {
@@ -563,7 +582,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("button.ma1", { onclick: WorkspaceView.changeJournal, title: "Change storage location of snippets" }, "Journal: " + WorkspaceView.journalChoice),
                 m("button.ma1", { onclick: WorkspaceView.showJournal, title: "Put JSON for journal contents into editor" }, "Show current journal"),
                 m("button.ma1", { onclick: WorkspaceView.showExampleJournal, title: "Put a journal of sample snippets as JSON into editor (for loading afterwards)" }, "Show example journal"),
-                m("button.ma1", { onclick: WorkspaceView.loadJournal, title: "Load JSON journal from editor -- replacing all previous snippets!" }, "Load journal"),
+                m("button.ma1", { onclick: WorkspaceView.mergeJournal, title: "Load JSON journal from editor -- merging with the previous snippets" }, "Merge journal"),
+                m("button.ma1", { onclick: WorkspaceView.replaceJournal, title: "Load JSON journal from editor -- replacing all previous snippets!" }, "Replace journal"),
             ]
         },
         
