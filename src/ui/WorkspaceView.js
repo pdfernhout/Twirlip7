@@ -144,6 +144,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             }
             WorkspaceView.editor.selection.clearSelection()
             WorkspaceView.editor.selection.moveCursorFileStart()
+            WorkspaceView.editor.getSession().setScrollTop(0)
             // Replace undoManager since getUndoManager().reset() does not see to work well enough here
             WorkspaceView.editor.getSession().setUndoManager(new ace.UndoManager())
         },
