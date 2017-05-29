@@ -495,6 +495,17 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                             setTimeout(m.redraw, 0)
                         }
                     })
+                    // Bind a key for saving
+                    WorkspaceView.editor.commands.addCommand({
+                        name: "save",
+                        bindKey: {win: "Ctrl-S",  mac: "Command-S"},
+                        exec: function(editor) {
+                            WorkspaceView.save()
+                            // Need to redraw here because this event handling is outside of Mithril
+                            m.redraw()
+                        },
+                        readOnly: false
+                    })
                 },
                 onupdate: function() {
                     WorkspaceView.editor.resize()
