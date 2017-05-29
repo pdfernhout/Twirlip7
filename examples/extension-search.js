@@ -3,11 +3,11 @@
 // If you want this extention to install automatically at startup, check "Bootstrap it".
 
 const searchResults = []
+let searchText = ""
 
 function search() {
     searchResults.splice(0)
     const journal = Twirlip7.getCurrentJournal()
-    const searchText = prompt("search string")
     if (!searchText) return
     for (let i = 0; i < journal.itemCount(); i++) {
         const item = journal.getItemForLocation(i)
@@ -33,10 +33,13 @@ Twirlip7.WorkspaceView.extensionsInstall({
                 return m("div", {
                     title: result.item, 
                     onclick: Twirlip7.WorkspaceView.goToKey.bind(null, result.key)
-                }, "" + (result.i + 1) + ") " + result.item.substring(0, 100) + "...")
+                }, "" + (result.i + 1) + ") " + result.item.substring(0, 120) + "...")
             }),
+            "Find items matching:",
+            m("input.ma1", { value: searchText, onchange: (event) => searchText = event.target.value }),
             m("button.ma1", {onclick: search}, "Search"),
-            m("button.ma1", {onclick: () => searchResults.splice(0)}, "Clear results")
+            m("button.ma1", {onclick: () => searchResults.splice(0)}, "Clear results"),
+            m("hr")
         )
     }
 })
