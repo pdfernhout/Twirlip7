@@ -39,6 +39,10 @@ draggables-extended.js
 draggables-better.js
 draggable-simplified.js
 
+// IBIS
+ibis_icons.js
+ibis_application.js
+
 // Extending the editor
 extension-simple.js
 extension-search-plain.js
