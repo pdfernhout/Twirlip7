@@ -1,6 +1,8 @@
-// IBIS application
+// IBIS applicationk
 
 // You need to have run the snippet which defines the CompendiumIcons global with the IBIS icons first
+
+// This is an unfinished work in progress
 
 /* global CompendiumIcons */
 
