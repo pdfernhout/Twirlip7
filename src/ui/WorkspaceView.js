@@ -518,6 +518,39 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             )
         },
         
+        viewContext() {
+            return [
+                m("div.ma1",
+                    m("span.dib.w3.tr.mr2", "Entity:"),
+                    m("input.w-80")
+                ),
+                m("div.ma1",
+                    m("span.dib.w3.tr.mr2", "Attribute:"),
+                    m("input.w-80")
+                ),                
+                "Value:"
+            ]
+        },
+        
+        viewAuthor() {
+            return [
+                m("div.ma1",
+                    m("span.dib.w3.tr.mr2", "Author:"),
+                    m("input.w-40"),
+                    m("span.pa2"),
+                    m("span.dib.w4.tr.mr2", "Timestamp:"),
+                    m("input.w-30")
+                ),
+                m("div.ma1",
+                    m("span.dib.w3.tr.mr2", "License:"),
+                    m("input.w-40"),
+                    m("span.pa2"),
+                    m("span.dib.w4.tr.mr2", "Derived from:"),
+                    m("input.w-30")
+                )
+            ]
+        },
+        
         viewEditor() {
             return m("div.w-100#editor", {
                 style: {
@@ -673,7 +706,9 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 focusMode ? [] : WorkspaceView.viewExtensionsHeader(),
                 focusMode ? [] : WorkspaceView.viewAbout(),
                 focusMode ? [] : WorkspaceView.viewNavigate(),
+                focusMode ? [] : WorkspaceView.viewContext(),
                 WorkspaceView.viewEditor(),
+                focusMode ? [] : WorkspaceView.viewAuthor(),
                 WorkspaceView.viewSplitter(),
                 focusMode ? [] : WorkspaceView.viewExtensionsMiddle(),
                 WorkspaceView.viewEvaluateButtons(),
