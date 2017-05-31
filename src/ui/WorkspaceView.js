@@ -123,9 +123,9 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             }
         },
 
-        changeJournal() {
+        changeJournal(newChoice) {
             const oldChoice = WorkspaceView.journalChoice
-            const newChoice = (WorkspaceView.journalChoice === "memory" ? "local storage": "memory")
+            if (newChoice === oldChoice) return
 
             WorkspaceView.saveCurrentItemId()
             WorkspaceView.journalChoice = newChoice
@@ -590,8 +590,15 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
         
         viewJournalButtons() {
+            function journalChanged(event) {
+                WorkspaceView.changeJournal(event.target.value)
+            }
             return [
-                m("button.ma1", { onclick: WorkspaceView.changeJournal, title: "Change storage location of snippets" }, "Journal: " + WorkspaceView.journalChoice),
+                "Journal:",
+                m("select.ma2", { onchange: journalChanged, title: "Change storage location of snippets" }, 
+                    m("option", { value: "local storage", selected: WorkspaceView.journalChoice === "local storage" }, "local storage"),
+                    m("option", { value: "memory", selected: WorkspaceView.journalChoice === "memory" }, "memory")
+                ),
                 m("button.ma1", { onclick: WorkspaceView.showJournal, title: "Put JSON for journal contents into editor" }, "Show current journal"),
                 m("button.ma1", { onclick: WorkspaceView.showExampleJournal, title: "Put a journal of sample snippets as JSON into editor (for loading afterwards)" }, "Show example journal"),
                 m("button.ma1", { onclick: WorkspaceView.mergeJournal, title: "Load JSON journal from editor -- merging with the previous snippets" }, "Merge journal"),
