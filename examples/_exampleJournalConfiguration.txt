@@ -39,6 +39,9 @@ draggables-extended.js
 draggables-better.js
 draggable-simplified.js
 
+// Canvase
+canvas-example.js
+
 // IBIS
 ibis_icons.js
 ibis_application.js
