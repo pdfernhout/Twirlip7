@@ -13,7 +13,6 @@ function onmousedownCircle(event) {
 }
 
 function onmousemoveCircle(event) {
-    console.log("dragging", draggedItem)
     if (draggedItem === event.target) { 
         const dx = event.clientX - dragStart.x
         const dy = event.clientY - dragStart.y
@@ -26,7 +25,6 @@ function onmousemoveCircle(event) {
 
 function onmouseupCircle() {
     draggedItem = null
-    console.log("stop dragging", draggedItem)
 }
 
 Twirlip7.show(() => {

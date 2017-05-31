@@ -23,7 +23,6 @@ Twirlip7.show(() => {
                 objectStart = { x: parseInt(event.target.cx.baseVal.value), y: parseInt(event.target.cy.baseVal.value) }
             },
             onmousemove: (event) => {
-                console.log("dragging", draggedItem)
                 if (draggedItem === event.target) { 
                     const dx = event.clientX - dragStart.x
                     const dy = event.clientY - dragStart.y
@@ -35,7 +34,6 @@ Twirlip7.show(() => {
             },
             onmouseup: () => {
                 draggedItem = null
-                console.log("stop dragging", draggedItem)
             },
         })
     )
