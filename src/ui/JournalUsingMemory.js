@@ -51,6 +51,7 @@ define([], function() {
         },
         
         locationForKey(key) {
+            if (key === null || key === "") return null
             return parseInt(key) - 1
         },
         

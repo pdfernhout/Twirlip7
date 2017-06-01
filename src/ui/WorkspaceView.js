@@ -69,7 +69,6 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         wasEditorDirty: false,
         focusMode: false,
         
-        
         // to support user-defined extensions
         extensions: {},
         
@@ -413,24 +412,44 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
         
         viewNavigate() {
+            const itemCount = WorkspaceView.currentJournal.itemCount()
+            const itemIndex = WorkspaceView.currentJournal.locationForKey(WorkspaceView.currentItemId)
+            console.log("viewNavigate", itemCount, itemIndex)
+            
+            function isPreviousDisabled() {
+                if (itemCount === 0) return true
+                // Allow null item index to go to first or last
+                if (itemIndex === null) return false
+                if (itemIndex === 0) return true
+                return false
+            }
+            
+            function isNextDisabled() {
+                if (itemCount === 0) return true
+                // Allow null item index to go to first or last
+                if (itemIndex === null) return false
+                if (itemIndex >= itemCount - 1) return true
+                return false
+            }
+            
             const undoManager = WorkspaceView.editor && WorkspaceView.editor.getSession().getUndoManager()
             const itemIdentifier = (WorkspaceView.currentItemId === null) ? 
                 "???" : 
                 ("" + WorkspaceView.currentItemId).substring(0, 12) + ((("" + WorkspaceView.currentItemId).length > 12) ? "..." : "")
             return m("h4.ba.pa1",
-                m("button.ma1", { onclick: WorkspaceView.goFirst, title: "Go to first snippet" }, "|<"),
-                m("button.ma1", { onclick: WorkspaceView.goPrevious, title: "Go to earlier snippet" }, "< Previous"),
-                m("button.ma1", { onclick: WorkspaceView.goNext, title: "Go to later snippet" }, "Next >"),
-                m("button.ma1", { onclick: WorkspaceView.goLast, title: "Go to last snippet" }, ">|"),
+                m("button.ma1", { onclick: WorkspaceView.goFirst, title: "Go to first snippet", disabled: isPreviousDisabled() }, "|<"),
+                m("button.ma1", { onclick: WorkspaceView.goPrevious, title: "Go to earlier snippet", disabled: isPreviousDisabled() }, "< Previous"),
+                m("button.ma1", { onclick: WorkspaceView.goNext, title: "Go to later snippet", disabled: isNextDisabled() }, "Next >"),
+                m("button.ma1", { onclick: WorkspaceView.goLast, title: "Go to last snippet", disabled: isNextDisabled() }, ">|"),
                "Item ",
                 m("span", { title: WorkspaceView.currentItemId }, itemIdentifier),
                 WorkspaceView.currentJournal.getCapabilities().idIsPosition ? 
                     "" : 
-                    " : " + (WorkspaceView.currentJournal.locationForKey(WorkspaceView.currentItemId) === null ?
+                    " : " + (itemIndex === null ?
                         "???" : 
-                        (parseInt(WorkspaceView.currentJournal.locationForKey(WorkspaceView.currentItemId)) + 1)),
+                        (itemIndex + 1)),
                 " of ",
-                WorkspaceView.currentJournal.itemCount(),
+                itemCount,
                 WorkspaceView.viewEditorMode(),
                 undoManager ? [
                     m("button.ma1", {onclick: () => undoManager.undo(), disabled: !undoManager.hasUndo() }, "< Undo"),
