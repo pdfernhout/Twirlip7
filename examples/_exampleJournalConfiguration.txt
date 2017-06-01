@@ -12,8 +12,9 @@ counter-closable.js
 counter-closable-styled.js
 counter-component-up-down.js
 
-// Another component
-iframe-example.js
+// iframe
+iframe-example-energy-patent.js
+iframe-example-engelbart-unrevii.js
 
 // Using the show function
 show-hello.js
@@ -39,7 +40,7 @@ draggables-extended.js
 draggables-better.js
 draggable-simplified.js
 
-// Canvase
+// Canvas
 canvas-example.js
 
 // IBIS

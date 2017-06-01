@@ -1,4 +1,4 @@
-// Mithril component which embeds an iframe with a PDF document
+// Mithril component which embeds an iframe with a PDF document of an quantum vacuum energy patent
 
 let div = document.createElement("div")
  
