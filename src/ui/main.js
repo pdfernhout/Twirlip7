@@ -5,11 +5,28 @@ requirejs.config({
     }
 })
 
-requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage"], function(mDiscardAsMadeGlobal, WorkspaceView, JournalUsingLocalStorage) {
+requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "JournalUsingMemory", "FileUtils"], function(mDiscardAsMadeGlobal, WorkspaceView, JournalUsingLocalStorage, JournalUsingMemory, FileUtils) {
     "use strict"
     
     /* global location */
     
+    function setupTwirlip7Global() {
+        // setup Twirlip7 global for use by evaluated code
+        if (!window.Twirlip7) {
+            window.Twirlip7 = {}
+            if (!window.Twirlip7.show) window.Twirlip7.show = WorkspaceView.show
+            if (!window.Twirlip7.WorkspaceView) window.Twirlip7.WorkspaceView = WorkspaceView
+            if (!window.Twirlip7.FileUtils) window.Twirlip7.FileUtils = FileUtils
+            if (!window.Twirlip7.JournalUsingLocalStorage) window.Twirlip7.JournalUsingLocalStorage = JournalUsingLocalStorage
+            if (!window.Twirlip7.JournalUsingMemory) window.Twirlip7.JournalUsingMemory = JournalUsingMemory
+            if (!window.Twirlip7.getCurrentJournal) {
+                window.Twirlip7.getCurrentJournal = () => {
+                    return WorkspaceView.currentJournal
+                }
+            }
+        }
+    }
+
     function runStartupItem(itemId) {
         const item = JournalUsingLocalStorage.getItem(itemId)
         if (item) {
@@ -54,9 +71,9 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage"], funct
     }
     
     function startup() {
-    
-        const hash = location.hash
+        setupTwirlip7Global()
         
+        const hash = location.hash
         if (hash && hash.startsWith("#open=")) {
             const startupItemId = hash.substring(6)
             runStartupItem(startupItemId)

@@ -10,12 +10,6 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
     "use strict"
     /* global m, location, localStorage */
 
-    // let currentJournal = JournalUsingLocalStorage
-    let currentJournal = JournalUsingLocalStorage
-
-    // Used for resizing the editor's height
-    let dragOriginY
-    
     // Convenience function which examples could use to put up closeable views
     function show(viewFunction, config) {
         // config supports extraStyling and onclose
@@ -62,27 +56,12 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         m.mount(div, ClosableComponent)
     }
     
-    function setupTwirlip7Global() {
-        // setup Twirlip7 global for use by evaluated code
-        if (!window.Twirlip7) {
-            window.Twirlip7 = {}
-            if (!window.Twirlip7.show) window.Twirlip7.show = show
-            if (!window.Twirlip7.WorkspaceView) window.Twirlip7.WorkspaceView = WorkspaceView
-            if (!window.Twirlip7.FileUtils) window.Twirlip7.FileUtils = FileUtils
-            if (!window.Twirlip7.JournalUsingLocalStorage) window.Twirlip7.JournalUsingLocalStorage = JournalUsingLocalStorage
-            if (!window.Twirlip7.JournalUsingMemory) window.Twirlip7.JournalUsingMemory = JournalUsingMemory
-            if (!window.Twirlip7.getCurrentJournal) {
-                window.Twirlip7.getCurrentJournal = () => {
-                    return currentJournal
-                }
-            }
-        }
-    }
-
     const WorkspaceView = {
         editor: null,
         lastLoadedContents: "",
         currentItemId: null,
+        
+        currentJournal: JournalUsingLocalStorage,
         journalChoice: "local storage",
         aceEditorHeight: 20,
         toastMessages: [],
@@ -90,12 +69,18 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         wasEditorDirty: false,
         focusMode: false,
         
+        
         // to support user-defined extensions
         extensions: {},
         
+        // Used for resizing the editor's height
+        dragOriginY: 0,
+        
+        show: show,
+        
         oninit() {
-            if (currentJournal.itemCount() === 0) {
-                show(function () { 
+            if (WorkspaceView.currentJournal.itemCount() === 0) {
+                WorkspaceView.show(function () { 
                     return [
                         m("div", "Thanks for trying Twirlip7, an experimental Mithril.js playground -- with aspirations towards becoming a distributed social semantic desktop."),
                         m("div", "To get started with some example code snippets, click \"Show example journal\", then \"Merge journal\", then \"Next\", and then \"Do it\"."),
@@ -114,7 +99,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             if (WorkspaceView.currentItemId === null) {
                 WorkspaceView.setEditorContents("")
             } else {
-                let text = currentJournal.getItem(WorkspaceView.currentItemId)
+                let text = WorkspaceView.currentJournal.getItem(WorkspaceView.currentItemId)
                 if (text === null || text === undefined) {
                     WorkspaceView.currentItemId = null
                     WorkspaceView.saveCurrentItemId()
@@ -130,7 +115,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
             WorkspaceView.saveCurrentItemId()
             WorkspaceView.journalChoice = newChoice
-            currentJournal = (newChoice === "memory" ? JournalUsingMemory : JournalUsingLocalStorage)
+            WorkspaceView.currentJournal = (newChoice === "memory" ? JournalUsingMemory : JournalUsingLocalStorage)
             WorkspaceView.restoreCurrentItemId()
         },
 
@@ -170,7 +155,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
         save() {
             const newContents = WorkspaceView.getEditorContents()
-            const addResult = currentJournal.addItem(newContents)
+            const addResult = WorkspaceView.currentJournal.addItem(newContents)
             if (addResult.error) {
                 alert("save failed -- maybe too many localStorage items?\n" + addResult.error)
                 return
@@ -230,7 +215,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
 
         openIt() {
-            if (currentJournal !== JournalUsingLocalStorage) {
+            if (WorkspaceView.currentJournal !== JournalUsingLocalStorage) {
                 alert("Snippets need to be in the local storage journal (not memory)\nto be opened in a new window.")
                 return
             }
@@ -259,15 +244,15 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
 
         skip(delta, wrap) {
-            if (!currentJournal.itemCount()) {
+            if (!WorkspaceView.currentJournal.itemCount()) {
                 WorkspaceView.toast("No journal items to display. Try saving one first -- or show the example journal in the editor and then load it.")
                 return
             }
-            if (currentJournal.itemCount() === 1) {
+            if (WorkspaceView.currentJournal.itemCount() === 1) {
                 WorkspaceView.toast("Only one journal item to display. Try saving another one first.")
                 return
             }
-            const key = currentJournal.skip(WorkspaceView.currentItemId, delta, wrap)
+            const key = WorkspaceView.currentJournal.skip(WorkspaceView.currentItemId, delta, wrap)
             WorkspaceView.goToKey(key)
         },
         
@@ -276,7 +261,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             if (key === WorkspaceView.currentItemId && !WorkspaceView.isEditorDirty()) return
             if (!WorkspaceView.confirmClear()) return
             WorkspaceView.currentItemId = key
-            const item = currentJournal.getItem(WorkspaceView.currentItemId) || ""
+            const item = WorkspaceView.currentJournal.getItem(WorkspaceView.currentItemId) || ""
             WorkspaceView.setEditorContents(item)
             WorkspaceView.saveCurrentItemId()
         },
@@ -291,14 +276,14 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
         showJournal() {
             if (!WorkspaceView.confirmClear()) return
-            WorkspaceView.setEditorContents(currentJournal.textForJournal())
+            WorkspaceView.setEditorContents(WorkspaceView.currentJournal.textForJournal())
             WorkspaceView.currentItemId = null
         },
 
         replaceJournal() {
-            if (currentJournal.itemCount() && !confirm("Replace all items with entered text for a journal?")) return
+            if (WorkspaceView.currentJournal.itemCount() && !confirm("Replace all items with entered text for a journal?")) return
             try {
-                currentJournal.loadFromJournalText(WorkspaceView.getEditorContents())
+                WorkspaceView.currentJournal.loadFromJournalText(WorkspaceView.getEditorContents())
             } catch (error) {
                 WorkspaceView.toast("Problem replacing journal from editor:\n" + error)
                 return
@@ -310,12 +295,12 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
         
         mergeJournal() {
-            if (currentJournal.itemCount() && !confirm("Merge existing journal items with entered text for a journal?")) return
+            if (WorkspaceView.currentJournal.itemCount() && !confirm("Merge existing journal items with entered text for a journal?")) return
             try {
                 let addedItemCount = 0
                 const newJournalItems = JSON.parse(WorkspaceView.getEditorContents())
                 for (let item of newJournalItems) {
-                    const addResult = currentJournal.addItem(item)
+                    const addResult = WorkspaceView.currentJournal.addItem(item)
                     if (!addResult.existed) addedItemCount++
                 }
                 WorkspaceView.toast("Added " + addedItemCount + " item" + ((addedItemCount === 1 ? "" : "s")) + " to existing journal")
@@ -439,13 +424,13 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("button.ma1", { onclick: WorkspaceView.goLast, title: "Go to last snippet" }, ">|"),
                "Item ",
                 m("span", { title: WorkspaceView.currentItemId }, itemIdentifier),
-                currentJournal.getCapabilities().idIsPosition ? 
+                WorkspaceView.currentJournal.getCapabilities().idIsPosition ? 
                     "" : 
-                    " : " + (currentJournal.locationForKey(WorkspaceView.currentItemId) === null ?
+                    " : " + (WorkspaceView.currentJournal.locationForKey(WorkspaceView.currentItemId) === null ?
                         "???" : 
-                        (parseInt(currentJournal.locationForKey(WorkspaceView.currentItemId)) + 1)),
+                        (parseInt(WorkspaceView.currentJournal.locationForKey(WorkspaceView.currentItemId)) + 1)),
                 " of ",
-                currentJournal.itemCount(),
+                WorkspaceView.currentJournal.itemCount(),
                 WorkspaceView.viewEditorMode(),
                 undoManager ? [
                     m("button.ma1", {onclick: () => undoManager.undo(), disabled: !undoManager.hasUndo() }, "< Undo"),
@@ -520,12 +505,12 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 style: { cursor: "ns-resize", height: "0.33rem" },
                 draggable: true,
                 ondragstart: (event) => {
-                    dragOriginY = event.screenY
+                    WorkspaceView.dragOriginY = event.screenY
                     event.dataTransfer.setData("Text", event.target.id)
                     event.dataTransfer.effectAllowed = "none"
                 },
                 ondragend: (event) => {
-                    const yDifference = event.screenY - dragOriginY
+                    const yDifference = event.screenY - WorkspaceView.dragOriginY
                     const lineDifference = Math.floor(yDifference / WorkspaceView.editor.renderer.lineHeight)
                     WorkspaceView.aceEditorHeight = parseInt(WorkspaceView.aceEditorHeight) + lineDifference
                     if (WorkspaceView.aceEditorHeight < 5) { WorkspaceView.aceEditorHeight = 5 }
@@ -556,7 +541,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("span", {title: helpText}, "Bootstrap it:"), 
                 m("input[type=checkbox].ma1", {
                     checked: isStartupItem,
-                    disabled: currentJournal !== JournalUsingLocalStorage,
+                    disabled: WorkspaceView.currentJournal !== JournalUsingLocalStorage,
                     onclick: toggleUseAtStartup.bind(null, isStartupItem, WorkspaceView.currentItemId),
                     title: helpText
                 })
@@ -650,8 +635,6 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return m("#main.ma2", WorkspaceView.viewMain())
         },
     }
-
-    setupTwirlip7Global()
     
     return WorkspaceView
 })
