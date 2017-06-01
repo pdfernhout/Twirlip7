@@ -27,11 +27,11 @@ function onmouseupCircle() {
 
 Twirlip7.show(() => {
     return m("svg", {
-            width: 600,
-            height: 200,
-            onmousemove: onmousemoveCircle,
-            onmouseup: onmouseupCircle,
-        },
+        width: 600,
+        height: 200,
+        onmousemove: onmousemoveCircle,
+        onmouseup: onmouseupCircle,
+    },
         m("rect[height='200'][width='600'][x='0'][y='0']", {
             style: {"stroke": "black", "fill": "none", "stroke-width": "1"},
         }),
