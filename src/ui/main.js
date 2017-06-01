@@ -28,38 +28,48 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage"], funct
         }
     }
     
-    const hash = location.hash
-    
-    if (hash && hash.startsWith("#open=")) {
-        const startupItemId = hash.substring(6)
-        runStartupItem(startupItemId)
-    } else {
-        const root = document.body
-        m.mount(root, WorkspaceView)
-        setTimeout(() => {
-            WorkspaceView.restoreCurrentItemId()
-            m.redraw()
-            const startupInfo = WorkspaceView.getStartupInfo()
-            if (startupInfo.startupItemIds.length) {
-                setTimeout(() => {
-                    const invalidStartupItems = []
-                    for (let startupItemId of startupInfo.startupItemIds) {
-                        const status = runStartupItem(startupItemId)
-                        if (status !== "ok") {
-                            console.log("Removing " +  status + " startup item from bootstrap: ", startupItemId)
-                            invalidStartupItems.push(startupItemId)
-                        }
+    function runAllStartupItems() {
+        const startupInfo = WorkspaceView.getStartupInfo()
+        if (startupInfo.startupItemIds.length) {
+            setTimeout(() => {
+                const invalidStartupItems = []
+                for (let startupItemId of startupInfo.startupItemIds) {
+                    const status = runStartupItem(startupItemId)
+                    if (status !== "ok") {
+                        console.log("Removing " +  status + " startup item from bootstrap: ", startupItemId)
+                        invalidStartupItems.push(startupItemId)
                     }
-                    if (invalidStartupItems.length) {
-                        for (let invalidStartupItemId of invalidStartupItems) {
-                            const index = startupInfo.startupItemIds.indexOf(invalidStartupItemId)
-                            if (index > -1) startupInfo.startupItemIds.splice(index, 1)
-                        }
-                        WorkspaceView.setStartupInfo(startupInfo)
+                }
+                if (invalidStartupItems.length) {
+                    // disable any invalid startup items
+                    for (let invalidStartupItemId of invalidStartupItems) {
+                        const index = startupInfo.startupItemIds.indexOf(invalidStartupItemId)
+                        if (index > -1) startupInfo.startupItemIds.splice(index, 1)
                     }
-                    m.redraw()
-                })
-            }
-        }, 0)
+                    WorkspaceView.setStartupInfo(startupInfo)
+                }
+                m.redraw()
+            })
+        }
     }
+    
+    function startup() {
+    
+        const hash = location.hash
+        
+        if (hash && hash.startsWith("#open=")) {
+            const startupItemId = hash.substring(6)
+            runStartupItem(startupItemId)
+        } else {
+            const root = document.body
+            m.mount(root, WorkspaceView)
+            setTimeout(() => {
+                WorkspaceView.restoreCurrentItemId()
+                m.redraw()
+                runAllStartupItems()
+            }, 0)
+        }
+    }
+    
+    startup()
 })
