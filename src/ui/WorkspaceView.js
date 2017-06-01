@@ -432,6 +432,29 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 return false
             }
             
+            function itemIdentifierClicked() {
+                const newItemId = prompt("Go to item id", WorkspaceView.currentItemId)
+                if (!newItemId || newItemId === WorkspaceView.currentItemId) return
+                // TODO: Should have a check for "exists"
+                if (WorkspaceView.currentJournal.getItem(newItemId) === null) {
+                    alert("Could not find item for id:\n" + newItemId)
+                } else {
+                    WorkspaceView.goToKey(newItemId)
+                }
+            }
+            
+            function itemPositionClicked() {
+                const newItemIndex = prompt("Go to item index", itemIndex === null ? "" : itemIndex + 1)
+                if (!newItemIndex || newItemIndex === itemIndex) return
+                const newItemId = WorkspaceView.currentJournal.keyForLocation(parseInt(newItemIndex) - 1)
+                // TODO: Should have a check for "exists"
+                if (WorkspaceView.currentJournal.getItem(newItemId) === null) {
+                    alert("Could not find item for index:\n" + newItemIndex)
+                } else {
+                    WorkspaceView.goToKey(newItemId)
+                }
+            }
+            
             const undoManager = WorkspaceView.editor && WorkspaceView.editor.getSession().getUndoManager()
             const itemIdentifier = (WorkspaceView.currentItemId === null) ? 
                 "???" : 
@@ -442,12 +465,14 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("button.ma1", { onclick: WorkspaceView.goNext, title: "Go to later snippet", disabled: isNextDisabled() }, "Next >"),
                 m("button.ma1", { onclick: WorkspaceView.goLast, title: "Go to last snippet", disabled: isNextDisabled() }, ">|"),
                "Item ",
-                m("span", { title: WorkspaceView.currentItemId }, itemIdentifier),
+                m("span", { title: "Click to jump to different item by identifier", onclick: itemIdentifierClicked }, itemIdentifier),
                 WorkspaceView.currentJournal.getCapabilities().idIsPosition ? 
                     "" : 
-                    " : " + (itemIndex === null ?
+                    m("span", { onclick: itemPositionClicked, title: "Click to jump to different item by index" },
+                        " : " + (itemIndex === null ?
                         "???" : 
-                        (itemIndex + 1)),
+                        (itemIndex + 1))
+                    ),
                 " of ",
                 itemCount,
                 WorkspaceView.viewEditorMode(),
