@@ -88,6 +88,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         toastMessages: [],
         editorMode: "ace/mode/javascript",
         wasEditorDirty: false,
+        focusMode: false,
         
         // to support user-defined extensions
         extensions: {},
@@ -582,6 +583,13 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("button.ma1", { onclick: WorkspaceView.clear, title: "Clear out text in editor" }, "Clear"),
                 m("button.ma1", { onclick: WorkspaceView.importText, title: "Load a file into editor" }, "Import"),
                 m("button.ma1", { onclick: WorkspaceView.exportText, title: "Save current editor text to a file" }, "Export"),
+                m("span.ma1", {  title: "focus mode hides extraneous editor controls to provide more space for testing" },
+                    "focus:",
+                    m("input[type=checkbox].ma1", { 
+                        checked: WorkspaceView.focusMode,
+                        onchange: (event) => WorkspaceView.focusMode = event.target.checked
+                    })
+                )
             ]
         },
         
@@ -619,21 +627,22 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
         
         viewMain() {
+            const focusMode = WorkspaceView.focusMode
             return [
                 WorkspaceView.viewToast(),
                 WorkspaceView.viewFileInput(),
-                WorkspaceView.viewExtensionsHeader(),
-                WorkspaceView.viewAbout(),
-                WorkspaceView.viewNavigate(),
+                focusMode ? [] : WorkspaceView.viewExtensionsHeader(),
+                focusMode ? [] : WorkspaceView.viewAbout(),
+                focusMode ? [] : WorkspaceView.viewNavigate(),
                 WorkspaceView.viewEditor(),
                 WorkspaceView.viewSplitter(),
-                WorkspaceView.viewExtensionsMiddle(),
+                focusMode ? [] : WorkspaceView.viewExtensionsMiddle(),
                 WorkspaceView.viewEvaluateButtons(),
                 WorkspaceView.viewSpacer(),
                 WorkspaceView.viewEditorButtons(),
                 WorkspaceView.viewBreak(),
-                WorkspaceView.viewJournalButtons(),
-                WorkspaceView.viewExtensionsFooter(),
+                focusMode ? [] : WorkspaceView.viewJournalButtons(),
+                focusMode ? [] : WorkspaceView.viewExtensionsFooter(),
             ]
         },
 
