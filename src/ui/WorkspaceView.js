@@ -414,7 +414,6 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         viewNavigate() {
             const itemCount = WorkspaceView.currentJournal.itemCount()
             const itemIndex = WorkspaceView.currentJournal.locationForKey(WorkspaceView.currentItemId)
-            console.log("viewNavigate", itemCount, itemIndex)
             
             function isPreviousDisabled() {
                 if (itemCount === 0) return true
