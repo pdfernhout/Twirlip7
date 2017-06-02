@@ -11,7 +11,7 @@
 /* global CompendiumIcons */
 
 // You need to have run the snippet which defines the CompendiumIcons global with the IBIS icons first
-// This next section does that for you if needed
+// This next section does that for you if needed with the local storage journal, but not with the memory journal
 if (!window.CompendiumIcons) {
     const iconLoaderResource = {
         name: "Compendium Icons Loader",
@@ -95,10 +95,14 @@ function deleteLink() {
 }
 
 function deleteElement() {
-    if (!secondDraggedItem) return
-    const index = diagram.indexOf(secondDraggedItem)
+    const elementToDelete = secondDraggedItem
+    if (!elementToDelete) return
+    const index = diagram.indexOf(elementToDelete)
     if (index > -1) {
         diagram.splice(index, 1)
+    }
+    for (let element of diagram) {
+        if (element.parent === elementToDelete) element.parent = null
     }
 }
 
