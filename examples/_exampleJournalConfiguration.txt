@@ -12,12 +12,13 @@ counter-closable.js
 counter-closable-styled.js
 counter-component-up-down.js
 
+// Using the show function
+show-hello.js
+counter-component-show.js
+
 // iframe
 iframe-example-energy-patent.js
 iframe-example-engelbart-unrevii.js
-
-// Using the show function
-show-hello.js
 
 // Mithril forms
 temperature-converter.js

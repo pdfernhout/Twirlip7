@@ -1,4 +1,4 @@
-// This example creates a counter component in Mithril.
+// This example creates a counter component with up and down buttons
 
 let div = document.createElement("div")
  

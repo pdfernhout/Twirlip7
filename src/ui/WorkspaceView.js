@@ -11,7 +11,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
     /* global m, location, localStorage */
 
     // Convenience function which examples could use to put up closeable views
-    function show(viewFunction, config) {
+    function show(userComponentOrViewFunction, config, componentConfig) {
         // config supports extraStyling and onclose
         if (typeof config === "string") {
             config = { extraStyling: config }
@@ -20,19 +20,32 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         if (!config.extraStyling) { config.extraStyling = "" }
         
         let div = document.createElement("div")
-
-        const ClosableComponent = {            
-            view() {
+        
+        const userComponent = userComponentOrViewFunction.view ?
+            userComponentOrViewFunction :
+            {
+                view: userComponentOrViewFunction
+            }
+        
+        function protect(viewFunction) {
+            return function() {
                 let subview
                 try {
-                    subview = viewFunction()
+                    subview = viewFunction.call(arguments)
                 } catch (e) {
                     console.log("Error in show function", e)
                     subview = m("div.ba.ma2.pa2.bg-red", "Error in show function: " + e)
                 }
+                return subview
+            }
+        }
+        userComponent.view = protect(userComponent.view)
+
+        const ClosableComponent = {            
+            view() {
                 const isCloseButtonShown = location.hash.startsWith("#open=")
                 return m("div.ba.ma3.pa3.bg-light-purple.relative" + config.extraStyling,
-                    subview,
+                    m(userComponent, componentConfig),
                     isCloseButtonShown ?
                         [] :
                         m("button.absolute.right-1.top-1", {
