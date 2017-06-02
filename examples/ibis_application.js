@@ -1,11 +1,8 @@
 // IBIS application
 
-// You need to have run the snippet which defines the CompendiumIcons global with the IBIS icons first
-// item: 28746681f0477c2d66e09e3c4fc3c73ede3dcb3d5f972aaa3d281e09d8d01270
-
 // This is an unfinished work in progress
 
-// references:
+// References:
 // arrow marker: https://stackoverflow.com/questions/12680166/how-to-use-an-arrow-marker-on-an-svg-line-element
 // arrowhead derived from: https://stackoverflow.com/questions/11808860/how-to-place-arrow-head-triangles-on-svg-lines
 // marker-end: http://tutorials.jenkov.com/svg/marker-element.html
@@ -13,15 +10,33 @@
 
 /* global CompendiumIcons */
 
+// You need to have run the snippet which defines the CompendiumIcons global with the IBIS icons first
+// This next section does that for you if needed
+if (!window.CompendiumIcons) {
+    const iconLoaderResource = {
+        name: "Compendium Icons Loader",
+        id: "28746681f0477c2d66e09e3c4fc3c73ede3dcb3d5f972aaa3d281e09d8d01270"
+    }
+    
+    const iconLoader = Twirlip7.getCurrentJournal().getItem(iconLoaderResource.id)
+    if (iconLoader) {
+        /* eslint no-eval: 0 */
+        /* jslint evil: true */
+        eval(iconLoader)
+    }
+}
+
 const diagram = []
 
-// tiny stack for connectign items
+// tiny stack for connecting items
 let firstDraggedItem = null
 let secondDraggedItem = null
 
 let draggedItem = null
-let dragStart = {}
-let objectStart = {}
+let dragStart = {x: 0, y: 0}
+let objectStart = {x: 0, y: 0}
+
+let mouseTrackingPosition = {x: 0, y: 0}
 
 function onmousedown(element, event) {
     firstDraggedItem = secondDraggedItem
@@ -39,11 +54,17 @@ function onmousemove(event) {
         const newY = objectStart.y + dy
         draggedItem.x = newX
         draggedItem.y = newY
+    } else {
+        mouseTrackingPosition = {x: event.clientX, y: event.clientY }
     }
 }
 
 function onmouseup() {
     draggedItem = null
+}
+
+function onkeydown(event) {
+    console.log("onkeydown", event)
 }
 
 function newX() {
@@ -55,7 +76,7 @@ function newY() {
 }
 
 function addElement(type) {
-    const name = type // prompt(type + " name")
+    const name = prompt(type + " name")
     if (!name) return
     diagram.unshift({ type: type, name: name, x: newX(), y: newY() } )
 }
@@ -64,6 +85,21 @@ function addLink() {
     if (!firstDraggedItem) return
     if (!secondDraggedItem) return
     firstDraggedItem.parent = secondDraggedItem
+}
+
+// Need to add undo
+
+function deleteLink() {
+    if (!secondDraggedItem) return
+    secondDraggedItem.parent = undefined
+}
+
+function deleteElement() {
+    if (!secondDraggedItem) return
+    const index = diagram.indexOf(secondDraggedItem)
+    if (index > -1) {
+        diagram.splice(index, 1)
+    }
 }
 
 function viewLink(element) {
@@ -76,7 +112,7 @@ function viewLink(element) {
     const yB = element.y
     const radius = 24
     
-    const d = Math.sqrt((xB - xA) * (xB - xA) + (yB-yA) * (yB-yA))
+    const d = Math.sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA))
     const d2 = d - radius
     
     const ratio = d2 / d
@@ -131,8 +167,11 @@ Twirlip7.show(() => {
         m("button.ma1", { onclick: addElement.bind(null, "plus") }, "Add plus"),
         m("button.ma1", { onclick: addElement.bind(null, "minus") }, "Add minus"),
         m("button.ma1", { onclick: addLink }, "Link last two"),
+        m("button.ma1", { onclick: deleteLink }, "Delete link"),
+        m("button.ma1", { onclick: deleteElement }, "Delete element"),
         m("br"),
-        m("svg.diagram.ba", { width: 600, height: 300, onmousemove: onmousemove, onmouseup: onmouseup, },
+        // on keydown does not seem to work here
+        m("svg.diagram.ba", { width: 600, height: 300, onmousemove: onmousemove, onmouseup: onmouseup, onkeydown: onkeydown },
             viewArrowhead(),
             diagram.map((element) => {
                 return viewLink(element)
