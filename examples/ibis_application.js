@@ -274,7 +274,17 @@ function viewItemPanel() {
     }
 
     return m("div.fl.ma1", {style: "flex-grow: 100"}, [
-        "Item name",
+        "Item type",
+        m("br"),
+        m("select.ma1", {onchange: event => element.type = event.target.value, disabled},
+            Object.keys(CompendiumIcons).sort().map(key => {
+                // remove"_png" at end
+                const type = key.substring(0, key.length - 4)
+                return m("option", {value: type, selected: element && element.type === type}, type)
+            })
+        ),
+        m("br"),
+        "Name",
         m("br"),
         m("input.w-100", {value: element ? element.name : "", oninput: (event) => { element.name = event.target.value; updateDiagramJSON() }, disabled}),
         m("br.ma2"),
