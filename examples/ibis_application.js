@@ -2,16 +2,45 @@
 
 // This is an unfinished work in progress
 
-// References:
-// arrow marker: https://stackoverflow.com/questions/12680166/how-to-use-an-arrow-marker-on-an-svg-line-element
-// arrowhead derived from: https://stackoverflow.com/questions/11808860/how-to-place-arrow-head-triangles-on-svg-lines
-// marker-end: http://tutorials.jenkov.com/svg/marker-element.html
-// line to edge of circle: https://stackoverflow.com/questions/13165913/draw-an-arrow-between-two-circles#13234898
+/**************************************
+# Conceptual references
+
+Dialogue Mapping: Building Shared Understanding of Wicked Problems 
+by Jeff Conklin
+https://www.amazon.com/Dialogue-Mapping-Building-Understanding-Problems/dp/0470017686
+
+The book explains how we can visualize discussions on complex topics using the IBIS notation (Questions/Issues, Ideas, Reasons/Pros&Cons) 
+which provides just enough structure to aid a group's short-term memory without getting in the way.
+What might be arguments over the best way to proceed become collaborations 
+in constructing a dialogue map exploring all the possibilities and their evaluations.
+
+More on Dialog Mapping can be found at Jeff Conklin's website here:
+http://cognexus.org/id41.htm
+
+Compendium desktop software for IBIS:
+http://compendium.open.ac.uk/
+
+Constructing Knowledge Art: An Experiential Perspective on Crafting Participatory Representations
+by Al Selvin and Simon Buckingham Shum (who created the Compendium software)
+https://www.amazon.com/gp/product/1627052593
+
+This is a broader exploration of dialog mapping and similar participatory technologies from an advanced facilitator's perspective.]
+Most people would probably want to read Jeff Conklin's "how to" book on Dialogue Mapping first,
+and then move onto this one once they are ready to grow further as a facilitator of group work.
+
+# Programming references
+
+arrow marker: https://stackoverflow.com/questions/12680166/how-to-use-an-arrow-marker-on-an-svg-line-element
+arrowhead derived from: https://stackoverflow.com/questions/11808860/how-to-place-arrow-head-triangles-on-svg-lines
+marker-end: http://tutorials.jenkov.com/svg/marker-element.html
+line to edge of circle: https://stackoverflow.com/questions/13165913/draw-an-arrow-between-two-circles#13234898
+
+**************************************/
 
 /* global CompendiumIcons */
 
 // You need to have run the snippet which defines the CompendiumIcons global with the IBIS icons first
-// This next section does that for you if needed
+// This next section does that for you if you are using a local storage journal with the examples loaded
 if (!window.CompendiumIcons) {
     const iconLoaderResource = {
         name: "Compendium Icons Loader",
