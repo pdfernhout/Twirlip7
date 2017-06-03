@@ -35,6 +35,46 @@ arrowhead derived from: https://stackoverflow.com/questions/11808860/how-to-plac
 marker-end: http://tutorials.jenkov.com/svg/marker-element.html
 line to edge of circle: https://stackoverflow.com/questions/13165913/draw-an-arrow-between-two-circles#13234898
 
+Example JSON data to paste in to "Diagram JSON" textarea and load using "Update Diagram from JSON" button
+
+[
+    {
+        "type": "minus",
+        "name": "minus",
+        "x": 368,
+        "y": 173,
+        "notes": "",
+        "id": "5de7524c-ba07-4571-9282-9ec2d352f15c",
+        "parentId": "1822527c-b6c4-4f86-8a5d-3b9323e9c8db"
+    },
+    {
+        "type": "plus",
+        "name": "plus",
+        "x": 366,
+        "y": 50,
+        "notes": "some notes on plus",
+        "id": "4cb3b633-dfd5-428c-8fce-26c4bcbe27d3",
+        "parentId": "1822527c-b6c4-4f86-8a5d-3b9323e9c8db"
+    },
+    {
+        "type": "position",
+        "name": "p1",
+        "x": 215,
+        "y": 106,
+        "notes": "",
+        "id": "1822527c-b6c4-4f86-8a5d-3b9323e9c8db",
+        "parentId": "5e7b7953-4efe-4f8c-b8c4-56cc3499087b"
+    },
+    {
+        "type": "issue",
+        "name": "q1",
+        "x": 100,
+        "y": 100,
+        "notes": "",
+        "id": "5e7b7953-4efe-4f8c-b8c4-56cc3499087b"
+    }
+]
+
 **************************************/
 
 /* global CompendiumIcons */
@@ -55,8 +95,9 @@ if (!window.CompendiumIcons) {
     }
 }
 
-const diagram = []
-
+let diagram = []
+let diagramJSON = JSON.stringify(diagram, null, 4)
+    
 // tiny stack for connecting items
 let earlierDraggedItem = null
 let laterDraggedItem = null
@@ -99,6 +140,7 @@ function onmouseupBackground(event) {
     const rect = event.target.getBoundingClientRect()
     if (draggedItem) {
         lastClickPosition = { x: draggedItem.x, y: draggedItem.y }
+        updateDiagramJSON()
     } else {
         lastClickPosition = { x: event.clientX - rect.left, y: event.clientY - rect.top }
     }
@@ -109,12 +151,20 @@ function onkeydown(event) {
     console.log("onkeydown", event)
 }
 
+function uuid() {
+    // From: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript#2117523
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
+        var r = Math.random()*16|0, v = c == "x" ? r : (r&0x3|0x8)
+        return v.toString(16)
+    })
+}
+
 function addElement(type) {
     const name = prompt(type + " name")
     if (!name) return
     const x = lastClickPosition.x + 50
     const y = lastClickPosition.y + 50
-    const element = { type: type, name: name, x: x, y: y, notes: "" }
+    const element = { type: type, name: name, x: x, y: y, notes: "", id: uuid() }
     diagram.unshift(element)
     if (lastClickPosition) {
         lastClickPosition.x += 50
@@ -122,19 +172,22 @@ function addElement(type) {
     }
     earlierDraggedItem = laterDraggedItem
     laterDraggedItem = element
+    updateDiagramJSON()
 }
 
 function addLink() {
     if (!earlierDraggedItem) return
     if (!laterDraggedItem) return
-    laterDraggedItem.parent = earlierDraggedItem
+    laterDraggedItem.parentId = earlierDraggedItem.id
+    updateDiagramJSON()
 }
 
 // Need to add undo
 
 function deleteLink() {
     if (!laterDraggedItem) return
-    laterDraggedItem.parent = undefined
+    laterDraggedItem.parentId = undefined
+    updateDiagramJSON()
 }
 
 function deleteElement() {
@@ -143,11 +196,14 @@ function deleteElement() {
     if (index > -1) {
         diagram.splice(index, 1)
     }
+    updateDiagramJSON()
 }
 
 function viewLink(element) {
-    const parent = element.parent
-    if (!parent) return
+    const parentId = element.parentId
+    if (!parentId) return []
+    const parent = diagram.find(element => element.id === parentId)
+    if (!parent) return []
     
     const xA = parent.x
     const yA = parent.y
@@ -203,17 +259,33 @@ function viewArrowhead() {
     }, m("path", { d: "M0,0 V8 L8,4 Z", fill: "black" }))
 }
 
+function updateDiagramJSON() {
+    diagramJSON = JSON.stringify(diagram, null, 4)
+}
+
 function viewItemPanel() {
     const element = laterDraggedItem
     const disabled = !element
+    
+    function updateDiagramFromJSON() {
+        if (!confirm("Update diagram from JSON?")) return
+        const newDiagram = JSON.parse(diagramJSON)
+        diagram = newDiagram
+    }
+
     return m("div.fl.ma1", {style: "flex-grow: 100"}, [
         "Item name",
         m("br"),
-        m("input.w-100", {value: element ? element.name : "", oninput: (event) => element.name = event.target.value, disabled}),
+        m("input.w-100", {value: element ? element.name : "", oninput: (event) => { element.name = event.target.value; updateDiagramJSON() }, disabled}),
         m("br.ma2"),
         "Notes:",
         m("br"),
-        m("textarea.w-100", {value: element ? element.notes : "", oninput: (event) => element.notes = event.target.value, disabled}),
+        m("textarea.w-100", {value: element ? element.notes : "", oninput: (event) => { element.notes = event.target.value; updateDiagramJSON() }, disabled}),
+        m("br.ma2"),
+        "Diagram JSON:",
+        m("br"),
+        m("textarea.w-100", {value: diagramJSON, oninput: (event) => diagramJSON = event.target.value}),
+        m("button", { onclick: updateDiagramFromJSON }, "Update Diagram from JSON"),
     ])
 }
 
