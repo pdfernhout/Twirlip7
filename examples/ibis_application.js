@@ -11,7 +11,7 @@
 /* global CompendiumIcons */
 
 // You need to have run the snippet which defines the CompendiumIcons global with the IBIS icons first
-// This next section does that for you if needed with the local storage journal, but not with the memory journal
+// This next section does that for you if needed
 if (!window.CompendiumIcons) {
     const iconLoaderResource = {
         name: "Compendium Icons Loader",
@@ -37,8 +37,18 @@ let dragStart = {x: 0, y: 0}
 let objectStart = {x: 0, y: 0}
 
 let mouseTrackingPosition = {x: 0, y: 0}
+let lastClickPosition = null
+
+function onmousedownBackground(event) {
+    if (draggedItem) return
+    console.log("onmousedownBackground")
+    const rect = event.target.getBoundingClientRect();
+    lastClickPosition = { x: event.clientX - rect.left, y: event.clientY - rect.top }
+}
 
 function onmousedown(element, event) {
+    console.log("onmousedown")
+    lastClickPosition = null
     firstDraggedItem = secondDraggedItem
     secondDraggedItem = element
     draggedItem = element
@@ -47,6 +57,7 @@ function onmousedown(element, event) {
 }
 
 function onmousemove(event) {
+    console.log("mouse move")
     if (draggedItem) {
         const dx = event.clientX - dragStart.x
         const dy = event.clientY - dragStart.y
@@ -60,6 +71,7 @@ function onmousemove(event) {
 }
 
 function onmouseup() {
+    console.log("mouse up")
     draggedItem = null
 }
 
@@ -78,7 +90,13 @@ function newY() {
 function addElement(type) {
     const name = prompt(type + " name")
     if (!name) return
-    diagram.unshift({ type: type, name: name, x: newX(), y: newY() } )
+    const x = lastClickPosition ? lastClickPosition.x : newX()
+    const y = lastClickPosition ? lastClickPosition.y : newY()
+    diagram.unshift({ type: type, name: name, x: x, y: y })
+    if (lastClickPosition) {
+        lastClickPosition.x += 37;
+        lastClickPosition.y += 23;
+    }
 }
 
 function addLink() {
@@ -95,14 +113,10 @@ function deleteLink() {
 }
 
 function deleteElement() {
-    const elementToDelete = secondDraggedItem
-    if (!elementToDelete) return
-    const index = diagram.indexOf(elementToDelete)
+    if (!secondDraggedItem) return
+    const index = diagram.indexOf(secondDraggedItem)
     if (index > -1) {
         diagram.splice(index, 1)
-    }
-    for (let element of diagram) {
-        if (element.parent === elementToDelete) element.parent = null
     }
 }
 
@@ -175,7 +189,7 @@ Twirlip7.show(() => {
         m("button.ma1", { onclick: deleteElement }, "Delete element"),
         m("br"),
         // on keydown does not seem to work here
-        m("svg.diagram.ba", { width: 600, height: 300, onmousemove: onmousemove, onmouseup: onmouseup, onkeydown: onkeydown },
+        m("svg.diagram.ba", { width: 600, height: 300, onmousedown: onmousedownBackground, onmousemove: onmousemove, onmouseup: onmouseup, onkeydown: onkeydown },
             viewArrowhead(),
             diagram.map((element) => {
                 return viewLink(element)
