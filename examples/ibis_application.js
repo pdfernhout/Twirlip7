@@ -29,35 +29,32 @@ if (!window.CompendiumIcons) {
 const diagram = []
 
 // tiny stack for connecting items
-let firstDraggedItem = null
-let secondDraggedItem = null
+let earlierDraggedItem = null
+let laterDraggedItem = null
 
 let draggedItem = null
 let dragStart = {x: 0, y: 0}
 let objectStart = {x: 0, y: 0}
 
-let mouseTrackingPosition = {x: 0, y: 0}
-let lastClickPosition = null
+let lastClickPosition = {x: 50, y: 50}
 
 function onmousedownBackground(event) {
+    event.preventDefault()
     if (draggedItem) return
-    console.log("onmousedownBackground")
-    const rect = event.target.getBoundingClientRect();
-    lastClickPosition = { x: event.clientX - rect.left, y: event.clientY - rect.top }
+    // TODO: Rubber band selection
 }
 
 function onmousedown(element, event) {
-    console.log("onmousedown")
-    lastClickPosition = null
-    firstDraggedItem = secondDraggedItem
-    secondDraggedItem = element
+    event.preventDefault()
+    earlierDraggedItem = laterDraggedItem
+    laterDraggedItem = element
     draggedItem = element
     dragStart = { x: event.clientX, y: event.clientY }
     objectStart = { x: element.x, y: element.y }
 }
 
-function onmousemove(event) {
-    console.log("mouse move")
+function onmousemoveBackground(event) {
+    event.preventDefault()
     if (draggedItem) {
         const dx = event.clientX - dragStart.x
         const dy = event.clientY - dragStart.y
@@ -65,13 +62,17 @@ function onmousemove(event) {
         const newY = objectStart.y + dy
         draggedItem.x = newX
         draggedItem.y = newY
-    } else {
-        mouseTrackingPosition = {x: event.clientX, y: event.clientY }
     }
 }
 
-function onmouseup() {
-    console.log("mouse up")
+function onmouseupBackground(event) {
+    event.preventDefault()
+    const rect = event.target.getBoundingClientRect()
+    if (draggedItem) {
+        lastClickPosition = { x: draggedItem.x, y: draggedItem.y }
+    } else {
+        lastClickPosition = { x: event.clientX - rect.left, y: event.clientY - rect.top }
+    }
     draggedItem = null
 }
 
@@ -79,42 +80,37 @@ function onkeydown(event) {
     console.log("onkeydown", event)
 }
 
-function newX() {
-    return (20 + (diagram.length * 37)) % 600
-}
-
-function newY() {
-    return (50 + (diagram.length * 23)) % 300
-}
-
 function addElement(type) {
     const name = prompt(type + " name")
     if (!name) return
-    const x = lastClickPosition ? lastClickPosition.x : newX()
-    const y = lastClickPosition ? lastClickPosition.y : newY()
-    diagram.unshift({ type: type, name: name, x: x, y: y })
+    const x = lastClickPosition.x + 50
+    const y = lastClickPosition.y + 50
+    const element = { type: type, name: name, x: x, y: y }
+    diagram.unshift(element)
     if (lastClickPosition) {
-        lastClickPosition.x += 37;
-        lastClickPosition.y += 23;
+        lastClickPosition.x += 50
+        lastClickPosition.y += 50
     }
+    earlierDraggedItem = laterDraggedItem
+    laterDraggedItem = element
 }
 
 function addLink() {
-    if (!firstDraggedItem) return
-    if (!secondDraggedItem) return
-    firstDraggedItem.parent = secondDraggedItem
+    if (!earlierDraggedItem) return
+    if (!laterDraggedItem) return
+    laterDraggedItem.parent = earlierDraggedItem
 }
 
 // Need to add undo
 
 function deleteLink() {
-    if (!secondDraggedItem) return
-    secondDraggedItem.parent = undefined
+    if (!laterDraggedItem) return
+    laterDraggedItem.parent = undefined
 }
 
 function deleteElement() {
-    if (!secondDraggedItem) return
-    const index = diagram.indexOf(secondDraggedItem)
+    if (!laterDraggedItem) return
+    const index = diagram.indexOf(laterDraggedItem)
     if (index > -1) {
         diagram.splice(index, 1)
     }
@@ -161,7 +157,7 @@ function viewElement(element) {
             width: 32,
             height: 32,
             alt: "question",
-            onmousedown: (event) => onmousedown(element, event)
+            onmousedown: (event) => onmousedown(element, event),
         }),
         m("text", {x: element.x, y: element.y + 34, "text-anchor": "middle"}, element.name)
     ]
@@ -189,14 +185,17 @@ Twirlip7.show(() => {
         m("button.ma1", { onclick: deleteElement }, "Delete element"),
         m("br"),
         // on keydown does not seem to work here
-        m("svg.diagram.ba", { width: 600, height: 300, onmousedown: onmousedownBackground, onmousemove: onmousemove, onmouseup: onmouseup, onkeydown: onkeydown },
+        m("svg.diagram.ba", { 
+            width: 600, 
+            height: 300, 
+            onmousedown: onmousedownBackground, 
+            onmousemove: onmousemoveBackground, 
+            onmouseup: onmouseupBackground, 
+            onkeydown: onkeydown
+        },
             viewArrowhead(),
-            diagram.map((element) => {
-                return viewLink(element)
-            }),
-            diagram.map((element) => {
-                return viewElement(element)
-            })
+            diagram.map(element => viewLink(element)),
+            diagram.map(element => viewElement(element))
         )
     ]
 }, ".bg-blue.br4")
