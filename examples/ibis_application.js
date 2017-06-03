@@ -114,7 +114,7 @@ function addElement(type) {
     if (!name) return
     const x = lastClickPosition.x + 50
     const y = lastClickPosition.y + 50
-    const element = { type: type, name: name, x: x, y: y }
+    const element = { type: type, name: name, x: x, y: y, notes: "" }
     diagram.unshift(element)
     if (lastClickPosition) {
         lastClickPosition.x += 50
@@ -203,6 +203,20 @@ function viewArrowhead() {
     }, m("path", { d: "M0,0 V8 L8,4 Z", fill: "black" }))
 }
 
+function viewItemPanel() {
+    const element = laterDraggedItem
+    const disabled = !element
+    return m("div.fl.ma1", {style: "flex-grow: 100"}, [
+        "Item name",
+        m("br"),
+        m("input.w-100", {value: element ? element.name : "", oninput: (event) => element.name = event.target.value, disabled}),
+        m("br.ma2"),
+        "Notes:",
+        m("br"),
+        m("textarea.w-100", {value: element ? element.notes : "", oninput: (event) => element.notes = event.target.value, disabled}),
+    ])
+}
+
 Twirlip7.show(() => {
     return [
         m("button.ma1", { onclick: addElement.bind(null, "issue") }, "Add question"),
@@ -213,18 +227,22 @@ Twirlip7.show(() => {
         m("button.ma1", { onclick: deleteLink }, "Delete link"),
         m("button.ma1", { onclick: deleteElement }, "Delete element"),
         m("br"),
-        // on keydown does not seem to work here
-        m("svg.diagram.ba", { 
-            width: 600, 
-            height: 300, 
-            onmousedown: onmousedownBackground, 
-            onmousemove: onmousemoveBackground, 
-            onmouseup: onmouseupBackground, 
-            onkeydown: onkeydown
-        },
-            viewArrowhead(),
-            diagram.map(element => viewLink(element)),
-            diagram.map(element => viewElement(element))
-        )
+        m("div.flex", [
+            // on keydown does not seem to work here
+            m("svg.diagram.ba.fl", { 
+                width: 600, 
+                height: 300, 
+                onmousedown: onmousedownBackground, 
+                onmousemove: onmousemoveBackground, 
+                onmouseup: onmouseupBackground, 
+                onkeydown: onkeydown
+            }, [
+                viewArrowhead(),
+                diagram.map(element => viewLink(element)),
+                diagram.map(element => viewElement(element)),
+            ]),
+            viewItemPanel(),
+        ]),
+        m("div.cl")
     ]
 }, ".bg-blue.br4")
