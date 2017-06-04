@@ -415,8 +415,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return m("div#about", [
                 m("a.ml2", { target: "_blank", href: "https://github.com/pdfernhout/Twirlip7" }, "Twirlip7"),
                 m("span.ml1", "uses:"),
-                m("a.ml1", { target: "_blank", href: "https://mithril.js.org/" }, "Mithril.js"),
-                m("a.ml2", { target: "_blank", href: "http://tachyons.io/" }, "Tachyons.js"),
+                m("a.ml1", { target: "_blank", href: "https://mithril.js.org/" }, "Mithril"),
+                m("a", { target: "_blank", href: "https://github.com/MithrilJS/mithril.js" }, ".js"),
+                m("a.ml2", { target: "_blank", href: "http://tachyons.io/" }, "Tachyons"),
+                m("a", { target: "_blank", href: "https://github.com/tachyons-css/tachyons/blob/master/css/tachyons.css" }, ".css"),
                 m("a.ml2", { target: "_blank", href: "https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts" }, "Ace"),
                 m("a.ml2", { target: "_blank", href: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" }, "JavaScript"),
                 m("span.ml2", "| Useful:"),
