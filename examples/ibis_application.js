@@ -179,7 +179,7 @@ function onmouseupBackground(event) {
     const rect = event.target.getBoundingClientRect()
     if (draggedItem) {
         lastClickPosition = { x: draggedItem.x, y: draggedItem.y }
-        updateDiagramJSON()
+        updateJSONFromDiagram()
     } else {
         lastClickPosition = { x: event.clientX - rect.left, y: event.clientY - rect.top }
     }
@@ -211,7 +211,7 @@ function addElement(type) {
     }
     earlierDraggedItem = laterDraggedItem
     laterDraggedItem = element
-    updateDiagramJSON()
+    updateJSONFromDiagram()
 }
 
 function addLink() {
@@ -219,7 +219,7 @@ function addLink() {
     if (!laterDraggedItem) return
     if (earlierDraggedItem === laterDraggedItem) return
     laterDraggedItem.parentId = earlierDraggedItem.id
-    updateDiagramJSON()
+    updateJSONFromDiagram()
 }
 
 // Need to add undo
@@ -227,7 +227,7 @@ function addLink() {
 function deleteLink() {
     if (!laterDraggedItem) return
     laterDraggedItem.parentId = undefined
-    updateDiagramJSON()
+    updateJSONFromDiagram()
 }
 
 function deleteElement() {
@@ -236,7 +236,7 @@ function deleteElement() {
     if (index > -1) {
         diagram.elements.splice(index, 1)
     }
-    updateDiagramJSON()
+    updateJSONFromDiagram()
 }
 
 function viewLink(element) {
@@ -304,7 +304,7 @@ function viewArrowhead() {
     }, m("path", { d: "M0,0 V8 L8,4 Z", fill: "black" }))
 }
 
-function updateDiagramJSON() {
+function updateJSONFromDiagram() {
     diagramJSON = JSON.stringify(diagram, null, 4)
 }
 
@@ -341,7 +341,7 @@ function viewItemPanel() {
             m("br"),
             m("input.w-100", {
                 value: element ? element.name : "", 
-                oninput: (event) => { element.name = event.target.value; updateDiagramJSON() },
+                oninput: (event) => { element.name = event.target.value; updateJSONFromDiagram() },
                 disabled
             }),
             m("br.ma2"),
@@ -349,7 +349,7 @@ function viewItemPanel() {
             m("br"),
             m("textarea.w-100", {
                 value: element ? element.notes : "",
-                oninput: (event) => { element.notes = event.target.value; updateDiagramJSON() },
+                oninput: (event) => { element.notes = event.target.value; updateJSONFromDiagram() },
                 disabled
             }),
         ] : []
@@ -372,15 +372,15 @@ function exportDiagram() {
     const provisionalFileName = diagram.diagramName
     Twirlip7.FileUtils.saveToFile(provisionalFileName, diagramJSON, ".json", (fileName) => {
         diagram.diagramName = fileName
-        updateDiagramFromJSON()
+        updateJSONFromDiagram()
     })
 }
         
 function viewJSONPanel() {
     return m("div.ma1", [
-        m("button", {onclick: importDiagram}, "Import Diagram"),
-        m("button", {onclick: exportDiagram}, "Export Diagram"),
-        "Edit Diagram as JSON:",
+        m("button.ma1", {onclick: importDiagram}, "Import Diagram"),
+        m("button.ma1", {onclick: exportDiagram}, "Export Diagram"),
+        m("span.ml1", "Edit Diagram as JSON:"),
         m("input[type=checkbox].ma1", {
             checked: isJSONPanelDisplayed,
             onchange: event => isJSONPanelDisplayed = event.target.checked
