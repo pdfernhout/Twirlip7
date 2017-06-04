@@ -9,7 +9,8 @@ Dialogue Mapping: Building Shared Understanding of Wicked Problems
 by Jeff Conklin
 https://www.amazon.com/Dialogue-Mapping-Building-Understanding-Problems/dp/0470017686
 
-The book explains how we can visualize discussions on complex topics using the IBIS notation (Questions/Issues, Ideas, Reasons/Pros&Cons) 
+The book explains how we can visualize discussions on complex topics
+using the IBIS notation (Questions/Issues, Ideas, Reasons/Pros&Cons) 
 which provides just enough structure to aid a group's short-term memory without getting in the way.
 What might be arguments over the best way to proceed become collaborations 
 in constructing a dialogue map exploring all the possibilities and their evaluations.
@@ -24,18 +25,24 @@ Constructing Knowledge Art: An Experiential Perspective on Crafting Participator
 by Al Selvin and Simon Buckingham Shum (who created the Compendium software)
 https://www.amazon.com/gp/product/1627052593
 
-This is a broader exploration of dialog mapping and similar participatory technologies from an advanced facilitator's perspective.]
+This is a broader exploration of dialog mapping and similar participatory technologies 
+from an advanced facilitator's perspective.
 Most people would probably want to read Jeff Conklin's "how to" book on Dialogue Mapping first,
 and then move onto this one once they are ready to grow further as a facilitator of group work.
 
 # Programming references
 
-arrow marker: https://stackoverflow.com/questions/12680166/how-to-use-an-arrow-marker-on-an-svg-line-element
-arrowhead derived from: https://stackoverflow.com/questions/11808860/how-to-place-arrow-head-triangles-on-svg-lines
-marker-end: http://tutorials.jenkov.com/svg/marker-element.html
-line to edge of circle: https://stackoverflow.com/questions/13165913/draw-an-arrow-between-two-circles#13234898
+arrow marker:
+https://stackoverflow.com/questions/12680166/how-to-use-an-arrow-marker-on-an-svg-line-element
+arrowhead derived from:
+https://stackoverflow.com/questions/11808860/how-to-place-arrow-head-triangles-on-svg-lines
+marker-end:
+http://tutorials.jenkov.com/svg/marker-element.html
+line to edge of circle:
+https://stackoverflow.com/questions/13165913/draw-an-arrow-between-two-circles#13234898
 
-Example JSON data to paste in to "Diagram JSON" textarea and load using "Update Diagram from JSON" button
+Below is some example JSON data to paste into "Edit Diagram JSON" textarea.
+After pasting, load it using "Update Diagram from JSON" button.
 
 {
     "width": 800,
@@ -100,7 +107,7 @@ Example JSON data to paste in to "Diagram JSON" textarea and load using "Update 
 
 **************************************/
 
-"use strict";
+"use strict"
  
 /* jshint maxerr: 100000 */
 /* global CompendiumIcons, Twirlip7, m, window, prompt, confirm */
@@ -314,7 +321,10 @@ function viewItemPanel() {
 
     return m("div.ma1", [
         "Edit Item",
-        m("input[type=checkbox].ma1", {checked: isItemPanelDisplayed, onchange: event => isItemPanelDisplayed = event.target.checked}),
+        m("input[type=checkbox].ma1", {
+            checked: isItemPanelDisplayed,
+            onchange: event => isItemPanelDisplayed = event.target.checked
+        }),
         isItemPanelDisplayed ? [
             m("br"),
             "Type",
@@ -329,11 +339,19 @@ function viewItemPanel() {
             m("br"),
             "Name",
             m("br"),
-            m("input.w-100", {value: element ? element.name : "", oninput: (event) => { element.name = event.target.value; updateDiagramJSON() }, disabled}),
+            m("input.w-100", {
+                value: element ? element.name : "", 
+                oninput: (event) => { element.name = event.target.value; updateDiagramJSON() },
+                disabled
+            }),
             m("br.ma2"),
             "Notes",
             m("br"),
-            m("textarea.w-100", {value: element ? element.notes : "", oninput: (event) => { element.notes = event.target.value; updateDiagramJSON() }, disabled}),
+            m("textarea.w-100", {
+                value: element ? element.notes : "",
+                oninput: (event) => { element.notes = event.target.value; updateDiagramJSON() },
+                disabled
+            }),
         ] : []
     ])
 }
@@ -360,10 +378,16 @@ function viewJSONPanel() {
         m("button", {onclick: importDiagram}, "Import Diagram"),
         m("button", {onclick: exportDiagram}, "Export Diagram"),
         "Edit Diagram as JSON:",
-        m("input[type=checkbox].ma1", {checked: isJSONPanelDisplayed, onchange: event => isJSONPanelDisplayed = event.target.checked}),
+        m("input[type=checkbox].ma1", {
+            checked: isJSONPanelDisplayed,
+            onchange: event => isJSONPanelDisplayed = event.target.checked
+        }),
         isJSONPanelDisplayed ? [
             m("br"),
-            m("textarea.w-100", {height: "20rem", value: diagramJSON, oninput: (event) => diagramJSON = event.target.value}),
+            m("textarea.w-100", {
+                height: "20rem", value: diagramJSON,
+                oninput: (event) => diagramJSON = event.target.value
+            }),
             m("button", { onclick: updateDiagramFromJSON }, "Update Diagram from JSON"),
         ] : []
     ])
