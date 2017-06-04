@@ -109,7 +109,7 @@ Example JSON data to paste in to "Diagram JSON" textarea and load using "Update 
 if (!window.CompendiumIcons) {
     const iconLoaderResource = {
         name: "Compendium Icons Loader",
-        id: "28746681f0477c2d66e09e3c4fc3c73ede3dcb3d5f972aaa3d281e09d8d01270"
+        id: "d7af951fac018699aa6b438b97995a2f249abd7a4145d4e014aebbc7eb27f50a"
     }
     
     const iconLoader = Twirlip7.getCurrentJournal().getItem(iconLoaderResource.id)
