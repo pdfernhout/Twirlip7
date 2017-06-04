@@ -593,13 +593,13 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 
             }
             return [
-                m("span", {title: helpText}, "Bootstrap it:"), 
                 m("input[type=checkbox].ma1", {
                     checked: isStartupItem,
                     disabled: WorkspaceView.currentJournal !== JournalUsingLocalStorage,
                     onclick: toggleUseAtStartup.bind(null, isStartupItem, WorkspaceView.currentItemId),
                     title: helpText
-                })
+                }),
+                m("span", {title: helpText}, "Bootstrap it"),
             ]
         },
         
@@ -624,11 +624,11 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("button.ma1", { onclick: WorkspaceView.importText, title: "Load a file into editor" }, "Import"),
                 m("button.ma1", { onclick: WorkspaceView.exportText, title: "Save current editor text to a file" }, "Export"),
                 m("span.ma1", {  title: "focus mode hides extraneous editor controls to provide more space for testing" },
-                    "focus:",
                     m("input[type=checkbox].ma1", { 
                         checked: WorkspaceView.focusMode,
                         onchange: (event) => WorkspaceView.focusMode = event.target.checked
-                    })
+                    }),
+                    "focus"
                 )
             ]
         },

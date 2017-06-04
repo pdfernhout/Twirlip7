@@ -72,16 +72,16 @@ Twirlip7.WorkspaceView.extensionsInstall({
             m("button.ma1", { onclick: latest, title: "Load editor with last matching search result" }, "Latest"),
             m("button.ma1", { onclick: search }, "Search"),
             m("span.ma1", { title: "Whether the search is case-sensitive" },
-                "case", 
-                m("input[type=checkbox].ma1", { checked: matchCase, onchange: (event) => matchCase = event.target.checked })
+                m("input[type=checkbox].ma1", { checked: matchCase, onchange: (event) => matchCase = event.target.checked }),
+                "case"
             ),
             m("span.ma1", { title: "Whether the search uses regular expressions" },
-                "regex", 
-                m("input[type=checkbox].ma1", { checked: matchRegex, onchange: (event) => matchRegex = event.target.checked })
+                m("input[type=checkbox].ma1", { checked: matchRegex, onchange: (event) => matchRegex = event.target.checked }),
+                "regex"
             ),
             m("span.ma1",  { title: "Whether the search only matches on word boundaries" },
-                "word", 
-                m("input[type=checkbox].ma1", { checked: matchWordBoundary, onchange: (event) => matchWordBoundary = event.target.checked })
+                m("input[type=checkbox].ma1", { checked: matchWordBoundary, onchange: (event) => matchWordBoundary = event.target.checked }),
+                "word"
             ),
             m("button.ma1", {onclick: clearResults }, "Clear results"),
             searchResults.map((result) => {

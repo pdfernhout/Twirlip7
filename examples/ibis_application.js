@@ -320,11 +320,11 @@ function viewItemPanel() {
     const disabled = !element
 
     return m("div.ma1", [
-        "Edit Item",
         m("input[type=checkbox].ma1", {
             checked: isItemPanelDisplayed,
             onchange: event => isItemPanelDisplayed = event.target.checked
         }),
+        "Edit Item",
         isItemPanelDisplayed ? [
             m("br"),
             "Type",
@@ -380,11 +380,11 @@ function viewJSONPanel() {
     return m("div.ma1", [
         m("button.ma1", {onclick: importDiagram}, "Import Diagram"),
         m("button.ma1", {onclick: exportDiagram}, "Export Diagram"),
-        m("span.ml1", "Edit Diagram as JSON:"),
         m("input[type=checkbox].ma1", {
             checked: isJSONPanelDisplayed,
             onchange: event => isJSONPanelDisplayed = event.target.checked
         }),
+        m("span", "Edit Diagram as JSON"),
         isJSONPanelDisplayed ? [
             m("br"),
             m("textarea.w-100", {
