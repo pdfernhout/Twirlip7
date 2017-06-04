@@ -37,47 +37,72 @@ line to edge of circle: https://stackoverflow.com/questions/13165913/draw-an-arr
 
 Example JSON data to paste in to "Diagram JSON" textarea and load using "Update Diagram from JSON" button
 
-[
-    {
-        "type": "minus",
-        "name": "minus",
-        "x": 368,
-        "y": 173,
-        "notes": "",
-        "id": "5de7524c-ba07-4571-9282-9ec2d352f15c",
-        "parentId": "1822527c-b6c4-4f86-8a5d-3b9323e9c8db"
-    },
-    {
-        "type": "plus",
-        "name": "plus",
-        "x": 366,
-        "y": 50,
-        "notes": "some notes on plus",
-        "id": "4cb3b633-dfd5-428c-8fce-26c4bcbe27d3",
-        "parentId": "1822527c-b6c4-4f86-8a5d-3b9323e9c8db"
-    },
-    {
-        "type": "position",
-        "name": "p1",
-        "x": 215,
-        "y": 106,
-        "notes": "",
-        "id": "1822527c-b6c4-4f86-8a5d-3b9323e9c8db",
-        "parentId": "5e7b7953-4efe-4f8c-b8c4-56cc3499087b"
-    },
-    {
-        "type": "issue",
-        "name": "q1",
-        "x": 100,
-        "y": 100,
-        "notes": "",
-        "id": "5e7b7953-4efe-4f8c-b8c4-56cc3499087b"
-    }
-]
+{
+    "width": 800,
+    "height": 500,
+    "elements": [
+        {
+            "type": "plus",
+            "name": "plus2",
+            "x": 420,
+            "y": 352,
+            "notes": "",
+            "id": "ff5f9114-88a4-4860-9a13-77591457156b",
+            "parentId": "5ab92ff7-3cea-4598-b8e9-046319e4014f"
+        },
+        {
+            "type": "position",
+            "name": "pos2",
+            "x": 267,
+            "y": 337,
+            "notes": "",
+            "id": "5ab92ff7-3cea-4598-b8e9-046319e4014f",
+            "parentId": "3f910320-1248-4e68-af2d-c4218aa82dd7"
+        },
+        {
+            "type": "minus",
+            "name": "minus",
+            "x": 418,
+            "y": 223.21875,
+            "notes": "",
+            "id": "c0a43e72-73e7-4f18-be83-9de18b3ef856",
+            "parentId": "6d9561c3-edde-47b7-8ee0-57caeaed9020"
+        },
+        {
+            "type": "plus",
+            "name": "plus",
+            "x": 431,
+            "y": 113.21875,
+            "notes": "",
+            "id": "7fad1b4f-0ac8-4388-949d-e09d1daf9981",
+            "parentId": "6d9561c3-edde-47b7-8ee0-57caeaed9020"
+        },
+        {
+            "type": "position",
+            "name": "pos",
+            "x": 261,
+            "y": 141,
+            "notes": "",
+            "id": "6d9561c3-edde-47b7-8ee0-57caeaed9020",
+            "parentId": "3f910320-1248-4e68-af2d-c4218aa82dd7"
+        },
+        {
+            "type": "issue",
+            "name": "question",
+            "x": 100,
+            "y": 100,
+            "notes": "",
+            "id": "3f910320-1248-4e68-af2d-c4218aa82dd7"
+        }
+    ]
+}
 
 **************************************/
 
-/* global CompendiumIcons */
+"use strict";
+ 
+/* jshint maxerr: 100000 */
+/* global CompendiumIcons, Twirlip7, m, window, prompt, confirm */
 
 // You need to have run the snippet which defines the CompendiumIcons global with the IBIS icons first
 // This next section does that for you if you are using a local storage journal with the examples loaded
@@ -95,7 +120,12 @@ if (!window.CompendiumIcons) {
     }
 }
 
-let diagram = []
+let diagram = {
+    width: 800,
+    height: 500,
+    elements: []
+}
+
 let diagramJSON = JSON.stringify(diagram, null, 4)
     
 // tiny stack for connecting items
@@ -165,7 +195,7 @@ function addElement(type) {
     const x = lastClickPosition.x + 50
     const y = lastClickPosition.y + 50
     const element = { type: type, name: name, x: x, y: y, notes: "", id: uuid() }
-    diagram.unshift(element)
+    diagram.elements.unshift(element)
     if (lastClickPosition) {
         lastClickPosition.x += 50
         lastClickPosition.y += 50
@@ -192,9 +222,9 @@ function deleteLink() {
 
 function deleteElement() {
     if (!laterDraggedItem) return
-    const index = diagram.indexOf(laterDraggedItem)
+    const index = diagram.elements.indexOf(laterDraggedItem)
     if (index > -1) {
-        diagram.splice(index, 1)
+        diagram.elements.splice(index, 1)
     }
     updateDiagramJSON()
 }
@@ -202,7 +232,7 @@ function deleteElement() {
 function viewLink(element) {
     const parentId = element.parentId
     if (!parentId) return []
-    const parent = diagram.find(element => element.id === parentId)
+    const parent = diagram.elements.find(element => element.id === parentId)
     if (!parent) return []
     
     const xA = parent.x
@@ -263,39 +293,54 @@ function updateDiagramJSON() {
     diagramJSON = JSON.stringify(diagram, null, 4)
 }
 
+let isItemPanelDisplayed = false
+
 function viewItemPanel() {
     const element = laterDraggedItem
     const disabled = !element
-    
+
+    return m("div.ma1", [
+        "Edit Item",
+        m("input[type=checkbox].ma1", {checked: isItemPanelDisplayed, onchange: event => isItemPanelDisplayed = event.target.checked}),
+        isItemPanelDisplayed ? [
+            m("br"),
+            "Type",
+            m("br"),
+            m("select.ma1", {onchange: event => element.type = event.target.value, disabled},
+                Object.keys(CompendiumIcons).sort().map(key => {
+                    // remove"_png" at end
+                    const type = key.substring(0, key.length - 4)
+                    return m("option", {value: type, selected: element && element.type === type}, type)
+                })
+            ),
+            m("br"),
+            "Name",
+            m("br"),
+            m("input.w-100", {value: element ? element.name : "", oninput: (event) => { element.name = event.target.value; updateDiagramJSON() }, disabled}),
+            m("br.ma2"),
+            "Notes",
+            m("br"),
+            m("textarea.w-100", {value: element ? element.notes : "", oninput: (event) => { element.notes = event.target.value; updateDiagramJSON() }, disabled}),
+        ] : []
+    ])
+}
+
+let isJSONPanelDisplayed = false
+
+function viewJSONPanel() {
     function updateDiagramFromJSON() {
         if (!confirm("Update diagram from JSON?")) return
         const newDiagram = JSON.parse(diagramJSON)
         diagram = newDiagram
     }
-
-    return m("div.fl.ma1", {style: "flex-grow: 100"}, [
-        "Item type",
-        m("br"),
-        m("select.ma1", {onchange: event => element.type = event.target.value, disabled},
-            Object.keys(CompendiumIcons).sort().map(key => {
-                // remove"_png" at end
-                const type = key.substring(0, key.length - 4)
-                return m("option", {value: type, selected: element && element.type === type}, type)
-            })
-        ),
-        m("br"),
-        "Name",
-        m("br"),
-        m("input.w-100", {value: element ? element.name : "", oninput: (event) => { element.name = event.target.value; updateDiagramJSON() }, disabled}),
-        m("br.ma2"),
-        "Notes:",
-        m("br"),
-        m("textarea.w-100", {value: element ? element.notes : "", oninput: (event) => { element.notes = event.target.value; updateDiagramJSON() }, disabled}),
-        m("br.ma2"),
+    return m("div.ma1", [
         "Diagram JSON:",
-        m("br"),
-        m("textarea.w-100", {value: diagramJSON, oninput: (event) => diagramJSON = event.target.value}),
-        m("button", { onclick: updateDiagramFromJSON }, "Update Diagram from JSON"),
+        m("input[type=checkbox].ma1", {checked: isJSONPanelDisplayed, onchange: event => isJSONPanelDisplayed = event.target.checked}),
+        isJSONPanelDisplayed ? [
+            m("br"),
+            m("textarea.w-100", {height: "20rem", value: diagramJSON, oninput: (event) => diagramJSON = event.target.value}),
+            m("button", { onclick: updateDiagramFromJSON }, "Update Diagram from JSON"),
+        ] : []
     ])
 }
 
@@ -309,22 +354,22 @@ Twirlip7.show(() => {
         m("button.ma1", { onclick: deleteLink }, "Delete link"),
         m("button.ma1", { onclick: deleteElement }, "Delete element"),
         m("br"),
-        m("div.flex", [
+        m("div", [
             // on keydown does not seem to work here
-            m("svg.diagram.ba.fl", { 
-                width: 600, 
-                height: 300, 
+            m("svg.diagram.ba", { 
+                width: diagram.width, 
+                height: diagram.height, 
                 onmousedown: onmousedownBackground, 
                 onmousemove: onmousemoveBackground, 
                 onmouseup: onmouseupBackground, 
                 onkeydown: onkeydown
             }, [
                 viewArrowhead(),
-                diagram.map(element => viewLink(element)),
-                diagram.map(element => viewElement(element)),
+                diagram.elements.map(element => viewLink(element)),
+                diagram.elements.map(element => viewElement(element)),
             ]),
-            viewItemPanel(),
         ]),
-        m("div.cl")
+        viewItemPanel(),
+        viewJSONPanel(),
     ]
 }, ".bg-blue.br4")
