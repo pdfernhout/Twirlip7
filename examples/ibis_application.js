@@ -208,6 +208,7 @@ function addElement(type) {
 function addLink() {
     if (!earlierDraggedItem) return
     if (!laterDraggedItem) return
+    if (earlierDraggedItem === laterDraggedItem) return
     laterDraggedItem.parentId = earlierDraggedItem.id
     updateDiagramJSON()
 }
@@ -265,6 +266,11 @@ function viewLink(element) {
 
 function viewElement(element) {
     return [
+        element === laterDraggedItem ? 
+            m("text", {x: element.x, y: element.y - 20, "text-anchor": "middle"}, "*") :
+            element === earlierDraggedItem ? 
+                m("text", {x: element.x, y: element.y - 20, "text-anchor": "middle"}, "<") :
+                [],
         m("image", {
             "xlink:href": CompendiumIcons[element.type + "_png"],
             x: element.x - 16,
@@ -347,10 +353,10 @@ function viewJSONPanel() {
 Twirlip7.show(() => {
     return [
         m("button.ma1", { onclick: addElement.bind(null, "issue") }, "Add question"),
-        m("button.ma1", { onclick: addElement.bind(null, "position") }, "Add position"),
-        m("button.ma1", { onclick: addElement.bind(null, "plus") }, "Add plus"),
-        m("button.ma1", { onclick: addElement.bind(null, "minus") }, "Add minus"),
-        m("button.ma1", { onclick: addLink }, "Link last two"),
+        m("button.ma1", { onclick: addElement.bind(null, "position") }, "Add idea"),
+        m("button.ma1", { onclick: addElement.bind(null, "plus") }, "Add pro"),
+        m("button.ma1", { onclick: addElement.bind(null, "minus") }, "Add con"),
+        m("button.ma1", { onclick: addLink }, "Link last two [<--*]"),
         m("button.ma1", { onclick: deleteLink }, "Delete link"),
         m("button.ma1", { onclick: deleteElement }, "Delete element"),
         m("br"),
