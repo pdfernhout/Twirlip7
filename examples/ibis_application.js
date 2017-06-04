@@ -47,7 +47,7 @@ After pasting, load it using "Update Diagram from JSON" button.
 {
     "width": 800,
     "height": 500,
-    "diagramName": "Example IBIS Map.json",
+    "diagramName": "Example IBIS Map",
     "elements": [
         {
             "type": "plus",
@@ -131,7 +131,7 @@ if (!window.CompendiumIcons) {
 let diagram = {
     width: 800,
     height: 500,
-    diagramName: "Untitled.json",
+    diagramName: "Untitled IBIS Diagram",
     elements: []
 }
 
@@ -370,7 +370,10 @@ function importDiagram() {
 
 function exportDiagram() {
     const provisionalFileName = diagram.diagramName
-    Twirlip7.FileUtils.saveToFile(provisionalFileName, diagramJSON)
+    Twirlip7.FileUtils.saveToFile(provisionalFileName, diagramJSON, ".json", (fileName) => {
+        diagram.diagramName = fileName
+        updateDiagramFromJSON()
+    })
 }
         
 function viewJSONPanel() {
@@ -393,8 +396,17 @@ function viewJSONPanel() {
     ])
 }
 
+function changeDiagramName() {
+    const newDiagramName = prompt("Diagram name?", diagram.diagramName)
+    if (newDiagramName) diagram.diagramName = newDiagramName
+}
+
 Twirlip7.show(() => {
     return [
+        "Issue Based Information System (IBIS) for Dialogue Mapping",
+        " -- ",
+        m("span", { onclick: changeDiagramName, title: "Click to change diagram name" }, diagram.diagramName),
+        m("br"),
         m("button.ma1.pa1", { onclick: addElement.bind(null, "issue") }, 
             m("img.v-mid.mr1", { src: CompendiumIcons.issue_png, style: "width: 16px; height: 16px;" }), 
             "Question"

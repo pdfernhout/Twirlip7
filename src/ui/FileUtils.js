@@ -37,12 +37,16 @@ define([], function() {
             FileUtils.fileControl.click()
         },
 
-        saveToFile(provisionalFileName, fileContents) {
-            console.log("saveToFile")
-            const fileName = prompt("Please enter a file name for saving", provisionalFileName)
+        saveToFile(provisionalFileName, fileContents, hiddenExtension, callback) {
+            let fileName = prompt("Please enter a file name for saving", provisionalFileName)
             if (!fileName) return
+
+            let addedExtension = false
+            if (hiddenExtension && !fileName.endsWith(hiddenExtension)) {
+                fileName = fileName + hiddenExtension
+                addedExtension = true
+            }
             
-            console.log("saving", fileName)
             const downloadLink = document.createElement("a")
             downloadLink.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(fileContents))
             downloadLink.setAttribute("download", fileName)
@@ -50,7 +54,11 @@ define([], function() {
             document.body.appendChild(downloadLink)
             downloadLink.click()
             document.body.removeChild(downloadLink)
-            console.log("done saving", fileName)
+            if (addedExtension) {
+                // remove the extension we added
+                fileName = fileName.substring(0, fileName.length - hiddenExtension.length)
+            }
+            if (callback) callback(fileName)
         }
     }
 
