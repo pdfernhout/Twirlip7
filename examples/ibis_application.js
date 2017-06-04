@@ -40,6 +40,7 @@ Example JSON data to paste in to "Diagram JSON" textarea and load using "Update 
 {
     "width": 800,
     "height": 500,
+    "diagramName": "Example IBIS Map.json",
     "elements": [
         {
             "type": "plus",
@@ -123,6 +124,7 @@ if (!window.CompendiumIcons) {
 let diagram = {
     width: 800,
     height: 500,
+    diagramName: "Untitled.json",
     elements: []
 }
 
@@ -299,6 +301,11 @@ function updateDiagramJSON() {
     diagramJSON = JSON.stringify(diagram, null, 4)
 }
 
+function updateDiagramFromJSON() {
+    const newDiagram = JSON.parse(diagramJSON)
+    diagram = newDiagram
+}
+
 let isItemPanelDisplayed = false
 
 function viewItemPanel() {
@@ -333,12 +340,25 @@ function viewItemPanel() {
 
 let isJSONPanelDisplayed = false
 
+function importDiagram() {
+    Twirlip7.FileUtils.loadFromFile((fileName, fileContents) => {
+        if (fileContents) {
+            diagramJSON = fileContents
+            updateDiagramFromJSON()
+            m.redraw()
+        } 
+    })
+}
+
+function exportDiagram() {
+    const provisionalFileName = diagram.diagramName
+    Twirlip7.FileUtils.saveToFile(provisionalFileName, diagramJSON)
+}
+        
 function viewJSONPanel() {
-    function updateDiagramFromJSON() {
-        const newDiagram = JSON.parse(diagramJSON)
-        diagram = newDiagram
-    }
     return m("div.ma1", [
+        m("button", {onclick: importDiagram}, "Import Diagram"),
+        m("button", {onclick: exportDiagram}, "Export Diagram"),
         "Edit Diagram as JSON:",
         m("input[type=checkbox].ma1", {checked: isJSONPanelDisplayed, onchange: event => isJSONPanelDisplayed = event.target.checked}),
         isJSONPanelDisplayed ? [
