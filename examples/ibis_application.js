@@ -335,7 +335,6 @@ let isJSONPanelDisplayed = false
 
 function viewJSONPanel() {
     function updateDiagramFromJSON() {
-        if (!confirm("Update diagram from JSON?")) return
         const newDiagram = JSON.parse(diagramJSON)
         diagram = newDiagram
     }
