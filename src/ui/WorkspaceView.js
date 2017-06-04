@@ -22,8 +22,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         let div = document.createElement("div")
         
         const userComponent = userComponentOrViewFunction.view ?
-            userComponentOrViewFunction :
-            {
+            userComponentOrViewFunction : {
                 view: userComponentOrViewFunction
             }
         
@@ -242,8 +241,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             if (!WorkspaceView.confirmClear()) return
             FileUtils.loadFromFile((fileName, fileContents) => {
                 if (fileContents) {
-                    const newContent = fileName + "\n---------------------------------------\n" + fileContents
+                    const newContent = fileContents
                     WorkspaceView.setEditorContents(newContent)
+                    WorkspaceView.currentItemId = null
+                    WorkspaceView.lastLoadedContents = ""
                     m.redraw()
                 }
             })
@@ -517,10 +518,6 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             )
         },
         
-        viewFileInput() {
-            return m("input#fileInput", { "type" : "file" , "hidden" : true } )
-        },
-        
         viewEditor() {
             return m("div.w-100#editor", {
                 style: {
@@ -531,7 +528,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     WorkspaceView.editor.getSession().setMode(WorkspaceView.editorMode)
                     WorkspaceView.editor.getSession().setUseSoftTabs(true)
                     WorkspaceView.editor.$blockScrolling = Infinity
-                    WorkspaceView.editor.getSession().on("change", function(e) {
+                    WorkspaceView.editor.getSession().on("change", function() {
                         const isEditorDirty = WorkspaceView.isEditorDirty()
                         if (isEditorDirty !== WorkspaceView.wasEditorDirty) {
                             WorkspaceView.wasEditorDirty = isEditorDirty
@@ -543,7 +540,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     WorkspaceView.editor.commands.addCommand({
                         name: "save",
                         bindKey: {win: "Ctrl-S",  mac: "Command-S"},
-                        exec: function(editor) {
+                        exec: function() {
                             WorkspaceView.save()
                             // Need to redraw here because this event handling is outside of Mithril
                             m.redraw()
@@ -673,7 +670,6 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             const focusMode = WorkspaceView.focusMode
             return [
                 WorkspaceView.viewToast(),
-                WorkspaceView.viewFileInput(),
                 focusMode ? [] : WorkspaceView.viewExtensionsHeader(),
                 focusMode ? [] : WorkspaceView.viewAbout(),
                 focusMode ? [] : WorkspaceView.viewNavigate(),
