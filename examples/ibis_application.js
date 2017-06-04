@@ -340,7 +340,7 @@ function viewJSONPanel() {
         diagram = newDiagram
     }
     return m("div.ma1", [
-        "Diagram JSON:",
+        "Edit Diagram as JSON:",
         m("input[type=checkbox].ma1", {checked: isJSONPanelDisplayed, onchange: event => isJSONPanelDisplayed = event.target.checked}),
         isJSONPanelDisplayed ? [
             m("br"),
@@ -352,22 +352,34 @@ function viewJSONPanel() {
 
 Twirlip7.show(() => {
     return [
-        m("button.ma1", { onclick: addElement.bind(null, "issue") }, "Add question"),
-        m("button.ma1", { onclick: addElement.bind(null, "position") }, "Add idea"),
-        m("button.ma1", { onclick: addElement.bind(null, "plus") }, "Add pro"),
-        m("button.ma1", { onclick: addElement.bind(null, "minus") }, "Add con"),
-        m("button.ma1", { onclick: addLink }, "Link last two [<--*]"),
-        m("button.ma1", { onclick: deleteLink }, "Delete link"),
-        m("button.ma1", { onclick: deleteElement }, "Delete element"),
+        m("button.ma1.pa1", { onclick: addElement.bind(null, "issue") }, 
+            m("img.v-mid.mr1", { src: CompendiumIcons.issue_png, style: "width: 16px; height: 16px;" }), 
+            "Question"
+        ),
+        m("button.ma1.pa1", { onclick: addElement.bind(null, "position") },
+            m("img.v-mid.mr1", { src: CompendiumIcons.position_png, style: "width: 16px; height: 16px;" }), 
+            "Idea"
+        ),
+        m("button.ma1.pa1", { onclick: addElement.bind(null, "plus") },
+            m("img.v-mid.mr1", { src: CompendiumIcons.plus_png, style: "width: 16px; height: 16px;" }),
+            "Pro"
+        ),
+        m("button.ma1.pa1", { onclick: addElement.bind(null, "minus") },
+            m("img.v-mid.mr1", { src: CompendiumIcons.minus_png, style: "width: 16px; height: 16px;" }),
+            "Con"
+        ),
+        m("button.ma1.pa1", { onclick: deleteElement }, "Delete"),
+        m("button.ma1.pa1", { onclick: addLink }, "Link <--*"),
+        m("button.ma1.pa1", { onclick: deleteLink }, "Unlink *"),
         m("br"),
-        m("div", [
+        m("div", { style: "overflow: auto" }, [
             // on keydown does not seem to work here
-            m("svg.diagram.ba", { 
-                width: diagram.width, 
-                height: diagram.height, 
-                onmousedown: onmousedownBackground, 
-                onmousemove: onmousemoveBackground, 
-                onmouseup: onmouseupBackground, 
+            m("svg.diagram.ba", {
+                width: diagram.width,
+                height: diagram.height,
+                onmousedown: onmousedownBackground,
+                onmousemove: onmousemoveBackground,
+                onmouseup: onmouseupBackground,
                 onkeydown: onkeydown
             }, [
                 viewArrowhead(),
