@@ -415,14 +415,14 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         viewAbout() {
             return m("div#about", [
                 m("a.ml2", { target: "_blank", href: "https://github.com/pdfernhout/Twirlip7" }, "Twirlip7"),
-                m("span.ml1", "uses:"),
+                m("span.ml1", "uses"),
                 m("a.ml1", { target: "_blank", href: "https://mithril.js.org/" }, "Mithril"),
                 m("a", { target: "_blank", href: "https://github.com/MithrilJS/mithril.js" }, ".js"),
                 m("a.ml2", { target: "_blank", href: "http://tachyons.io/" }, "Tachyons"),
                 m("a", { target: "_blank", href: "https://github.com/tachyons-css/tachyons/blob/master/css/tachyons.css" }, ".css"),
                 m("a.ml2", { target: "_blank", href: "https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts" }, "Ace"),
                 m("a.ml2", { target: "_blank", href: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" }, "JavaScript"),
-                m("span.ml2", "| Useful:"),
+                m("span.ml2", "|"),
                 m("a.ml2", { target: "_blank", href: "https://arthurclemens.github.io/mithril-template-converter" }, "HTML->Mithril"),
             ])
         },
@@ -521,32 +521,38 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         viewContext() {
             return [
                 m("div.ma1",
-                    m("span.dib.w3.tr.mr2", "Entity:"),
+                    m("span.dib.w3.tr.mr2", "Entity"),
                     m("input.w-80")
                 ),
                 m("div.ma1",
-                    m("span.dib.w3.tr.mr2", "Attribute:"),
+                    m("span.dib.w3.tr.mr2", "Attribute"),
                     m("input.w-80")
-                ),                
-                "Value:"
+                ), 
+                "Value"
             ]
         },
         
         viewAuthor() {
             return [
                 m("div.ma1",
-                    m("span.dib.w3.tr.mr2", "Author:"),
+                    m("span.dib.w4.tr.mr2", "Content type"),
+                    m("input.w-70"),
+                    m("input[type=checkbox].ma1"),
+                    "base64"
+                ),  
+                m("div.ma1",
+                    m("span.dib.w4.tr.mr2", "Author"),
                     m("input.w-40"),
                     m("span.pa2"),
-                    m("span.dib.w4.tr.mr2", "Timestamp:"),
-                    m("input.w-30")
+                    m("span.dib.w4.tr.mr2", "Timestamp"),
+                    m("input.w-20")
                 ),
                 m("div.ma1",
-                    m("span.dib.w3.tr.mr2", "License:"),
+                    m("span.dib.w4.tr.mr2", "Derived from"),
                     m("input.w-40"),
                     m("span.pa2"),
-                    m("span.dib.w4.tr.mr2", "Derived from:"),
-                    m("input.w-30")
+                    m("span.dib.w4.tr.mr2", "License"),
+                    m("input.w-20")
                 )
             ]
         },
@@ -675,7 +681,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 WorkspaceView.changeJournal(event.target.value)
             }
             return [
-                "Journal:",
+                "Journal",
                 m("select.ma2", { onchange: journalChanged, title: "Change storage location of snippets" }, 
                     m("option", { value: "local storage", selected: WorkspaceView.journalChoice === "local storage" }, "local storage"),
                     m("option", { value: "memory", selected: WorkspaceView.journalChoice === "memory" }, "memory")
