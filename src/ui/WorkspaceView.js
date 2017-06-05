@@ -538,9 +538,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return [
                 m("div.ma1",
                     m("span.dib.w4.tr.mr2", "Content type"),
-                    m("input.w-70"),
-                    m("input[type=checkbox].ma1"),
-                    "base64"
+                    m("input.w-40"),
+                    m("span.pa2"),
+                    m("span.dib.w4.tr.mr2", "Encoding"),
+                    m("input.w-20")
                 ),  
                 m("div.ma1",
                     m("span.dib.w4.tr.mr2", "Author"),
