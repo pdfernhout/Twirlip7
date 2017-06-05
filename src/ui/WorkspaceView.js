@@ -544,19 +544,12 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     m("input.w-20")
                 ),  
                 m("div.ma1",
-                    m("span.dib.w4.tr.mr2", "Author"),
+                    m("span.dib.w4.tr.mr2", "Contributor"),
                     m("input.w-40"),
                     m("span.pa2"),
-                    m("span.dib.w4.tr.mr2", "Author timestamp"),
+                    m("span.dib.w4.tr.mr2", "Timestamp"),
                     m("input.w-20")
                 ),
-                m("div.ma1",
-                    m("span.dib.w4.tr.mr2", "Committer"),
-                    m("input.w-40"),
-                    m("span.pa2"),
-                    m("span.dib.w4.tr.mr2.f6", "Commit timestamp"),
-                    m("input.w-20")
-                ),  
                 m("div.ma1",
                     m("span.dib.w4.tr.mr2", "Derived from"),
                     m("input.w-40"),
