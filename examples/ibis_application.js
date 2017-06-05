@@ -406,6 +406,22 @@ Twirlip7.show(() => {
         "Issue Based Information System (IBIS) for Dialogue Mapping",
         " -- ",
         m("span", { onclick: changeDiagramName, title: "Click to change diagram name" }, diagram.diagramName),
+        " ",
+        m("span", {
+            onclick: () => {
+                diagram.width = prompt("New diagram width?", diagram.width) || diagram.width
+                updateJSONFromDiagram()
+            },
+            title: "Diagram width -- click to change"
+        }, diagram.width),
+        " X ",
+        m("span", {
+            onclick: () => {
+                diagram.height = prompt("New diagram height?", diagram.height) || diagram.height
+                updateJSONFromDiagram()
+            },
+            title: "Diagram height -- click to change"
+        }, diagram.height),
         m("br"),
         m("button.ma1.pa1", { onclick: addElement.bind(null, "issue") }, 
             m("img.v-mid.mr1", { src: CompendiumIcons.issue_png, style: "width: 16px; height: 16px;" }), 
