@@ -84,6 +84,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             license: ""
         },
         
+        currentContributor: "",
         currentJournal: JournalUsingLocalStorage,
         journalChoice: "local storage",
         aceEditorHeight: 20,
@@ -101,6 +102,9 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         show: show,
         
         oninit() {
+            WorkspaceView.currentContributor = localStorage.getItem("_contributor") || ""
+            console.log("currentContributor", WorkspaceView.currentContributor)
+
             if (WorkspaceView.currentJournal.itemCount() === 0) {
                 WorkspaceView.show(function () { 
                     return [
@@ -173,6 +177,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         prepareCurrentItemForSaving(value) {
             // TODO: reference previous if relevant and also set timestamps and author as needed
             WorkspaceView.currentItem.value = value
+            WorkspaceView.currentItem.timestamp = new Date().toISOString()
+            WorkspaceView.currentItem.contributor = WorkspaceView.currentContributor
             // TODO: Maybe check about license?
             // TODO: canonicalize JSON
             return JSON.stringify(WorkspaceView.currentItem)
@@ -454,6 +460,16 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("a.ml2", { target: "_blank", href: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" }, "JavaScript"),
                 m("span.ml2", "|"),
                 m("a.ml2", { target: "_blank", href: "https://arthurclemens.github.io/mithril-template-converter" }, "HTML->Mithril"),
+                m("span.ml3", {
+                    onclick: event => {
+                        const contributor = prompt("contributor", WorkspaceView.currentContributor)
+                        if (contributor !== null) {
+                            WorkspaceView.currentContributor = contributor
+                            localStorage.setItem("_contributor", contributor)
+                        }
+                    },
+                    title: "Click to set contributor",
+                }, "Contributor: ", WorkspaceView.currentContributor || "<configure>")
             ])
         },
         
