@@ -1,5 +1,12 @@
 // Example files in order to build exampleJournal.js
 
+// Metadata for triples -- can be overridden for each file
+{"entity": "Twirlip7 examples"}
+{"contributor": "Paul D. Fernhout <pdfernhout@kurtz-fernhout.com>"}
+{"timestamp": "2017-06-06T03:50:08.037Z"}
+{"license": "MIT"}
+{"contentType": "application/javascript"}
+
 // Basic
 alert-hello-world.js
 one-plus-one.js
@@ -58,9 +65,15 @@ markdown-library-use.js
 extension-markdown-preview.js
 
 // Other file types -- user has to change editor mode
+{"contentType": "text/markdown; charset=UTF-8"}
 markdown-example.md
+{"contentType": "text/html"}
 html-example.html
+{"contentType": "text/x-fortran"}
 fortran-example.txt
+
+// Go back to JavaScript as default content type for this file
+{"contentType": "application/javascript"}
 
 // Adding to the journal
 journal-adding.js

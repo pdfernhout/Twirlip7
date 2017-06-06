@@ -20,24 +20,47 @@ const fileTemplateEnd = `
  
 const fs = require("fs")
 
-const inputFileNames = fs.readFileSync(__dirname + "/" + inputDirectory + exampleJournalConfigurationFileName).toString().split("\n")
+const inputLines = fs.readFileSync(__dirname + "/" + inputDirectory + exampleJournalConfigurationFileName).toString().split("\n")
 
 const output = []
 output.push(fileTemplateStart)
 
 let needsLeadingComma = false
 
-for (let fileName of inputFileNames) {
-    if (!fileName) continue
-    if (fileName.startsWith("//")) continue
+const item = {
+    entity: "",
+    attribute: "",
+    value: "",
+    contentType: "",
+    encoding: "",
+    contributor: "",
+    timestamp: "",
+    derivedFrom: "",
+    license: ""
+}
+
+for (let inputLine of inputLines) {
+    if (!inputLine) continue
+    if (inputLine.startsWith("//")) continue
+    if (inputLine.startsWith("{")) {
+        const defaultProperties = JSON.parse(inputLine)
+        for (let key in defaultProperties) {
+            item[key] = defaultProperties[key]
+        }
+        continue
+    }
+    const fileName = inputLine.trim()
     const fullFileName = fs.realpathSync(__dirname + "/" + inputDirectory + fileName)
     console.log("reading", fullFileName)
     const fileContents = fs.readFileSync(fullFileName).toString()
+    item.attribute = fileName
+    item.value = fileContents
     if (needsLeadingComma) output.push(",")
     needsLeadingComma = true
     output.push("\n")
     output.push("        ")
-    output.push(JSON.stringify(fileContents))
+    // TODO: Should canonicalize JSON
+    output.push(JSON.stringify(JSON.stringify(item)))
 }
 
 output.push(fileTemplateEnd)
