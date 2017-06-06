@@ -81,6 +81,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             license: ""
         }
     }
+    
     const WorkspaceView = {
         editor: null,
         lastLoadedContents: "",
@@ -300,7 +301,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             if (!ignoreDirty && !WorkspaceView.confirmClear()) return
             let itemText = WorkspaceView.currentJournal.getItem(key)
             let item
-            if (itemText === null) {
+            if (itemText === undefined || itemText === null) {
                 key = null
                 item = newItem()
             } else if (itemText[0] !== "{") {
