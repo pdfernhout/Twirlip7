@@ -294,7 +294,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             const key = WorkspaceView.currentJournal.skip(WorkspaceView.currentItemId, delta, wrap)
             WorkspaceView.goToKey(key)
         },
-        
+
         goToKey(key, ignoreDirty) {
             // First check is to prevent losing redo stack if not moving
             if (key === WorkspaceView.currentItemId && !WorkspaceView.isEditorDirty()) return
@@ -315,6 +315,52 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.currentItem = item
             WorkspaceView.setEditorContents(item.value || "")
             WorkspaceView.saveCurrentItemId()
+            WorkspaceView.setEditorModeForContentType(item.contentType)
+        },
+
+        // TODO: Improve adhoc partial handling of character types which also ignores character set
+
+        setEditorModeForContentType(contentType) {
+            let newMode = "javascript"
+            if (contentType) {
+                // try to change editor mode to match content type
+                contentType = contentType.trim().toLowerCase()
+                if (contentType === "application/javascript") {
+                    newMode = "javascript"
+                } else if (contentType === "application/json") {
+                    newMode = "json"
+                } else if (contentType.startsWith("text/markdown")) {
+                    newMode = "markdown"
+                } else if (contentType.startsWith("text/html")) {
+                    newMode = "html"
+                } else if (contentType.startsWith("text/xml")) {
+                    newMode ="xml"
+                } else if (contentType.startsWith("image/svg+xml")) {
+                    newMode = "svg"
+                } else if (contentType.startsWith("text/plain")) {
+                    newMode = "text"
+                } else if (contentType.startsWith("text/x-")) {
+                    // TODO: Improve this to deal with chatracter encoding or other parameters after a semicolon
+                    newMode = contentType.substring("text/x-".length)
+                }
+            }
+
+            newMode = "ace/mode/" + newMode
+
+            WorkspaceView.editorMode = newMode
+            WorkspaceView.editor.getSession().setMode(newMode)
+        },
+
+        guessContentTypeForEditorMode(editorMode) {
+            const modeName = editorMode.substring("ace/mode/".length)
+            if (modeName === "javascript") return "application/javascript"
+            if (modeName == "json") return "application/json"
+            if (modeName === "html") return "text/html"
+            if (modeName === "markdown") return "text/markdown; charset=utf-8"
+            if (modeName == "xml") return "text/xml"
+            if (modeName == "svg") return "image/svg+xml"
+            if (modeName == "text") return "text/plain; charset=utf-8"
+            return "text/x-" + modeName
         },
 
         goFirst() { WorkspaceView.skip(-1000000) },
@@ -542,6 +588,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 const newEditorMode = event.target.value
                 WorkspaceView.editorMode = newEditorMode
                 WorkspaceView.editor.getSession().setMode(WorkspaceView.editorMode)
+                WorkspaceView.currentItem.contentType = WorkspaceView.guessContentTypeForEditorMode(newEditorMode)
             }
             return m("select.ma2", { onchange: selectChanged }, 
                 modelist.modes.map(mode => m("option", { value: mode.mode, selected: WorkspaceView.editorMode === mode.mode }, mode.name))
