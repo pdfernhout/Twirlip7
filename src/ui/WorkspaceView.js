@@ -68,11 +68,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         m.mount(div, ClosableComponent)
     }
     
-    const WorkspaceView = {
-        editor: null,
-        lastLoadedContents: "",
-        currentItemId: null,
-        currentItem: {
+    function newItem() {
+        return {
             entity: "",
             attribute: "",
             value: "",
@@ -82,7 +79,13 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             timestamp: "",
             derivedFrom: "",
             license: ""
-        },
+        }
+    }
+    const WorkspaceView = {
+        editor: null,
+        lastLoadedContents: "",
+        currentItemId: null,
+        currentItem: newItem(),
         
         currentContributor: "",
         currentJournal: JournalUsingLocalStorage,
@@ -103,7 +106,6 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         
         oninit() {
             WorkspaceView.currentContributor = localStorage.getItem("_contributor") || ""
-            console.log("currentContributor", WorkspaceView.currentContributor)
 
             if (WorkspaceView.currentJournal.itemCount() === 0) {
                 WorkspaceView.show(function () { 
@@ -179,6 +181,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.currentItem.value = value
             WorkspaceView.currentItem.timestamp = new Date().toISOString()
             WorkspaceView.currentItem.contributor = WorkspaceView.currentContributor
+            WorkspaceView.currentItem.derivedFrom = WorkspaceView.currentItemId || ""
             // TODO: Maybe check about license?
             // TODO: canonicalize JSON
             return JSON.stringify(WorkspaceView.currentItem)
@@ -217,6 +220,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             if (!WorkspaceView.confirmClear()) return
             WorkspaceView.setEditorContents("")
             WorkspaceView.currentItemId = null
+            WorkspaceView.currentItem = newItem()
             WorkspaceView.saveCurrentItemId()
         },
 
@@ -298,20 +302,17 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             let item
             if (itemText === null) {
                 key = null
-                item = {
-                    value: ""
-                }
+                item = newItem()
             } else if (itemText[0] !== "{") {
                 // TODO: remove legacy development support
-                item = {
-                    value: itemText
-                }
+                item = newItem()
+                item.value = itemText
             } else {
                 item = JSON.parse(itemText)
             }
             WorkspaceView.currentItemId = key
             WorkspaceView.currentItem = item
-            WorkspaceView.setEditorContents(item.value)
+            WorkspaceView.setEditorContents(item.value || "")
             WorkspaceView.saveCurrentItemId()
         },
 
@@ -459,17 +460,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("a.ml2", { target: "_blank", href: "https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts" }, "Ace"),
                 m("a.ml2", { target: "_blank", href: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" }, "JavaScript"),
                 m("span.ml2", "|"),
-                m("a.ml2", { target: "_blank", href: "https://arthurclemens.github.io/mithril-template-converter" }, "HTML->Mithril"),
-                m("span.ml3", {
-                    onclick: event => {
-                        const contributor = prompt("contributor", WorkspaceView.currentContributor)
-                        if (contributor !== null) {
-                            WorkspaceView.currentContributor = contributor
-                            localStorage.setItem("_contributor", contributor)
-                        }
-                    },
-                    title: "Click to set contributor",
-                }, "Contributor: ", WorkspaceView.currentContributor || "<configure>")
+                m("a.ml2", { target: "_blank", href: "https://arthurclemens.github.io/mithril-template-converter" }, "HTML->Mithril")
             ])
         },
         
@@ -586,24 +577,40 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     m("span.dib.w4.tr.mr2", "Content type"),
                     m("input.w-40", {value: WorkspaceView.currentItem.contentType || "", onchange: event => WorkspaceView.currentItem.contentType = event.target.value}),
                     m("span.pa2"),
-                    m("span.dib.w4.tr.mr2", "Encoding"),
+                    m("span.dib.w4.tr.mr2", {title: "content transfer encoding like \"base64\" for binary data"}, "Encoding"),
                     m("input.w-20", {value: WorkspaceView.currentItem.encoding || "", onchange: event => WorkspaceView.currentItem.encoding = event.target.value})
                 ),  
                 m("div.ma1",
-                    m("span.dib.w4.tr.mr2", "Contributor"),
+                    m("span.dib.w4.tr.mr2", WorkspaceView.viewContributor()),
                     m("input.w-40", {value: WorkspaceView.currentItem.contributor || "", onchange: event => WorkspaceView.currentItem.contributor = event.target.value}),
                     m("span.pa2"),
                     m("span.dib.w4.tr.mr2", "Timestamp"),
                     m("input.w-20", {value: WorkspaceView.currentItem.timestamp || "", onchange: event => WorkspaceView.currentItem.timestamp = event.target.value})
                 ),
                 m("div.ma1",
-                    m("span.dib.w4.tr.mr2", "Derived from"),
+                    m("span.dib.w4.tr.mr2", {
+                        title: "click to go to item",
+                        onclick: () => { if (WorkspaceView.currentItem.derivedFrom) WorkspaceView.goToKey(WorkspaceView.currentItem.derivedFrom) },
+                    }, "Derived from"),
                     m("input.w-40", {value: WorkspaceView.currentItem.derivedFrom || "", onchange: event => WorkspaceView.currentItem.derivedFrom = event.target.value}),
                     m("span.pa2"),
                     m("span.dib.w4.tr.mr2", "License"),
                     m("input.w-20", {value: WorkspaceView.currentItem.license || "", onchange: event => WorkspaceView.currentItem.license = event.target.value})
                 )
             ]
+        },
+        
+        viewContributor() {
+            return m("span", {
+                onclick: event => {
+                    const contributor = prompt("contributor", WorkspaceView.currentContributor)
+                    if (contributor !== null) {
+                        WorkspaceView.currentContributor = contributor
+                        localStorage.setItem("_contributor", contributor)
+                    }
+                },
+                title: "Click to set current contributor" + (WorkspaceView.currentContributor ? "\n" + WorkspaceView.currentContributor : ""),
+            }, "Contributor") // , WorkspaceView.currentContributor || "<configure>")
         },
         
         viewEditor() {
