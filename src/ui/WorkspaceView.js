@@ -634,17 +634,17 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 ),  
                 m("div.ma1",
                     m("span.dib.w4.tr.mr2", WorkspaceView.viewContributor()),
-                    m("input.w-40", {value: WorkspaceView.currentItem.contributor || "", onchange: event => WorkspaceView.currentItem.contributor = event.target.value}),
+                    m("input.w-40.bg-light-gray", {readonly: true, value: WorkspaceView.currentItem.contributor || "", onchange: event => WorkspaceView.currentItem.contributor = event.target.value}),
                     m("span.pa2"),
                     m("span.dib.w4.tr.mr2", "Timestamp"),
-                    m("input.w-20", {value: WorkspaceView.currentItem.timestamp || "", onchange: event => WorkspaceView.currentItem.timestamp = event.target.value})
+                    m("input.w-20.bg-light-gray", {readonly: true, value: WorkspaceView.currentItem.timestamp || "", onchange: event => WorkspaceView.currentItem.timestamp = event.target.value})
                 ),
                 m("div.ma1",
                     m("span.dib.w4.tr.mr2", {
                         title: "click to go to item",
                         onclick: () => { if (WorkspaceView.currentItem.derivedFrom) WorkspaceView.goToKey(WorkspaceView.currentItem.derivedFrom) },
                     }, "Derived from"),
-                    m("input.w-40", {value: WorkspaceView.currentItem.derivedFrom || "", onchange: event => WorkspaceView.currentItem.derivedFrom = event.target.value}),
+                    m("input.w-40.bg-light-gray", {readonly: true, value: WorkspaceView.currentItem.derivedFrom || "", onchange: event => WorkspaceView.currentItem.derivedFrom = event.target.value}),
                     m("span.pa2"),
                     m("span.dib.w4.tr.mr2", "License"),
                     m("input.w-20", {value: WorkspaceView.currentItem.license || "", onchange: event => WorkspaceView.currentItem.license = event.target.value})
@@ -661,7 +661,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         localStorage.setItem("_contributor", contributor)
                     }
                 },
-                title: "Click to set current contributor" + (WorkspaceView.currentContributor ? "\n" + WorkspaceView.currentContributor : ""),
+                title: "Click to set current contributor for next contribution" + (WorkspaceView.currentContributor ? "\n" + WorkspaceView.currentContributor : ""),
             }, "Contributor") // , WorkspaceView.currentContributor || "<configure>")
         },
         
