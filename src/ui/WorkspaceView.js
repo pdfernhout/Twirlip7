@@ -562,7 +562,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             const itemIdentifier = (WorkspaceView.currentItemId === null) ? 
                 "???" : 
                 ("" + WorkspaceView.currentItemId).substring(0, 12) + ((("" + WorkspaceView.currentItemId).length > 12) ? "..." : "")
-            return m("h4.ba.pa1",
+            return m("div.ba.ma1",
                 m("button.ma1", { onclick: WorkspaceView.goFirst, title: "Go to first snippet", disabled: isPreviousDisabled() }, "|<"),
                 m("button.ma1", { onclick: WorkspaceView.goPrevious, title: "Go to earlier snippet", disabled: isPreviousDisabled() }, "< Previous"),
                 m("button.ma1", { onclick: WorkspaceView.goNext, title: "Go to later snippet", disabled: isNextDisabled() }, "Next >"),
