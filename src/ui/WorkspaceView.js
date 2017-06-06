@@ -72,6 +72,17 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         editor: null,
         lastLoadedContents: "",
         currentItemId: null,
+        currentItem: {
+            entity: "",
+            attribute: "",
+            value: "",
+            contentType: "",
+            encoding: "",
+            contributor: "",
+            timestamp: "",
+            derivedFrom: "",
+            license: ""
+        },
         
         currentJournal: JournalUsingLocalStorage,
         journalChoice: "local storage",
@@ -102,27 +113,22 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
         
         saveCurrentItemId() {
-            localStorage.setItem("_current_" + WorkspaceView.journalChoice, WorkspaceView.currentItemId)
+            if (WorkspaceView.currentItemId !== null) {
+                localStorage.setItem("_current_" + WorkspaceView.journalChoice, WorkspaceView.currentItemId)
+            } else {
+                localStorage.setItem("_current_" + WorkspaceView.journalChoice, "")
+            }
         },
         
         restoreCurrentItemId() {
-            WorkspaceView.currentItemId = localStorage.getItem("_current_" + WorkspaceView.journalChoice)
-            if (WorkspaceView.currentItemId === null) {
-                WorkspaceView.setEditorContents("")
-            } else {
-                let text = WorkspaceView.currentJournal.getItem(WorkspaceView.currentItemId)
-                if (text === null || text === undefined) {
-                    WorkspaceView.currentItemId = null
-                    WorkspaceView.saveCurrentItemId()
-                    text = ""
-                }
-                WorkspaceView.setEditorContents(text)
-            }
+            const storedItemId = localStorage.getItem("_current_" + WorkspaceView.journalChoice)
+            WorkspaceView.goToKey(storedItemId, "ignoreDirty")
         },
 
         changeJournal(newChoice) {
             const oldChoice = WorkspaceView.journalChoice
             if (newChoice === oldChoice) return
+            if (!WorkspaceView.confirmClear()) return
 
             WorkspaceView.saveCurrentItemId()
             WorkspaceView.journalChoice = newChoice
@@ -163,10 +169,19 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 isNoSelection,
             }
         },
+         
+        prepareCurrentItemForSaving(value) {
+            // TODO: reference previous if relevant and also set timestamps and author as needed
+            WorkspaceView.currentItem.value = value
+            // TODO: Maybe check about license?
+            // TODO: canonicalize JSON
+            return JSON.stringify(WorkspaceView.currentItem)
+        },
 
         save() {
             const newContents = WorkspaceView.getEditorContents()
-            const addResult = WorkspaceView.currentJournal.addItem(newContents)
+            const itemJSON = WorkspaceView.prepareCurrentItemForSaving(newContents)
+            const addResult = WorkspaceView.currentJournal.addItem(itemJSON)
             if (addResult.error) {
                 alert("save failed -- maybe too many localStorage items?\n" + addResult.error)
                 return
@@ -269,13 +284,28 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.goToKey(key)
         },
         
-        goToKey(key) {
-            // Fist check is to prevent losing redo stack if not moving
+        goToKey(key, ignoreDirty) {
+            // First check is to prevent losing redo stack if not moving
             if (key === WorkspaceView.currentItemId && !WorkspaceView.isEditorDirty()) return
-            if (!WorkspaceView.confirmClear()) return
+            if (!ignoreDirty && !WorkspaceView.confirmClear()) return
+            let itemText = WorkspaceView.currentJournal.getItem(key)
+            let item
+            if (itemText === null) {
+                key = null
+                item = {
+                    value: ""
+                }
+            } else if (itemText[0] !== "{") {
+                // TODO: remove legacy development support
+                item = {
+                    value: itemText
+                }
+            } else {
+                item = JSON.parse(itemText)
+            }
             WorkspaceView.currentItemId = key
-            const item = WorkspaceView.currentJournal.getItem(WorkspaceView.currentItemId) || ""
-            WorkspaceView.setEditorContents(item)
+            WorkspaceView.currentItem = item
+            WorkspaceView.setEditorContents(item.value)
             WorkspaceView.saveCurrentItemId()
         },
 
@@ -312,8 +342,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             try {
                 let addedItemCount = 0
                 const newJournalItems = JSON.parse(WorkspaceView.getEditorContents())
-                for (let item of newJournalItems) {
-                    const addResult = WorkspaceView.currentJournal.addItem(item)
+                for (let itemJSON of newJournalItems) {
+                    const addResult = WorkspaceView.currentJournal.addItem(itemJSON)
                     if (!addResult.existed) addedItemCount++
                 }
                 WorkspaceView.toast("Added " + addedItemCount + " item" + ((addedItemCount === 1 ? "" : "s")) + " to existing journal")
@@ -522,11 +552,11 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return [
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", "Entity"),
-                    m("input.w-80")
+                    m("input.w-80", {value: WorkspaceView.currentItem.entity || "", onchange: event => WorkspaceView.currentItem.entity = event.target.value})
                 ),
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", "Attribute"),
-                    m("input.w-80")
+                    m("input.w-80", {value: WorkspaceView.currentItem.attribute || "", onchange: event => WorkspaceView.currentItem.attribute = event.target.value})
                 ),
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", "Value")
@@ -538,24 +568,24 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return [
                 m("div.ma1",
                     m("span.dib.w4.tr.mr2", "Content type"),
-                    m("input.w-40"),
+                    m("input.w-40", {value: WorkspaceView.currentItem.contentType || "", onchange: event => WorkspaceView.currentItem.contentType = event.target.value}),
                     m("span.pa2"),
                     m("span.dib.w4.tr.mr2", "Encoding"),
-                    m("input.w-20")
+                    m("input.w-20", {value: WorkspaceView.currentItem.encoding || "", onchange: event => WorkspaceView.currentItem.encoding = event.target.value})
                 ),  
                 m("div.ma1",
                     m("span.dib.w4.tr.mr2", "Contributor"),
-                    m("input.w-40"),
+                    m("input.w-40", {value: WorkspaceView.currentItem.contributor || "", onchange: event => WorkspaceView.currentItem.contributor = event.target.value}),
                     m("span.pa2"),
                     m("span.dib.w4.tr.mr2", "Timestamp"),
-                    m("input.w-20")
+                    m("input.w-20", {value: WorkspaceView.currentItem.timestamp || "", onchange: event => WorkspaceView.currentItem.timestamp = event.target.value})
                 ),
                 m("div.ma1",
                     m("span.dib.w4.tr.mr2", "Derived from"),
-                    m("input.w-40"),
+                    m("input.w-40", {value: WorkspaceView.currentItem.derivedFrom || "", onchange: event => WorkspaceView.currentItem.derivedFrom = event.target.value}),
                     m("span.pa2"),
                     m("span.dib.w4.tr.mr2", "License"),
-                    m("input.w-20")
+                    m("input.w-20", {value: WorkspaceView.currentItem.license || "", onchange: event => WorkspaceView.currentItem.license = event.target.value})
                 )
             ]
         },
