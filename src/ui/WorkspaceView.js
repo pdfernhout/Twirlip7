@@ -371,10 +371,21 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
         goLast() { WorkspaceView.skip(1000000) },
 
-        showJournal() {
+        showJournal(journalText) {
             if (!WorkspaceView.confirmClear()) return
-            WorkspaceView.setEditorContents(WorkspaceView.currentJournal.textForJournal())
             WorkspaceView.currentItemId = null
+            WorkspaceView.currentItem = newItem()
+            WorkspaceView.currentItem.contentType = "application/json"
+            WorkspaceView.setEditorContents(journalText)
+            WorkspaceView.setEditorModeForContentType(WorkspaceView.currentItem.contentType)
+        },
+
+        showCurrentJournal() {
+            WorkspaceView.showJournal(WorkspaceView.currentJournal.textForJournal())
+        },
+
+        showExampleJournal() {
+            WorkspaceView.showJournal(JSON.stringify(exampleJournal, null, 4))
         },
 
         replaceJournal() {
@@ -385,7 +396,6 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 WorkspaceView.toast("Problem replacing journal from editor:\n" + error)
                 return
             }
-            WorkspaceView.currentItemId = null
             // Update lastLoadedContents in case pasted in contents to avoid warning later since data was processed as intended
             WorkspaceView.lastLoadedContents = WorkspaceView.getEditorContents()
             WorkspaceView.toast("Replaced journal from editor")
@@ -405,14 +415,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 WorkspaceView.toast("Problem merging journal from editor:\n" + error)
                 return
             }
-            WorkspaceView.currentItemId = null
             // Update lastLoadedContents in case pasted in contents to avoid warning later since data was processed as intended
             WorkspaceView.lastLoadedContents = WorkspaceView.getEditorContents()
-        },
-
-        showExampleJournal() {
-            if (!WorkspaceView.confirmClear()) return
-            WorkspaceView.setEditorContents(JSON.stringify(exampleJournal, null, 4))
         },
 
         toast(message, delay) {
@@ -790,7 +794,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     m("option", { value: "local storage", selected: WorkspaceView.journalChoice === "local storage" }, "local storage"),
                     m("option", { value: "memory", selected: WorkspaceView.journalChoice === "memory" }, "memory")
                 ),
-                m("button.ma1", { onclick: WorkspaceView.showJournal, title: "Put JSON for journal contents into editor" }, "Show current journal"),
+                m("button.ma1", { onclick: WorkspaceView.showCurrentJournal, title: "Put JSON for current journal contents into editor" }, "Show current journal"),
                 m("button.ma1", { onclick: WorkspaceView.showExampleJournal, title: "Put a journal of sample snippets as JSON into editor (for loading afterwards)" }, "Show example journal"),
                 m("button.ma1", { onclick: WorkspaceView.mergeJournal, title: "Load JSON journal from editor -- merging with the previous snippets" }, "Merge journal"),
                 m("button.ma1", { onclick: WorkspaceView.replaceJournal, title: "Load JSON journal from editor -- replacing all previous snippets!" }, "Replace journal"),
