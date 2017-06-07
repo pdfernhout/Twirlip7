@@ -135,6 +135,8 @@ let diagram = {
     elements: []
 }
 
+let currentItemId = ""
+
 let diagramJSON = JSON.stringify(diagram, null, 4)
     
 // tiny stack for connecting items
@@ -363,6 +365,10 @@ function importDiagram() {
         if (fileContents) {
             diagramJSON = fileContents
             updateDiagramFromJSON()
+            if (diagram.diagramName.toLowerCase().startsWith("untitled")) {
+                if (fileName.endsWith(".json")) fileName = fileName.substring(0, fileName.length - ".json".length)
+                diagram.diagramName = fileName
+            }
             m.redraw()
         } 
     })
@@ -375,11 +381,24 @@ function exportDiagram() {
         updateJSONFromDiagram()
     })
 }
+
+function saveDiagram() {
+    if (diagram.diagramName.toLowerCase().startsWith("untitled")) {
+        alert("Please name the diagram first by clicking on the diagram name")
+        return
+    }
+    // Next line is extra conversion in case we missed an update somewhere
+    updateJSONFromDiagram()
+    const saveResult = Twirlip7.saveItem({entity: diagram.diagramName, attribute: "contents", value: diagramJSON, derivedFrom: currentItemId})
+    console.log("save result", saveResult)
+    currentItemId = saveResult.id
+}
         
 function viewJSONPanel() {
     return m("div.ma1", [
-        m("button.ma1", {onclick: importDiagram}, "Import Diagram"),
-        m("button.ma1", {onclick: exportDiagram}, "Export Diagram"),
+        m("button.ma1", { onclick: importDiagram }, "Import Diagram"),
+        m("button.ma1", { onclick: exportDiagram }, "Export Diagram"),
+        m("button.ma1", { onclick: saveDiagram }, "Save"),
         m("input[type=checkbox].ma1", {
             checked: isJSONPanelDisplayed,
             onchange: event => isJSONPanelDisplayed = event.target.checked
