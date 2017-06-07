@@ -503,19 +503,34 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             ) 
         },
         
+        viewFocusAndCollapse() {
+            return m("div.fr", [
+                m("span.mr3", {  title: "focus mode hides extraneous editor controls to provide more space for testing" },
+                    m("input[type=checkbox].ma1", { 
+                        checked: WorkspaceView.focusMode,
+                        onchange: (event) => WorkspaceView.focusMode = event.target.checked
+                    }),
+                    "focus"
+                ),
+                m("span", { onclick: () => WorkspaceView.collapseWorkspace = true, title: "click here to hide the editor" }, "[collapse]"),
+            ])
+        },
+        
         viewAbout() {
-            return m("div#about.bg-lightest-blue.pa1", [
+            return m("div#about.bg-lightest-blue.pa1.mb1", [
                 m("a.ml2", { target: "_blank", href: "https://github.com/pdfernhout/Twirlip7" }, "Twirlip7"),
-                m("span.ml1", "uses"),
-                m("a.ml1", { target: "_blank", href: "https://mithril.js.org/" }, "Mithril"),
-                m("a", { target: "_blank", href: "https://github.com/MithrilJS/mithril.js" }, ".js"),
-                m("a.ml2", { target: "_blank", href: "http://tachyons.io/" }, "Tachyons"),
-                m("a", { target: "_blank", href: "https://github.com/tachyons-css/tachyons/blob/master/css/tachyons.css" }, ".css"),
-                m("a.ml2", { target: "_blank", href: "https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts" }, "Ace"),
-                m("a.ml2", { target: "_blank", href: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" }, "JavaScript"),
-                m("span.ml2", "|"),
-                m("a.ml2", { target: "_blank", href: "https://arthurclemens.github.io/mithril-template-converter" }, "HTML->Mithril"),
-                m("div.fr", { onclick: () => WorkspaceView.collapseWorkspace = true, title: "click here to hide the editor" }, "[collapse]"),
+                WorkspaceView.focusMode? [] : [
+                    m("span.ml1", "uses"),
+                    m("a.ml1", { target: "_blank", href: "https://mithril.js.org/" }, "Mithril"),
+                    m("a", { target: "_blank", href: "https://github.com/MithrilJS/mithril.js" }, ".js"),
+                    m("a.ml2", { target: "_blank", href: "http://tachyons.io/" }, "Tachyons"),
+                    m("a", { target: "_blank", href: "https://github.com/tachyons-css/tachyons/blob/master/css/tachyons.css" }, ".css"),
+                    m("a.ml2", { target: "_blank", href: "https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts" }, "Ace"),
+                    m("a.ml2", { target: "_blank", href: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" }, "JavaScript"),
+                    m("span.ml2", "|"),
+                    m("a.ml2", { target: "_blank", href: "https://arthurclemens.github.io/mithril-template-converter" }, "HTML->Mithril"),
+                ],
+                WorkspaceView.viewFocusAndCollapse(),
             ])
         },
         
@@ -774,13 +789,6 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("button.ma1", { onclick: WorkspaceView.clear, title: "Clear out text in editor" }, "Clear"),
                 m("button.ma1", { onclick: WorkspaceView.importText, title: "Load a file into editor" }, "Import"),
                 m("button.ma1", { onclick: WorkspaceView.exportText, title: "Save current editor text to a file" }, "Export"),
-                m("span.ma1", {  title: "focus mode hides extraneous editor controls to provide more space for testing" },
-                    m("input[type=checkbox].ma1", { 
-                        checked: WorkspaceView.focusMode,
-                        onchange: (event) => WorkspaceView.focusMode = event.target.checked
-                    }),
-                    "focus"
-                )
             ]
         },
         
@@ -822,7 +830,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return [
                 WorkspaceView.viewToast(),
                 focusMode ? [] : WorkspaceView.viewExtensionsHeader(),
-                focusMode ? [] : WorkspaceView.viewAbout(),
+                WorkspaceView.viewAbout(),
                 focusMode ? [] : WorkspaceView.viewNavigate(),
                 focusMode ? [] : WorkspaceView.viewContext(),
                 WorkspaceView.viewEditor(),
@@ -844,7 +852,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     style: "display:" + (WorkspaceView.collapseWorkspace ? "block" : "none"),
                     onclick: () => WorkspaceView.collapseWorkspace = false,
                     title: "click here to show the editor",
-                }, m("span.ml2", "Twirlip7 Editor")),
+                }, m("span.ml2", "Twirlip7 Editor"), m("span.fr", "[expand]")),
                 m("div", {
                     style: "display: " + (WorkspaceView.collapseWorkspace ? "none" : "initial")
                 }, WorkspaceView.viewMain())
