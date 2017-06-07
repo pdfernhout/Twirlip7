@@ -106,6 +106,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         
         show: show,
         
+        collapseWorkspace: false,
+        
         oninit() {
             WorkspaceView.currentContributor = localStorage.getItem("_contributor") || ""
 
@@ -502,7 +504,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
         
         viewAbout() {
-            return m("div#about", [
+            return m("div#about.bg-blue.pa1", [
                 m("a.ml2", { target: "_blank", href: "https://github.com/pdfernhout/Twirlip7" }, "Twirlip7"),
                 m("span.ml1", "uses"),
                 m("a.ml1", { target: "_blank", href: "https://mithril.js.org/" }, "Mithril"),
@@ -512,7 +514,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("a.ml2", { target: "_blank", href: "https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts" }, "Ace"),
                 m("a.ml2", { target: "_blank", href: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" }, "JavaScript"),
                 m("span.ml2", "|"),
-                m("a.ml2", { target: "_blank", href: "https://arthurclemens.github.io/mithril-template-converter" }, "HTML->Mithril")
+                m("a.ml2", { target: "_blank", href: "https://arthurclemens.github.io/mithril-template-converter" }, "HTML->Mithril"),
+                m("div.fr", { onclick: () => WorkspaceView.collapseWorkspace = true, title: "click here to hide the editor" }, "[collapse]"),
             ])
         },
         
@@ -836,7 +839,16 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
 
         view() {
-            return m("#main.ma2", WorkspaceView.viewMain())
+            return m("#main.ma2", [
+                m("div.bg-blue.pa1.w-100", {
+                    style: "display:" + (WorkspaceView.collapseWorkspace ? "block" : "none"),
+                    onclick: () => WorkspaceView.collapseWorkspace = false,
+                    title: "click here to show the editor",
+                }, m("span.ml2", "Twirlip7 Editor")),
+                m("div", {
+                    style: "display: " + (WorkspaceView.collapseWorkspace ? "none" : "initial")
+                }, WorkspaceView.viewMain())
+            ])
         },
     }
     
