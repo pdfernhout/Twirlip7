@@ -114,8 +114,8 @@ Utd. Arab Emir. Dirham,AED,0.2723,3.674
 Afghanistan Afghani,AFN,0.01454,68.96
 Albanian Lek,ALL,0.008192,126.563
 Armenian Dram,AMD,0.002094,477.71
-NL Antillian Guilder,ANG,0 .5618,1.82
-Angolan Kwanza,AOA,0.006058,166 .709
+NL Antillian Guilder,ANG,0.5618,1.82
+Angolan Kwanza,AOA,0.006058,166.709
 Angolan New Kwanza,AON,0.006058,166.709
 Argentine Peso,ARS,0.07186,13.9245
 Austrian Schilling,ATS,0.08085,12.3708
@@ -134,7 +134,7 @@ Bermudian Dollar,BMD,1,1
 Brunei Dollar,BND,0.7353,1.4049
 Bolivian Boliviano,BOB,0.1485,7.0924
 Brazilian Real,BRL,0.2778,3.6071
-Bahamian Dollar,BSD,1.0096,1 .003
+Bahamian Dollar,BSD,1.0096,1.003
 Bhutan Ngultrum,BTN,0.01489,67.2107
 Botswana Pula,BWP,0.09021,11.3736
 Belarusian Ruble,BYR,5.06e-05,19853.7
@@ -147,11 +147,11 @@ Chinese Yuan Renminbi,CNY,0.1519, 6.5845
 Colombian Peso,COP,0.0003308,3112.5
 Costa Rican Colon,CRC,0.001904,550.254
 Cuban Convertible Peso,CUC,1,1
-Cuban Peso,CUP,0 .045,23.1481
+Cuban Peso,CUP,0.045,23.1481
 Cape Verde Escudo,CVE,0.01009,99.1304
 Cyprus Pound,CYP,1.9008,0.5262
-Czech Koruna,CZK,0 .04118,24.2974
-German Mark,DEM,0.5688,1 .7583
+Czech Koruna,CZK,0.04118,24.2974
+German Mark,DEM,0.5688,1.7583
 Djibouti Franc,DJF,0.005627,177.72
 Danish Krone,DKK,0.1496,6.6865
 Dominican R. Peso,DOP,0.02204,46.8022
@@ -169,7 +169,7 @@ French Franc,FRF,0.1696,5.8972
 British Pound,GBP,1.462,0.6841
 Georgian Lari,GEL,0.4657,2.1472
 Ghanaian Cedi,GHC,2.586e-05,39119.9
-Ghanaian New Cedi,GHS,0.2586,3 .912
+Ghanaian New Cedi,GHS,0.2586,3.912
 Gibraltar Pound,GIP,1.4621,0.6842
 Gambian Dalasi,GMD,0.02378,43.65
 Guinea Franc,GNF, 0.0001367 ,7475.74
@@ -177,8 +177,8 @@ Greek Drachma,GRD,0.003265,306.342
 Guatemalan Quetzal,GTQ,0.1338,7.8348
 Guyanese Dollar,GYD,0.005019,217. 235
 Hong Kong Dollar,HKD,0.1287,7.7686
-Honduran Lempira,HNL,0 .04492,23.1625
-Croatian Kuna,HRK,0 .1493,6.7651
+Honduran Lempira,HNL,0.04492,23.1625
+Croatian Kuna,HRK,0.1493,6.7651
 Haitian Gourde,HTG,0.01611,63.8519
 Hungarian Forint,HUF,0.003544,282. 447
 Indonesian Rupiah,IDR,7.34e-05,13661.2
@@ -188,7 +188,7 @@ Indian Rupee,INR,0.0149,67.2819
 Iraqi Dinar,IQD,0.0008715,1201.37
 Iranian Rial,IRR,3. 319e-05,30183
 Iceland Krona,ISK,0.008008,125.47
-Italian Lira,ITL,0 .0005745,1740.75
+Italian Lira,ITL,0.0005745,1740.75
 Jamaican Dollar,JMD,0.008091,126.828
 Jordanian Dinar,JOD,1.4168,0.7108
 Japanese Yen,JPY,0.009007,111.047
@@ -209,7 +209,7 @@ Lesotho Loti,LSL,0.063403,15.79382
 Lithuanian Litas,LTL,0.3222,3.1041
 Luxembourg Franc,LUF,0.02758,36.2665
 Latvian Lats,LVL,1.5829,0.6318
-Libyan Dinar,LYD,0 .7399,1.4055
+Libyan Dinar,LYD,0.7399,1.4055
 Moroccan Dirham,MAD,0.1035,9. 8683
 Moldovan Leu,MDL,0.05054,20.3257
 Malagasy Ariary,MGA,0.0003124,3291.45
@@ -239,7 +239,7 @@ Panamanian Balboa,PAB,1,1
 Peruvian Nuevo Sol,PEN,0.3043,3.4304
 Papua New Guinea Kina,PGK,0.3315,3.1603
 Philippine Peso,PHP,0.02142,46.8523
-Pakistan Rupee,PKR,0 .009641,106.594
+Pakistan Rupee,PKR,0.009641,106.594
 Polish Zloty,PLN,0.2533,3.9506
 Portuguese Escudo,PTE,0.005549,180.238
 Paraguay Guarani,PYG,0.00018,5789.57
@@ -248,9 +248,9 @@ Romanian Lei,ROL,2.473e-05,40550.5
 Romanian New Lei,RON,0.2473,4.055
 Serbian Dinar,RSD,0.009061,111.067
 Russian Rouble,RUB,0.01518,65.9234
-Rwandan Franc,RWF,0.00136,762 .434
+Rwandan Franc,RWF,0.00136,762.434
 Saudi Riyal,SAR,0.2668,3.7526
-Solomon Islands Dollar,SBD,0 .125,8.058
+Solomon Islands Dollar,SBD,0.125,8.058
 Seychelles Rupee,SCR,0.08152,13.9698
 Sudanese Dinar,SDD,0.001652,614.488
 Sudanese Pound,SDG,0.1652,6.1449
@@ -266,7 +266,7 @@ Suriname Dollar,SRD,0.1563,6.45
 Suriname Guilder,SRG,0.0001563,6450
 Sao Tome/Principe Dobra,STD,4.54e-05,22025.9
 El Salvador Colon,SVC,0.1168,8.9954
-Syrian Pound,SYP,0 .004589,218.2
+Syrian Pound,SYP,0.004589,218.2
 Swaziland Lilangeni,SZL, 0.063403 ,15.79382
 Thai Baht,THB,0.02801,35.7978
 Tajikistani Somoni,TJS,0.1271,7.8695
@@ -296,7 +296,7 @@ East Caribbean Dollar,XCD,0.372,2.7169
 ECU,XEU,1.1125, 0.899
 CFA Franc BCEAO,XOF,0.001696, 589.715
 Palladium (oz.),XPD,544.912,0.001845
-CFP Franc,XPF,0 .009326,107.224
+CFP Franc,XPF,0.009326,107.224
 Platinum (oz.),XPT,977.5,0.001034
 Yemeni Rial,YER,0.004022,248.75
 Yugoslav Dinar,YUN,0.009061,111.067
