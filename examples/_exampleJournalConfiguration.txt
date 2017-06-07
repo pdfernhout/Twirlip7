@@ -11,6 +11,7 @@
 alert-hello-world.js
 one-plus-one.js
 inspecting-an-object.js
+canonical-json-example.js
 my-add.js
 
 // Counters
