@@ -13,6 +13,17 @@ function escapeRegExp(str) {
     return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&")
 }
 
+function getValueForItem(item) {
+    if (item.startsWith("{")) {
+        try {
+            return JSON.parse(item).value
+        } catch(e) {
+            return item
+        }
+    }
+    return item
+}
+
 function search() {
     searchResults.splice(0)
     if (searchText) {
@@ -23,9 +34,10 @@ function search() {
         // Display in reverse order so most recent is at top of results
         for (let i = journal.itemCount() - 1; i >= 0; i--) {
             const item = journal.getItemForLocation(i)
-            if (item && item.match(re)) {
+            const value = getValueForItem(item)
+            if (value && value.match(re)) {
                 const key = journal.keyForLocation(i)
-                searchResults.push({i, key, item})
+                searchResults.push({i, key, item: value})
             }
         }
     }
