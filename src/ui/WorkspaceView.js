@@ -504,7 +504,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
         
         viewAbout() {
-            return m("div#about.bg-blue.pa1", [
+            return m("div#about.bg-lightest-blue.pa1", [
                 m("a.ml2", { target: "_blank", href: "https://github.com/pdfernhout/Twirlip7" }, "Twirlip7"),
                 m("span.ml1", "uses"),
                 m("a.ml1", { target: "_blank", href: "https://mithril.js.org/" }, "Mithril"),
@@ -840,7 +840,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
         view() {
             return m("#main.ma2", [
-                m("div.bg-blue.pa1.w-100", {
+                m("div.bg-lightest-blue.pa1.w-100", {
                     style: "display:" + (WorkspaceView.collapseWorkspace ? "block" : "none"),
                     onclick: () => WorkspaceView.collapseWorkspace = false,
                     title: "click here to show the editor",
