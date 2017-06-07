@@ -1,11 +1,12 @@
-define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorage", "ace/ace", "ace/ext/modelist", "exampleJournal"], function(
+define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorage", "ace/ace", "ace/ext/modelist", "exampleJournal", "CanonicalJSON"], function(
     FileUtils,
     EvalUtils,
     JournalUsingMemory,
     JournalUsingLocalStorage,
     ace,
     modelist,
-    exampleJournal
+    exampleJournal,
+    CanonicalJSON
 ) {
     "use strict"
     /* global m, location, localStorage */
@@ -183,9 +184,9 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.currentItem.timestamp = new Date().toISOString()
             WorkspaceView.currentItem.contributor = WorkspaceView.currentContributor
             WorkspaceView.currentItem.derivedFrom = WorkspaceView.currentItemId || ""
-            // TODO: Maybe check about license?
-            // TODO: canonicalize JSON
-            return JSON.stringify(WorkspaceView.currentItem)
+            // TODO: Maybe check to be sure there is a contributor?
+            // TODO: Maybe check to be sure there is a license?
+            return CanonicalJSON.stringify(WorkspaceView.currentItem)
         },
 
         save() {

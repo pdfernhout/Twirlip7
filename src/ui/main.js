@@ -5,7 +5,7 @@ requirejs.config({
     }
 })
 
-requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "JournalUsingMemory", "FileUtils"], function(mDiscardAsMadeGlobal, WorkspaceView, JournalUsingLocalStorage, JournalUsingMemory, FileUtils) {
+requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "JournalUsingMemory", "FileUtils", "CanonicalJSON"], function(mDiscardAsMadeGlobal, WorkspaceView, JournalUsingLocalStorage, JournalUsingMemory, FileUtils, CanonicalJSON) {
     "use strict"
     
     /* global location */
@@ -17,6 +17,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
             if (!window.Twirlip7.show) window.Twirlip7.show = WorkspaceView.show
             if (!window.Twirlip7.WorkspaceView) window.Twirlip7.WorkspaceView = WorkspaceView
             if (!window.Twirlip7.FileUtils) window.Twirlip7.FileUtils = FileUtils
+            if (!window.Twirlip7.CanonicalJSON) window.Twirlip7.CanonicalJSON = CanonicalJSON
             if (!window.Twirlip7.JournalUsingLocalStorage) window.Twirlip7.JournalUsingLocalStorage = JournalUsingLocalStorage
             if (!window.Twirlip7.JournalUsingMemory) window.Twirlip7.JournalUsingMemory = JournalUsingMemory
             if (!window.Twirlip7.getCurrentJournal) {

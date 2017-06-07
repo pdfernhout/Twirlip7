@@ -117,14 +117,14 @@ After pasting, load it using "Update Diagram from JSON" button.
 if (!window.CompendiumIcons) {
     const iconLoaderResource = {
         name: "Compendium Icons Loader",
-        id: "d7af951fac018699aa6b438b97995a2f249abd7a4145d4e014aebbc7eb27f50a"
+        id: "e82b2713edf72692e6546436b0e4ac1a777e8a6269b2df17459f293e8f66fbd9"
     }
     
-    const iconLoader = Twirlip7.getCurrentJournal().getItem(iconLoaderResource.id)
-    if (iconLoader) {
+    const iconLoaderItemJSON = Twirlip7.getCurrentJournal().getItem(iconLoaderResource.id)
+    if (iconLoaderItemJSON) {
         /* eslint no-eval: 0 */
         /* jslint evil: true */
-        eval(iconLoader)
+        eval(JSON.parse(iconLoaderItemJSON).value)
     }
 }
 

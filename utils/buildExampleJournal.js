@@ -17,6 +17,8 @@ const fileTemplateEnd = `
     ]  
 })
 `
+
+const CanonicalJSON = require("../src/ui/CanonicalJSON")
  
 const fs = require("fs")
 
@@ -59,8 +61,7 @@ for (let inputLine of inputLines) {
     needsLeadingComma = true
     output.push("\n")
     output.push("        ")
-    // TODO: Should canonicalize JSON
-    output.push(JSON.stringify(JSON.stringify(item)))
+    output.push(CanonicalJSON.stringify(CanonicalJSON.stringify(item)))
 }
 
 output.push(fileTemplateEnd)
