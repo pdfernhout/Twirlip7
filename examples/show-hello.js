@@ -1,4 +1,6 @@
-// Use the "Twirlip7.show(...)" convenience function to display a view made by a Mithril-generating function.
+// Use the "Twirlip7.show(...)" convenience function to display a view 
+// made by a function that returns Mithril vdom nodes made using "m".
+
 // You can add extra Tachyons.js styling for the enclosing div as an optional second parameter.
 
 Twirlip7.show(() => {

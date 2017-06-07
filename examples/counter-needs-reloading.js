@@ -6,7 +6,7 @@
 
 // You will have to reload the editor to remove this widget.
 // Or, you can also remove it using the inspector to delete it in the JavaScript console.,
-// but that will leave some internal Mithral references around.
+// but that will leave some internal Mithril references around.
 
 // The next example will improve on this one to have a close box.
 
