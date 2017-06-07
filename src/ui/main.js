@@ -12,18 +12,26 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
     
     function setupTwirlip7Global() {
         // setup Twirlip7 global for use by evaluated code
-        if (!window.Twirlip7) {
-            window.Twirlip7 = {}
-            if (!window.Twirlip7.show) window.Twirlip7.show = WorkspaceView.show
-            if (!window.Twirlip7.WorkspaceView) window.Twirlip7.WorkspaceView = WorkspaceView
-            if (!window.Twirlip7.FileUtils) window.Twirlip7.FileUtils = FileUtils
-            if (!window.Twirlip7.CanonicalJSON) window.Twirlip7.CanonicalJSON = CanonicalJSON
-            if (!window.Twirlip7.JournalUsingLocalStorage) window.Twirlip7.JournalUsingLocalStorage = JournalUsingLocalStorage
-            if (!window.Twirlip7.JournalUsingMemory) window.Twirlip7.JournalUsingMemory = JournalUsingMemory
-            if (!window.Twirlip7.getCurrentJournal) {
-                window.Twirlip7.getCurrentJournal = () => {
-                    return WorkspaceView.currentJournal
-                }
+        if (window.Twirlip7) {
+            alert("Unexpected: Twirlip7 global already exists!")
+            return
+        }
+        window.Twirlip7 = {
+            show: WorkspaceView.show,
+            WorkspaceView,
+            FileUtils,
+            CanonicalJSON,
+            JournalUsingLocalStorage,
+            JournalUsingMemory,
+            getCurrentJournal: () => {
+                return WorkspaceView.currentJournal
+            },
+            newItem: WorkspaceView.newItem,
+            saveItem: (item) => {
+                if (!item.timestamp) item.timestamp = new Date().toISOString()
+                if (!item.contributor) item.contributor = WorkspaceView.currentContributor
+                const itemJSON = CanonicalJSON.stringify(item)
+                return WorkspaceView.currentJournal.addItem(itemJSON)
             }
         }
     }
@@ -74,6 +82,8 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
     
     function startup() {
         setupTwirlip7Global()
+        
+        WorkspaceView.currentContributor = localStorage.getItem("_contributor") || ""
         
         const hash = location.hash
         if (hash && hash.startsWith("#open=")) {

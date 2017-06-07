@@ -105,12 +105,11 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         dragOriginY: 0,
         
         show: show,
+        newItem: newItem,
         
         collapseWorkspace: false,
         
         oninit() {
-            WorkspaceView.currentContributor = localStorage.getItem("_contributor") || ""
-
             if (WorkspaceView.currentJournal.itemCount() === 0) {
                 WorkspaceView.show(function () { 
                     return [
