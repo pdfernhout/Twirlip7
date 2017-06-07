@@ -32,7 +32,8 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
         const item = JournalUsingLocalStorage.getItem(itemId)
         if (item) {
             try {
-                eval(item)
+                const code = (item.startsWith("{")) ? JSON.parse(item).value : item
+                eval(code)
                 return "ok"
             } catch (error) {
                 console.log("Error running startup item", itemId)
