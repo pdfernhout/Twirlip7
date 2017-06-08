@@ -1,4 +1,4 @@
-// Mithril component which embeds three iframes with HTML videos
+// Mithril component which embeds four iframes with HTML videos
 
 const MyComponent = {
     view(controller, args) {
@@ -9,6 +9,8 @@ const MyComponent = {
             m("iframe", {src: "//www.youtube.com/embed/oKg1hTOQXoY", width: 800, height: 600, frameborder: "0", allowfullscreen: true}),
             // The Mother of All Demos, presented by Douglas Engelbart (1968)
             m("iframe", {src: "//www.youtube.com/embed/yJDv-zdhzMY", width: 800, height: 600, frameborder: "0", allowfullscreen: true}),
+            // Twirlip Civic Sensemaking Project Overview 
+            m("iframe", {src: "//www.youtube.com/embed/_mRy4sGK7xk", width: 800, height: 600, frameborder: "0", allowfullscreen: true}),
         ])
     }
 }
