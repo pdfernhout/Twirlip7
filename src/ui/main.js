@@ -10,6 +10,20 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
     
     /* global location */
     
+    function getItemForJSON(itemJSON) {
+        if (itemJSON === null) return null
+        if (itemJSON.startsWith("{")) {
+            try {
+                return JSON.parse(itemJSON)
+            } catch(e) {
+                // fall through
+            }
+        }
+        const newItem = WorkspaceView.newItem()
+        newItem.value = itemJSON
+        return newItem
+    }
+    
     function setupTwirlip7Global() {
         // setup Twirlip7 global for use by evaluated code
         if (window.Twirlip7) {
@@ -26,12 +40,47 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
             getCurrentJournal: () => {
                 return WorkspaceView.currentJournal
             },
+            getItemForJSON: getItemForJSON,
             newItem: WorkspaceView.newItem,
             saveItem: (item) => {
                 if (!item.timestamp) item.timestamp = new Date().toISOString()
                 if (!item.contributor) item.contributor = WorkspaceView.currentContributor
                 const itemJSON = CanonicalJSON.stringify(item)
                 return WorkspaceView.currentJournal.addItem(itemJSON)
+            },
+            findItem(match) {
+                // TODO: This extremely computationally inefficient placeholder needs to be improved
+                // TODO: This should not have to iterate over all stored objects
+                const result = []
+                const journal = WorkspaceView.currentJournal
+                const count = journal.itemCount()
+                for (let i = 0; i < count; i++) {
+                    const itemJSON = journal.getItemForLocation(i)
+                    const item = getItemForJSON(itemJSON)
+                    if (!item) continue
+                    let isMatch = true
+                    for (let key in match) {
+                        if (item[key] !== match[key]) {
+                            isMatch = false
+                            continue
+                        }
+                    }
+                    if (isMatch) result.push({i, item})
+                }
+                // Sort so later items are earlier in list
+                result.sort((a, b) => {
+                    if (a.item.timestamp < b.item.timestamp) return 1
+                    if (a.item.timestamp > b.item.timestamp) return -1
+                    // compare on triple hash if timestamps match
+                    const aHash = journal.keyForLocation(a.i)
+                    const bHash = journal.keyForLocation(b.i)
+                    if (aHash < bHash) return 1
+                    if (aHash > bHash) return -1
+                    // Should never get here unless incorrectly storing duplicates
+                    console.log("duplicate item error", a, b)
+                    return 0
+                })
+                return result.map(match => match.item)
             }
         }
     }

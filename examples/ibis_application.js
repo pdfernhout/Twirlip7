@@ -393,12 +393,27 @@ function saveDiagram() {
     console.log("save result", saveResult)
     currentItemId = saveResult.id
 }
-        
+
+function loadDiagram() {
+    const diagramName = prompt("Load which diagram name?", diagram.diagramName)
+    if (!diagramName) return
+
+    const items = Twirlip7.findItem({entity: diagramName, attribute: "contents"})
+    if (items.length === 0) {
+        console.log("item not found", diagramName)
+        return
+    }
+    const item = items[0]
+    diagramJSON = item.value
+    updateDiagramFromJSON()
+}
+
 function viewJSONPanel() {
     return m("div.ma1", [
         m("button.ma1", { onclick: importDiagram }, "Import Diagram"),
         m("button.ma1", { onclick: exportDiagram }, "Export Diagram"),
         m("button.ma1", { onclick: saveDiagram }, "Save"),
+        m("button.ma1", { onclick: loadDiagram }, "Load"),
         m("input[type=checkbox].ma1", {
             checked: isJSONPanelDisplayed,
             onchange: event => isJSONPanelDisplayed = event.target.checked
