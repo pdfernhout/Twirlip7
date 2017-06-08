@@ -1,5 +1,16 @@
 define([], function() {
     "use strict"
+    
+    // Conversion function from: http://stackoverflow.com/questions/9267899/arraybuffer-to-base64-encoded-string
+    function _arrayBufferToBase64(buffer) {
+        let binary = ""
+        const bytes = new Uint8Array(buffer)
+        const len = bytes.byteLength
+        for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i])
+        }
+        return window.btoa(binary)
+    }
 
     const FileUtils = {
         // This fileControl input node is not created via main Mithril app because stand-alone apps might want to use this too
@@ -7,7 +18,11 @@ define([], function() {
 
         callback: null,
 
-        loadFromFile(callback) {
+        loadFromFile(convertToBase64, callback) {
+            if (typeof convertToBase64 === "function") {
+                callback = convertToBase64
+                convertToBase64 = false
+            }
             if (!FileUtils.fileControl) {
                 const fileControl = document.createElement("input")
                 FileUtils.fileControl = fileControl
@@ -20,7 +35,14 @@ define([], function() {
                     const file = event.target.files[0]
                     const reader = new FileReader()
                     reader.onload = function(event) {
-                        const contents = event.target.result
+                        let contents
+                        if (convertToBase64) {
+                            var base64Text = _arrayBufferToBase64(reader.result)
+                            contents = base64Text
+                        } else {
+                            contents = reader.result
+                        }
+                    
                         if (FileUtils.callback) FileUtils.callback(file.name, contents)
                     }
                     
@@ -28,8 +50,12 @@ define([], function() {
                         console.error("File could not be read! Code " + event.target.error.code)
                         if (FileUtils.callback) FileUtils.callback(null, null)
                     }
-                    
-                    reader.readAsText(file)
+                                
+                    if (convertToBase64) {
+                        reader.readAsArrayBuffer(file)
+                    } else {
+                        reader.readAsText(file)
+                    }
                 }, false)
             }
 

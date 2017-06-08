@@ -265,19 +265,28 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             window.open("#open=" + WorkspaceView.currentItemId)
         },
         
-        importText() {
+        importText(convertToBase64) {
             if (!WorkspaceView.confirmClear()) return
-            FileUtils.loadFromFile((fileName, fileContents) => {
+            FileUtils.loadFromFile(convertToBase64, (fileName, fileContents) => {
                 if (fileContents) {
                     const newContent = fileContents
                     WorkspaceView.setEditorContents(newContent)
                     WorkspaceView.currentItemId = null
                     WorkspaceView.lastLoadedContents = ""
+                    WorkspaceView.item.encoding = convertToBase64 ? "base64" : ""
                     m.redraw()
                 }
             })
         },
-
+        
+        importTextPlain() {
+            WorkspaceView.importText(false)
+        },
+        
+        importTextAsBase64() {
+            WorkspaceView.importText(true)
+        },
+        
         exportText() {
             const fileContents = WorkspaceView.getEditorContents()
             const provisionalFileName = fileContents.split("\n")[0]
@@ -344,6 +353,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 } else if (contentType.startsWith("text/x-")) {
                     // TODO: Improve this to deal with chatracter encoding or other parameters after a semicolon
                     newMode = contentType.substring("text/x-".length)
+                } else if (contentType.startsWith("image/")) {
+                    newMode = "text"
                 }
             }
 
@@ -786,7 +797,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return [
                 m("button.ma1", { onclick: WorkspaceView.save, title: "Save current snippet into the journal"  }, "Save"),
                 m("button.ma1", { onclick: WorkspaceView.clear, title: "Clear out text in editor" }, "Clear"),
-                m("button.ma1", { onclick: WorkspaceView.importText, title: "Load a file into editor" }, "Import"),
+                m("button.ma1", { onclick: WorkspaceView.importTextPlain, title: "Load a file into editor" }, "Import"),
+                m("button.ma1", { onclick: WorkspaceView.importTextAsBase64, title: "Load a file into editor as base64" }, "Import as Base64"),
                 m("button.ma1", { onclick: WorkspaceView.exportText, title: "Save current editor text to a file" }, "Export"),
             ]
         },
