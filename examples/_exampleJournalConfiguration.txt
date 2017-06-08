@@ -56,6 +56,9 @@ draggable-simplified.js
 // Canvas
 canvas-example.js
 
+// Image reading
+image-reading.js
+
 // IBIS
 ibis_icons.js
 ibis_application.js
@@ -83,10 +86,17 @@ fortran-example.txt
 {"contentType": "application/json"}
 ibis-knife-sharpening.json
 
+{"entity": "The Earth seen from Apollo 17"}
+{"attribute": "contents"}
+{"contentType": "image/jpeg"}
+{"encoding": "base64"}
+image-definition-earth-from-space.txt
+
 // Go back to JavaScript as default content type for this file
 {"entity": "Twirlip7 examples"}
 {"attribute": ""}
 {"contentType": "application/javascript"}
+{"encoding": ""}
 
 // Adding to the journal
 journal-adding.js
