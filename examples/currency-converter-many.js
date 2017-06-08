@@ -126,7 +126,7 @@ Azerbaijan New Manat,AZN,0.6709,1.4906
 Bosnian Mark,BAM,0.5688,1.7584
 Barbados Dollar,BBD,0.5,2
 Bangladeshi Taka,BDT,0.01294,80.5299
-Belgian Franc,BEF,0.02758, 36.2665
+Belgian Franc,BEF,0.02758,36.2665
 Bulgarian Lev,BGN,0.5716,1.766
 Bahraini Dinar,BHD,2.6707,0.3798
 Burundi Franc,BIF,0.0006485,1592.45
@@ -138,12 +138,12 @@ Bahamian Dollar,BSD,1.0096,1.003
 Bhutan Ngultrum,BTN,0.01489,67.2107
 Botswana Pula,BWP,0.09021,11.3736
 Belarusian Ruble,BYR,5.06e-05,19853.7
-Belize Dollar,BZD,0.5072,2. 0616
-Canadian Dollar,CAD,0. 7657,1.3063
+Belize Dollar,BZD,0.5072,2.0616
+Canadian Dollar,CAD,0.7657,1.3063
 Congolese Franc,CDF,0.001094,944
 Swiss Franc,CHF,1.0065,0.9938
 Chilean Peso,CLP,0.001476,702.54
-Chinese Yuan Renminbi,CNY,0.1519, 6.5845
+Chinese Yuan Renminbi,CNY,0.1519,6.5845
 Colombian Peso,COP,0.0003308,3112.5
 Costa Rican Colon,CRC,0.001904,550.254
 Cuban Convertible Peso,CUC,1,1
@@ -155,16 +155,16 @@ German Mark,DEM,0.5688,1.7583
 Djibouti Franc,DJF,0.005627,177.72
 Danish Krone,DKK,0.1496,6.6865
 Dominican R. Peso,DOP,0.02204,46.8022
-Algerian Dinar,DZD,0. 009091,110.984
+Algerian Dinar,DZD,0.009091,110.984
 Ecuador Sucre,ECS,4.15e-05,25587
-Estonian Kroon,EEK,0. 0711, 14.0666
+Estonian Kroon,EEK,0.0711,14.0666
 Egyptian Pound,EGP,0.1129,8.9028
 Spanish Peseta,ESP,0.006686,149.585
 Ethiopian Birr,ETB,0.04641,21.996
 Euro,EUR,1.1125,0.899
-Finnish Markka,FIM,0. 1871,5.3453
+Finnish Markka,FIM,0.1871,5.3453
 Fiji Dollar,FJD,0.4751,2.1274
-Falkland Islands Pound,FKP,1.4621,0. 6842
+Falkland Islands Pound,FKP,1.4621,0.6842
 French Franc,FRF,0.1696,5.8972
 British Pound,GBP,1.462,0.6841
 Georgian Lari,GEL,0.4657,2.1472
@@ -172,21 +172,21 @@ Ghanaian Cedi,GHC,2.586e-05,39119.9
 Ghanaian New Cedi,GHS,0.2586,3.912
 Gibraltar Pound,GIP,1.4621,0.6842
 Gambian Dalasi,GMD,0.02378,43.65
-Guinea Franc,GNF, 0.0001367 ,7475.74
+Guinea Franc,GNF,0.0001367,7475.74
 Greek Drachma,GRD,0.003265,306.342
 Guatemalan Quetzal,GTQ,0.1338,7.8348
-Guyanese Dollar,GYD,0.005019,217. 235
+Guyanese Dollar,GYD,0.005019,217.235
 Hong Kong Dollar,HKD,0.1287,7.7686
 Honduran Lempira,HNL,0.04492,23.1625
 Croatian Kuna,HRK,0.1493,6.7651
 Haitian Gourde,HTG,0.01611,63.8519
-Hungarian Forint,HUF,0.003544,282. 447
+Hungarian Forint,HUF,0.003544,282.447
 Indonesian Rupiah,IDR,7.34e-05,13661.2
 Irish Punt,IEP,1.4126,0.708
 Israeli New Shekel,ILS,0.2601,3.8541
 Indian Rupee,INR,0.0149,67.2819
 Iraqi Dinar,IQD,0.0008715,1201.37
-Iranian Rial,IRR,3. 319e-05,30183
+Iranian Rial,IRR,3.319e-05,30183
 Iceland Krona,ISK,0.008008,125.47
 Italian Lira,ITL,0.0005745,1740.75
 Jamaican Dollar,JMD,0.008091,126.828
@@ -210,7 +210,7 @@ Lithuanian Litas,LTL,0.3222,3.1041
 Luxembourg Franc,LUF,0.02758,36.2665
 Latvian Lats,LVL,1.5829,0.6318
 Libyan Dinar,LYD,0.7399,1.4055
-Moroccan Dirham,MAD,0.1035,9. 8683
+Moroccan Dirham,MAD,0.1035,9.8683
 Moldovan Leu,MDL,0.05054,20.3257
 Malagasy Ariary,MGA,0.0003124,3291.45
 Malagasy Franc,MGF,0.0001093,9150.46
@@ -218,21 +218,21 @@ Macedonian Denar,MKD,0.0182,55.7395
 Myanmar Kyat,MMK,0.0008557,1208.12
 Mongolian Tugrik,MNT,0.000502,1997
 Macau Pataca,MOP,0.1274,8.2059
-Mauritanian Ouguiya,MRO, 0.002849 ,363.581
+Mauritanian Ouguiya,MRO,0.002849,363.581
 Maltese Lira,MTL,2.5914,0.386
 Mauritius Rupee,MUR,0.02942,36.6068
 Maldive Rufiyaa,MVR,0.06689,15.15
 Malawi Kwacha,MWK,0.001597,646
 Mexican Peso,MXN,0.05412,18.4874
 Malaysian Ringgit,MYR,0.2433,4.1162
-Mozambique Metical,MZM, 1.768e-05 ,56760
+Mozambique Metical,MZM,1.768e-05,56760
 Mozambique New Metical,MZN,0.01768,56.76
 Namibia Dollar,NAD,0.063403,15.79382
-Nigerian Naira,NGN,0.005076,202. 392
+Nigerian Naira,NGN,0.005076,202.392
 Nicaraguan Cordoba Oro,NIO,0.03549,29.0739
 Dutch Guilder,NLG,0.5048,1.9812
 Norwegian Kroner,NOK,0.1198,8.3527
-Nepalese Rupee,NPR,0.009415, 109.267
+Nepalese Rupee,NPR,0.009415,109.267
 New Zealand Dollar,NZD,0.6695,1.4942
 Omani Rial,OMR,2.6057,0.3864
 Panamanian Balboa,PAB,1,1
@@ -267,7 +267,7 @@ Suriname Guilder,SRG,0.0001563,6450
 Sao Tome/Principe Dobra,STD,4.54e-05,22025.9
 El Salvador Colon,SVC,0.1168,8.9954
 Syrian Pound,SYP,0.004589,218.2
-Swaziland Lilangeni,SZL, 0.063403 ,15.79382
+Swaziland Lilangeni,SZL,0.063403,15.79382
 Thai Baht,THB,0.02801,35.7978
 Tajikistani Somoni,TJS,0.1271,7.8695
 Turkmenistan Manat,TMM,5.7e-05,17587.5
@@ -287,14 +287,14 @@ Uzbekistan Som,UZS,0.0003438,2979
 Venezuelan Bolivar,VEB,0.0001002,10000
 Venezuelan Bolivar Fuerte,VEF,0.1002,10
 Vietnamese Dong,VND,4.516e-05,22781.1
-Vanuatu Vatu,VUV,0.009112, 111.75
+Vanuatu Vatu,VUV,0.009112,111.75
 Samoan Tala,WST,0.4407,2.3602
 CFA Franc BEAC,XAF,0.001696,589.729
 Silver (oz.),XAG,16.027,0.06249
 Gold (oz.),XAU,1206.22,0.0008293
 East Caribbean Dollar,XCD,0.372,2.7169
-ECU,XEU,1.1125, 0.899
-CFA Franc BCEAO,XOF,0.001696, 589.715
+ECU,XEU,1.1125,0.899
+CFA Franc BCEAO,XOF,0.001696,589.715
 Palladium (oz.),XPD,544.912,0.001845
 CFP Franc,XPF,0.009326,107.224
 Platinum (oz.),XPT,977.5,0.001034
