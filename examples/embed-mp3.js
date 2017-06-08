@@ -7,7 +7,8 @@ const MyComponent = {
             m(".pa2",
                 m("a", { href: "//www.isiahmeadows.com/music/journey.html", target: "_blank" }, "Journey -- by Isiah Meadows")
             ),
-            m("embed", { src: "//drive.google.com/uc?id=0B02h60r9WvJrcmREV0dGYmlCdVE", width: 400, height: 100 })
+            m("embed", { src: "//drive.google.com/uc?id=0B02h60r9WvJrcmREV0dGYmlCdVE", width: 400, height: 100, autostart: false }),
+            m("blockquote.i", "\"Use what talents you possess; the woods would be very silent if no birds sang there except those that sang best.\" (Henry Van Dyke)")
         ])
     }
 }
