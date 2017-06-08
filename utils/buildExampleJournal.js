@@ -41,13 +41,20 @@ const item = {
     license: ""
 }
 
+let savedAttribute = ""
+
 for (let inputLine of inputLines) {
     if (!inputLine) continue
     if (inputLine.startsWith("//")) continue
     if (inputLine.startsWith("{")) {
         const defaultProperties = JSON.parse(inputLine)
         for (let key in defaultProperties) {
-            item[key] = defaultProperties[key]
+            if (key === "attribute") {
+                // treat attribute special so we know if we can use file name instead
+                savedAttribute = defaultProperties[key]
+            } else {
+                item[key] = defaultProperties[key]
+            }
         }
         continue
     }
@@ -55,7 +62,7 @@ for (let inputLine of inputLines) {
     const fullFileName = fs.realpathSync(__dirname + "/" + inputDirectory + fileName)
     console.log("reading", fullFileName)
     const fileContents = fs.readFileSync(fullFileName).toString()
-    item.attribute = fileName
+    item.attribute = savedAttribute || fileName
     item.value = fileContents
     if (needsLeadingComma) output.push(",")
     needsLeadingComma = true

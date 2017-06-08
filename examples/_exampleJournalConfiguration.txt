@@ -77,7 +77,15 @@ html-example.html
 {"contentType": "text/x-fortran"}
 fortran-example.txt
 
+// Include a JSON file that IBIS can read
+{"entity": "Knife sharpening"}
+{"attribute": "contents"}
+{"contentType": "application/json"}
+ibis-knife-sharpening.json
+
 // Go back to JavaScript as default content type for this file
+{"entity": "Twirlip7 examples"}
+{"attribute": ""}
 {"contentType": "application/javascript"}
 
 // Adding to the journal

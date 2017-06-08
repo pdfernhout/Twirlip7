@@ -1,0 +1,87 @@
+{
+    "width": 800,
+    "height": 500,
+    "diagramName": "Knife sharpening",
+    "elements": [
+        {
+            "type": "issue",
+            "name": "how inaccurate?",
+            "x": 563,
+            "y": 181,
+            "notes": "",
+            "id": "180503f1-f156-4f5d-ac83-6adffee9c333",
+            "parentId": "6bd05fcd-7e02-49cd-874a-aab9f40557c5"
+        },
+        {
+            "type": "minus",
+            "name": "slow",
+            "x": 448,
+            "y": 412,
+            "notes": "",
+            "id": "19b653f8-4ae7-437d-9c1b-480d74e23528",
+            "parentId": "ea38ea2a-4f33-4411-b53d-f450c5448d66"
+        },
+        {
+            "type": "plus",
+            "name": "very accurate",
+            "x": 469,
+            "y": 297,
+            "notes": "",
+            "id": "1cb916e6-092c-4674-bca3-19711cbcb0dd",
+            "parentId": "ea38ea2a-4f33-4411-b53d-f450c5448d66"
+        },
+        {
+            "type": "minus",
+            "name": "inaccurate",
+            "x": 458,
+            "y": 131,
+            "notes": "",
+            "id": "6bd05fcd-7e02-49cd-874a-aab9f40557c5",
+            "parentId": "64d2a921-4a03-40d3-957a-ca0ba566ba78"
+        },
+        {
+            "type": "plus",
+            "name": "fast",
+            "x": 461,
+            "y": 65,
+            "notes": "",
+            "id": "d8a144fa-d657-4231-8eda-c5c11c9fda5c",
+            "parentId": "64d2a921-4a03-40d3-957a-ca0ba566ba78"
+        },
+        {
+            "type": "position",
+            "name": "leather",
+            "x": 358,
+            "y": 339,
+            "notes": "",
+            "id": "ea38ea2a-4f33-4411-b53d-f450c5448d66",
+            "parentId": "56f601b9-9193-490b-93ce-075d243874d4"
+        },
+        {
+            "type": "position",
+            "name": "honing",
+            "x": 347,
+            "y": 194,
+            "notes": "",
+            "id": "f6f186be-89d1-40cc-bb57-162fd2ab038c",
+            "parentId": "56f601b9-9193-490b-93ce-075d243874d4"
+        },
+        {
+            "type": "position",
+            "name": "grinding",
+            "x": 368,
+            "y": 87,
+            "notes": "",
+            "id": "64d2a921-4a03-40d3-957a-ca0ba566ba78",
+            "parentId": "56f601b9-9193-490b-93ce-075d243874d4"
+        },
+        {
+            "type": "issue",
+            "name": "best way to sharpen a knife?",
+            "x": 173,
+            "y": 167,
+            "notes": "",
+            "id": "56f601b9-9193-490b-93ce-075d243874d4"
+        }
+    ]
+}

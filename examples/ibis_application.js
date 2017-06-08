@@ -1,6 +1,7 @@
 // IBIS application
 
 // This is an unfinished work in progress
+// Try loading the "Knife sharpening" example item
 
 /**************************************
 # Conceptual references
