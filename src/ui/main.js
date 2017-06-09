@@ -138,8 +138,8 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
         if (hash && hash.startsWith("#open=")) {
             const startupItemId = hash.substring("#open=".length)
             runStartupItem(startupItemId)
-        } else if (hash && hash.startsWith("#import=")) {
-            const startupSelection = hash.substring("#import=".length)
+        } else if (hash && hash.startsWith("#eval=")) {
+            const startupSelection = hash.substring("#eval=".length)
             const startupFileNames = startupSelection.split(";")
             for (let startupFileName of startupFileNames) {
                 requirejs(["vendor/text!" + startupFileName], function (startupFileContents) {

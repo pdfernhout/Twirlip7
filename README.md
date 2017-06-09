@@ -21,6 +21,8 @@ The Server uses Node.js with Express to server the UI files. Eventually the serv
 
 No required build step (yet).
 
+You can run an example IBIS application written using Twirlip7: http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html#eval=examples/ibis_icons.js;examples/ibis_application.js
+
 ### License: MIT
 
 Screenshot of Twirlip7 editor showing a code snippet with a simple temperature convertor in Mithril (after having pressed "Do it"):
