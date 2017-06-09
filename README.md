@@ -31,16 +31,21 @@ You can edit a complex example IBIS app -- written using Twirlip7 -- here: https
 
 You can run the complex example IBIS application: http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html#eval=examples/ibis_icons.js;examples/ibis_application.js
 
-### Using the editor to edit and run anything on GitHub
+### Using the editor to edit and run any JavaScript on GitHub
 
 This edit and run functionality is mostly for demo purposes, but you can also edit or run any JavaScript on GitHub with relative path navigation on rawgit.
 For example: https://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html#edit=../../../../../MithrilJS/mithril.js/next/examples/todomvc/todomvc.js
 
-You can even run that code (sort-of) by following the below directions:  
-    // Add these extra three line of code just before the m.route line to get that Mithril TODO demo to sort-of work under Twirlip7 (without CSS styling and maybe with routing conflicts if you run two at once)  
-    var div = document.createElement("div")  
-    div.id = "todoapp"  
-    document.body.appendChild(div)  
+You can even get that code to run (sort-of) by adding these extra three line of code just before the m.route line to create a needed div the app's HTML file otherwise supplies.
+```
+var div = document.createElement("div")  
+div.id = "todoapp"  
+document.body.appendChild(div)  
+```
+
+Click "Do it" to get that Mithril todomvc demo to sort-of work under Twirlip7.
+The app will not have CSS styling so it will look odd. You could add Tachyons inline CSS to fix that.
+Using the Mithril router in an app is also problematical if other apps you run in the same editor use routing too.
 
 ### License: MIT
 
