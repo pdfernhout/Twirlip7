@@ -23,17 +23,22 @@ No required build step (yet).
 
 ### Controlling editor startup to edit or run examples
 
-This functionality is mostly for demo purposes, but you can edit or run any JavaScript on GitHub with relative path navigation.
-
 You can edit a simple example canvas app here: https://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html#edit=examples/canvas-example.js
 
 You can run the simple example canvas application here: http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html#eval=examples/canvas-example.js
 
-You can edit a complex example IBIS app here: https://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html#edit=examples/ibis_application.js
+You can edit a complex example IBIS app -- written using Twirlip7 -- here: https://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html#edit=examples/ibis_application.js
 
-You can run the complex example IBIS application (written using Twirlip7): http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html#eval=examples/ibis_icons.js;examples/ibis_application.js
+You can run the complex example IBIS application: http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html#eval=examples/ibis_icons.js;examples/ibis_application.js
+
+This functionality is mostly for demo purposes, but you can also edit or run any JavaScript on GitHub with relative path navigation on rawgit.
+For example: https://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html#edit=../../../../../MithrilJS/mithril.js/next/examples/todomvc/todomvc.js
 
 ### License: MIT
+
+### Screenshots
+
+Note: The IDE screenshot here is out-of-date as more features have been added since it was made.
 
 Screenshot of Twirlip7 editor showing a code snippet with a simple temperature convertor in Mithril (after having pressed "Do it"):
 
