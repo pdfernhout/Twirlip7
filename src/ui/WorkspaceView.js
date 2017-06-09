@@ -522,14 +522,14 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         // View functions which are composed into one big view at the end
         
         viewProgress() {
-            return m("div#toastDiv.fixed.top-2.left-2.pa2.fieldset.bg-light-blue.pl3.pr3.tc.o-90.z-max", 
+            return m(".progressDiv.fixed.top-2.left-2.pa2.fieldset.bg-light-blue.pl3.pr3.tc.o-90.z-max", 
                 { hidden: !WorkspaceView.progressMessage },
                 WorkspaceView.progressMessage
             )
         },
         
         viewToast() {
-            return m("div#toastDiv.fixed.top-2.left-2.pa2.fieldset.bg-gold.pl3.pr3.tc.o-90.z-max", 
+            return m(".toastDiv.fixed.top-2.left-2.pa2.fieldset.bg-gold.pl3.pr3.tc.o-90.z-max", 
                 { hidden: WorkspaceView.toastMessages.length === 0 },
                 WorkspaceView.toastMessages.length ? WorkspaceView.toastMessages[0].message : ""
             ) 

@@ -9,7 +9,6 @@ define(["CanonicalJSON"], function(CanonicalJSON) {
 
         loadFile(fileName) {
             const fullFileName = "vendor/text!examples/" + fileName
-            // console.log("reading", fullFileName)
             requirejs([fullFileName], function (fileContents) {
                 ExampleJournalLoader.it.next(fileContents)
             })
@@ -45,7 +44,7 @@ define(["CanonicalJSON"], function(CanonicalJSON) {
             
             for (let i = 0; i < inputLines.length; i++) {
                 const inputLine = inputLines[i]
-                progressCallback("Processing line " + (i + 1) + " of " + inputLines.length)
+                progressCallback("Loading line " + (i + 1) + " of " + inputLines.length)
                 if (!inputLine) continue
                 if (inputLine.startsWith("//")) continue
                 if (inputLine.startsWith("{")) {
@@ -63,7 +62,7 @@ define(["CanonicalJSON"], function(CanonicalJSON) {
                 const fileName = inputLine.trim()
                 
                 // An interator for a generator makes this file load operation look synchronous even though it is asynchronous
-                const fileContents = ExampleJournalLoader.loadFile(fileName)
+                const fileContents = yield ExampleJournalLoader.loadFile(fileName)
                 
                 item.attribute = savedAttribute || fileName
                 item.value = fileContents
