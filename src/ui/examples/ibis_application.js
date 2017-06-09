@@ -111,7 +111,7 @@ After pasting, load it using "Update Diagram from JSON" button.
 "use strict"
  
 /* jshint maxerr: 100000 */
-/* global CompendiumIcons, Twirlip7, m, window, prompt, confirm */
+/* global CompendiumIcons, Twirlip7, m, window, prompt, confirm, requirejs */
 
 // You need to have run the snippet which defines the CompendiumIcons global with the IBIS icons first
 // This next section does that for you if you are using a local storage journal with the examples loaded
