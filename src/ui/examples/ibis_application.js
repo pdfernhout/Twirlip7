@@ -126,6 +126,12 @@ if (!window.CompendiumIcons) {
         /* eslint no-eval: 0 */
         /* jslint evil: true */
         eval(JSON.parse(iconLoaderItemJSON).value)
+    } else {
+        // If all else fails, try to load the icons directly from example files -- this will run asynchronously and cause a brief flicker
+        requirejs(["vendor/text!examples/ibis_icons.js"], function (ibisIconItemContents) {
+            eval(ibisIconItemContents)
+            m.redraw()
+        })
     }
 }
 
