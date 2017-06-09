@@ -31,8 +31,17 @@ You can edit a complex example IBIS app -- written using Twirlip7 -- here: https
 
 You can run the complex example IBIS application: http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html#eval=examples/ibis_icons.js;examples/ibis_application.js
 
-This functionality is mostly for demo purposes, but you can also edit or run any JavaScript on GitHub with relative path navigation on rawgit.
+### Using the editor to edit and run anything on GitHub
+
+This edit and run functionality is mostly for demo purposes, but you can also edit or run any JavaScript on GitHub with relative path navigation on rawgit.
 For example: https://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html#edit=../../../../../MithrilJS/mithril.js/next/examples/todomvc/todomvc.js
+
+You can even run that code (sort-of) by following the below directions:
+
+> // Add these extra three line of code just before the m.route line to get that Mithril TODO demo to sort-of work under Twirlip7 (without CSS styling and maybe with routing conflicts if you run two at once)
+> var div = document.createElement("div")
+> div.id = "todoapp"
+> document.body.appendChild(div)
 
 ### License: MIT
 
