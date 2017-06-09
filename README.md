@@ -19,7 +19,7 @@ The UI uses Mithril.js, Tachyons.js, RequireJS, and the ACE editor in plain Java
 
 The Server uses Node.js with Express to server the UI files. Eventually the server may do something more than just serving files. Using the server requires running "npm install" to load the supporting npm modules and then "npm run server" to run the server. However you don't actually need to install and run the server yet as you can just load the files directly into your browser.
 
-No required build step (yet). You can use "npm buildExampleJournal" to rebuild the code for the example journal from individual source files.
+No required build step (yet).
 
 ### License: MIT
 
