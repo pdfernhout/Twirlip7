@@ -398,10 +398,16 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
 
         showExampleJournal() {
-            WorkspaceView.toast("Loading examples; please wait...")
-            ExampleJournalLoader.loadAllFiles((exampleJournal) => {
-                WorkspaceView.showJournal(JSON.stringify(exampleJournal, null, 4))
-            })
+            WorkspaceView.progress("Loading examples; please wait...")
+            ExampleJournalLoader.loadAllFiles(
+                (progressMessage) => {
+                    WorkspaceView.progress(progressMessage)
+                },
+                (exampleJournal) => {
+                    WorkspaceView.showJournal(JSON.stringify(exampleJournal, null, 4))
+                    WorkspaceView.progress(null)
+                }
+            )
         },
 
         replaceJournal() {
@@ -435,6 +441,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.lastLoadedContents = WorkspaceView.getEditorContents()
         },
 
+        progress(message) {
+            WorkspaceView.progressMessage = message
+        },
+        
         toast(message, delay) {
             function removeToastAfterDelay() {
                 setTimeout(function() {
@@ -508,6 +518,13 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
         
         // View functions which are composed into one big view at the end
+        
+        viewProgress() {
+            return m("div#toastDiv.fixed.top-2.left-2.pa2.fieldset.bg-light-blue.pl3.pr3.tc.o-90.z-max", 
+                { hidden: !WorkspaceView.progressMessage },
+                WorkspaceView.progressMessage
+            )
+        },
         
         viewToast() {
             return m("div#toastDiv.fixed.top-2.left-2.pa2.fieldset.bg-gold.pl3.pr3.tc.o-90.z-max", 
@@ -842,6 +859,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         viewMain() {
             const focusMode = WorkspaceView.focusMode
             return [
+                WorkspaceView.viewProgress(),
                 WorkspaceView.viewToast(),
                 focusMode ? [] : WorkspaceView.viewExtensionsHeader(),
                 WorkspaceView.viewAbout(),
