@@ -402,10 +402,12 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             ExampleJournalLoader.loadAllFiles(
                 (progressMessage) => {
                     WorkspaceView.progress(progressMessage)
+                    m.redraw()
                 },
                 (exampleJournal) => {
                     WorkspaceView.showJournal(JSON.stringify(exampleJournal, null, 4))
                     WorkspaceView.progress(null)
+                    m.redraw()
                 }
             )
         },
