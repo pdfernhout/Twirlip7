@@ -129,6 +129,18 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
         }
     }
     
+    function startEditor(initializationCallback) {
+        const root = document.body
+        m.mount(root, WorkspaceView) 
+        setTimeout(() => {
+            if (initializationCallback) {
+                initializationCallback()
+                m.redraw()
+            }
+            runAllStartupItems()
+        }, 0)
+    }
+    
     function startup() {
         setupTwirlip7Global()
         
@@ -146,14 +158,19 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
                     eval(startupFileContents)
                 })
             }
+        } else if (hash && hash.startsWith("#edit=")) {
+            const startupSelection = hash.substring("#eval=".length)
+            requirejs(["vendor/text!" + startupSelection], function (startupFileContents) {
+                startEditor(() => {
+                    WorkspaceView.currentItem.entity = startupSelection
+                    WorkspaceView.currentItem.attribute = "contents"
+                    WorkspaceView.setEditorContents(startupFileContents)
+                })
+            })
         } else {
-            const root = document.body
-            m.mount(root, WorkspaceView)
-            setTimeout(() => {
+            startEditor(() => {
                 WorkspaceView.restoreCurrentItemId()
-                m.redraw()
-                runAllStartupItems()
-            }, 0)
+            })
         }
     }
     
