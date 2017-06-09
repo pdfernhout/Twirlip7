@@ -19,6 +19,7 @@
     "marked": "^0.3.6",
     "ospec": "1.2.3",
     "tachyons": "4.7.0",
+    "text": "requirejs/text",
     "three.js": "0.77.1"
   }
 }

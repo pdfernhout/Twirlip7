@@ -1,11 +1,11 @@
-define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorage", "ace/ace", "ace/ext/modelist", "exampleJournal", "CanonicalJSON"], function(
+define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorage", "ace/ace", "ace/ext/modelist", "ExampleJournalLoader", "CanonicalJSON"], function(
     FileUtils,
     EvalUtils,
     JournalUsingMemory,
     JournalUsingLocalStorage,
     ace,
     modelist,
-    exampleJournal,
+    ExampleJournalLoader,
     CanonicalJSON
 ) {
     "use strict"
@@ -398,7 +398,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
 
         showExampleJournal() {
-            WorkspaceView.showJournal(JSON.stringify(exampleJournal, null, 4))
+            WorkspaceView.toast("Loading examples; please wait...")
+            ExampleJournalLoader.loadAllFiles((exampleJournal) => {
+                WorkspaceView.showJournal(JSON.stringify(exampleJournal, null, 4))
+            })
         },
 
         replaceJournal() {
