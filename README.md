@@ -21,7 +21,17 @@ The Server uses Node.js with Express to server the UI files. Eventually the serv
 
 No required build step (yet).
 
-You can run an example IBIS application written using Twirlip7: http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html#eval=examples/ibis_icons.js;examples/ibis_application.js
+### Controlling editor startup to edit or run examples
+
+This functionality is mostly for demo purposes, but you can edit or run any JavaScript on GitHub with relative path navigation.
+
+You can edit a simple example canvas app here: https://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html#edit=examples/canvas-example.js
+
+You can run the simple example canvas application here: http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html#eval=examples/canvas-example.js
+
+You can edit a complex example IBIS app here: https://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html#edit=examples/ibis_application.js
+
+You can run the complex example IBIS application (written using Twirlip7): http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/index.html#eval=examples/ibis_icons.js;examples/ibis_application.js
 
 ### License: MIT
 
