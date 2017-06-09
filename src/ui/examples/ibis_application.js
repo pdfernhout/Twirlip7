@@ -128,6 +128,8 @@ if (!window.CompendiumIcons) {
         eval(JSON.parse(iconLoaderItemJSON).value)
     } else {
         // If all else fails, try to load the icons directly from example files -- this will run asynchronously and cause a brief flicker
+        // Temporarily set global to reduce flicker
+        window.CompendiumIcons = {}
         requirejs(["vendor/text!examples/ibis_icons.js"], function (ibisIconItemContents) {
             eval(ibisIconItemContents)
             m.redraw()
