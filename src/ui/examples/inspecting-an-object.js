@@ -11,7 +11,7 @@
 const myObject = {
     hello: "world",
     coding: "is fun!", 
-    todo: ["learn Mithril.js", "learn Tachyons.js"],
+    todo: ["learn Mithril.js", "learn Tachyons.css"],
     snippetIndex: 3
 }
 
