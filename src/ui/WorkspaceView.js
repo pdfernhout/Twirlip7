@@ -98,8 +98,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             const journals = {
                 "local storage": JournalUsingLocalStorage,
                 "memory": JournalUsingMemory,
+                "server": JournalUsingServer.socket ? JournalUsingServer : null
             }
-            if (JournalUsingServer.socket) journals["server"] = JournalUsingServer
             return journals
         },
         
@@ -148,11 +148,18 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         changeJournal(newChoice) {
             const oldChoice = WorkspaceView.journalChoice
             if (newChoice === oldChoice) return
+            
+            const newJournal = WorkspaceView.journalsAvailable()[newChoice]
+            if (!newJournal) {
+                alert("Journal not available for: " + newChoice)
+                return
+            }
+            
             if (!WorkspaceView.confirmClear()) return
 
             WorkspaceView.saveCurrentItemId()
             WorkspaceView.journalChoice = newChoice
-            WorkspaceView.currentJournal = WorkspaceView.journalsAvailable()[newChoice]
+            WorkspaceView.currentJournal = newJournal
             WorkspaceView.restoreCurrentItemId()
         },
 
@@ -841,14 +848,15 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
         
         viewJournalButtons() {
+            const journalsAvailable = WorkspaceView.journalsAvailable()
             function journalChanged(event) {
                 WorkspaceView.changeJournal(event.target.value)
             }
             return [
                 "Journal",
                 m("select.ma2", { onchange: journalChanged, title: "Change storage location of snippets" },
-                    Object.keys(WorkspaceView.journalsAvailable()).sort().map((journalKey) => {
-                        return m("option", { value: journalKey, selected: WorkspaceView.journalChoice === journalKey }, journalKey)
+                    Object.keys(journalsAvailable).sort().map((journalKey) => {
+                        return m("option", { value: journalKey, selected: WorkspaceView.journalChoice === journalKey, disabled: !journalsAvailable[journalKey]}, journalKey)
                     })
                 ),
                 m("button.ma1", { onclick: WorkspaceView.showCurrentJournal, title: "Put JSON for current journal contents into editor" }, "Show current journal"),
