@@ -68,7 +68,7 @@ define(["vendor/sha256", "vendor/mithril", "/socket.io/socket.io.js"], function(
         
         loadFromJournalText(journalText) {
             // TODO: Need to think abotu what this means ont he server...
-            alert("Replacing Journal not yet supprted on server")
+            alert("Replacing Journal not yet supported on server")
             return
             /*
             JournalUsingServer.clearItems()
@@ -135,7 +135,7 @@ define(["vendor/sha256", "vendor/mithril", "/socket.io/socket.io.js"], function(
         },
         
         messageReceived(message) {
-            console.log("messageReceived", message)
+            // console.log("messageReceived", message)
             if (message.command === "insert") {
                 JournalUsingServer.addItem(message.item, "isFromServer")
             } else if (message.command === "remove") {

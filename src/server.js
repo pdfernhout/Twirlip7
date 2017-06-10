@@ -44,15 +44,15 @@ var server = http.createServer(app).listen(process.env.PORT || 9000, process.env
 var io = new SocketIOServer(server)
 
 io.on("connection", function(socket) {
-    console.log("\na user connected", socket.id)
     var clientId = socket.id
+    console.log("\na user connected", clientId)
     
     socket.on("disconnect", function() {
-        console.log("user disconnected")
+        console.log("user disconnected", clientId)
     })
     
     socket.on("twirlip", function (message) {
-        console.log("----- twirlip received message", JSON.stringify(message))
+        console.log("----- twirlip received message", clientId)
         processMessage(clientId, message)
     })
 })
@@ -131,7 +131,7 @@ function listen(clientId, message) {
     // TODO Handle only sending some recent messages or no previous messages
     var streamId = message.streamId
     
-    console.log("\nlisten streamId", streamId, message)
+    console.log("\nlisten", clientId, streamId)
     
     setListenerState(clientId, streamId, "listening")
     
@@ -142,7 +142,7 @@ function listen(clientId, message) {
     function sendMessage(messageString) {
         // TODO: Handle errors
         var message = JSON.parse(messageString)
-        console.log("listen sendMessage", message)
+        // console.log("listen sendMessage", clientId, message)
         sendMessageToClient(clientId, message)
     }
     try {
@@ -161,27 +161,27 @@ function listen(clientId, message) {
 
 function unlisten(clientId, message) {
     var streamId = message.streamId
-    console.log("\nunlisten (unfinished) streamId", streamId)
+    console.log("\nunlisten (unfinished)", streamId)
     setListenerState(clientId, streamId, undefined)
 }
 
 function insert(clientId, message) {
-    // var streamId = getStreamIdFromMessage(message);
-    // console.log("\ninsert streamId", streamId);
+    var streamId = message.streamId
+    console.log("\ninsert", clientId, streamId, calculateSha256(message.item))
     storeMessage(message)
     sendMessage(message)
 }
 
 function remove(clientId, message) {
     var streamId = message.streamId
-    console.log("\nremove (unfinished) streamId", streamId)
+    console.log("\nremove (unfinished)", streamId)
     storeMessage(message)
     sendMessage(message)
 }
 
 function reset(clientId, message) {
     var streamId = message.streamId
-    console.log("\nreset streamId", streamId)
+    console.log("\nresed", streamId)
     // TODO: Perhaps should clear out file?
     storeMessage(message)
     sendMessage(message)
