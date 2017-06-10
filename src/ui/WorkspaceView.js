@@ -1,8 +1,9 @@
-define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorage", "ace/ace", "ace/ext/modelist", "ExampleJournalLoader", "CanonicalJSON"], function(
+define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorage", "JournalUsingServer", "ace/ace", "ace/ext/modelist", "ExampleJournalLoader", "CanonicalJSON"], function(
     FileUtils,
     EvalUtils,
     JournalUsingMemory,
     JournalUsingLocalStorage,
+    JournalUsingServer,
     ace,
     modelist,
     ExampleJournalLoader,
@@ -90,8 +91,15 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         currentItem: newItem(),
         
         currentContributor: "",
+        
         currentJournal: JournalUsingLocalStorage,
         journalChoice: "local storage",
+        journalsAvailable: {
+            "local storage": JournalUsingLocalStorage,
+            "memory": JournalUsingMemory,
+            "server": JournalUsingServer,
+        },
+        
         aceEditorHeight: 20,
         toastMessages: [],
         editorMode: "ace/mode/javascript",
@@ -141,7 +149,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
             WorkspaceView.saveCurrentItemId()
             WorkspaceView.journalChoice = newChoice
-            WorkspaceView.currentJournal = (newChoice === "memory" ? JournalUsingMemory : JournalUsingLocalStorage)
+            WorkspaceView.currentJournal = WorkspaceView.journalsAvailable[newChoice]
             WorkspaceView.restoreCurrentItemId()
         },
 
@@ -255,7 +263,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
         openIt() {
             if (WorkspaceView.currentJournal !== JournalUsingLocalStorage) {
-                alert("Snippets need to be in the local storage journal (not memory)\nto be opened in a new window.")
+                alert("Snippets need to be in the local storage journal (not memory or server)\nto be opened in a new window.")
                 return
             }
             if (WorkspaceView.currentItemId === null) {
@@ -298,7 +306,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 WorkspaceView.toast("No journal items to display. Try saving one first -- or show the example journal in the editor and then load it.")
                 return
             }
-            if (WorkspaceView.currentJournal.itemCount() === 1) {
+            if (WorkspaceView.currentItemId && WorkspaceView.currentJournal.itemCount() === 1) {
                 WorkspaceView.toast("Only one journal item to display. Try saving another one first.")
                 return
             }
@@ -835,9 +843,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             }
             return [
                 "Journal",
-                m("select.ma2", { onchange: journalChanged, title: "Change storage location of snippets" }, 
-                    m("option", { value: "local storage", selected: WorkspaceView.journalChoice === "local storage" }, "local storage"),
-                    m("option", { value: "memory", selected: WorkspaceView.journalChoice === "memory" }, "memory")
+                m("select.ma2", { onchange: journalChanged, title: "Change storage location of snippets" },
+                    Object.keys(WorkspaceView.journalsAvailable).sort().map((journalKey) => {
+                        return m("option", { value: journalKey, selected: WorkspaceView.journalChoice === journalKey }, journalKey)
+                    })
                 ),
                 m("button.ma1", { onclick: WorkspaceView.showCurrentJournal, title: "Put JSON for current journal contents into editor" }, "Show current journal"),
                 m("button.ma1", { onclick: WorkspaceView.showExampleJournal, title: "Put a journal of sample snippets as JSON into editor (for loading afterwards)" }, "Show example journal"),

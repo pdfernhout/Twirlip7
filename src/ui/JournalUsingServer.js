@@ -1,10 +1,14 @@
-define(["vendor/sha256"], function(sha256) {
+define(["vendor/sha256", "vendor/mithril", "/socket.io/socket.io.js"], function(sha256, mDiscard, io) {
     "use strict"
+
+    const socket = io()
 
     // returns position + 1 for item reference to avoid first item being "0"
     const JournalUsingServer = {
         itemForLocation: [],
         itemForHash: {},
+        streamId: "common",
+        userId: "anonymous",
 
         getCapabilities() {
             return {
@@ -18,7 +22,7 @@ define(["vendor/sha256"], function(sha256) {
             }
         },
 
-        addItem(item) {
+        addItem(item, isFromServer) {
             const reference = "" + sha256.sha256(item)
             const storedItem = JournalUsingServer.itemForHash[reference]
             if (storedItem) {
@@ -28,6 +32,8 @@ define(["vendor/sha256"], function(sha256) {
             const newStoredItem = { id: reference, location: newLocation, item: item }
             JournalUsingServer.itemForLocation.push(newStoredItem)
             JournalUsingServer.itemForHash[reference] = newStoredItem
+            // The insertion order may not be the same on other clients; applications need to not depend on it
+            if (!isFromServer) JournalUsingServer.sendInsertItemMessage(item)
             return { id: reference, location: newLocation, existed: false }
         },
 
@@ -61,9 +67,14 @@ define(["vendor/sha256"], function(sha256) {
         },
         
         loadFromJournalText(journalText) {
+            // TODO: Need to think abotu what this means ont he server...
+            alert("Replacing Journal not yet supprted on server")
+            return
+            /*
             JournalUsingServer.clearItems()
             const items = JSON.parse(journalText)
             for (let item of items) { JournalUsingServer.addItem(item) }
+            */
         },
         
         locationForKey(key) {
@@ -107,8 +118,54 @@ define(["vendor/sha256"], function(sha256) {
                 if (location >= itemCount) location = itemCount - 1
             }
             return JournalUsingServer.keyForLocation(location)
+        },
+        
+        // =============== socket.io communications
+        
+        sendMessage(message) {
+            socket.emit("twirlip", message)
+        },
+        
+        sendInsertItemMessage(item) {
+            JournalUsingServer.sendMessage({command: "insert", streamId: JournalUsingServer.streamId, item: item, userId: JournalUsingServer.userId, timestamp: new Date().toISOString()})
+        },
+        
+        requestAllMessages() {
+            JournalUsingServer.sendMessage({command: "listen", streamId: JournalUsingServer.streamId})
+        },
+        
+        messageReceived(message) {
+            console.log("messageReceived", message)
+            if (message.command === "insert") {
+                JournalUsingServer.addItem(message.item, "isFromServer")
+            } else if (message.command === "remove") {
+                console.log("TODO: Remove message not handled")
+            } else if (message.command === "reset") {
+                // TODO: Should handle timestamps somehow, so earlier messages before last reset are rejected
+                JournalUsingServer.clearItems()
+            }
+            m.redraw()
+        },
+        
+        setup() {
+            // TODO: Concern: Want to get all messages, but new messages may be added while waiting
+            
+            socket.on("twirlip", function(message) {
+                if (message.streamId === JournalUsingServer.streamId) {
+                    JournalUsingServer.messageReceived(message)
+                }
+            })
+            
+            socket.on("connect", function(client) {
+                console.log("connect", socket.id)
+                
+                JournalUsingServer.requestAllMessages()
+            })
         }
     }
+    
+    // TODO: Think about when to call this
+    JournalUsingServer.setup()
 
     return JournalUsingServer
 })
