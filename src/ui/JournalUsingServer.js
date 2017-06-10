@@ -1,7 +1,5 @@
-define(["vendor/sha256", "vendor/mithril", "/socket.io/socket.io.js"], function(sha256, mDiscard, io) {
+define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
     "use strict"
-
-    const socket = io()
 
     // returns position + 1 for item reference to avoid first item being "0"
     const JournalUsingServer = {
@@ -9,6 +7,7 @@ define(["vendor/sha256", "vendor/mithril", "/socket.io/socket.io.js"], function(
         itemForHash: {},
         streamId: "common",
         userId: "anonymous",
+        socket: null,
 
         getCapabilities() {
             return {
@@ -123,7 +122,7 @@ define(["vendor/sha256", "vendor/mithril", "/socket.io/socket.io.js"], function(
         // =============== socket.io communications
         
         sendMessage(message) {
-            socket.emit("twirlip", message)
+            JournalUsingServer.socket.emit("twirlip", message)
         },
         
         sendInsertItemMessage(item) {
@@ -147,25 +146,23 @@ define(["vendor/sha256", "vendor/mithril", "/socket.io/socket.io.js"], function(
             m.redraw()
         },
         
-        setup() {
+        setup(io) {
             // TODO: Concern: Want to get all messages, but new messages may be added while waiting
+            JournalUsingServer.socket = io()
             
-            socket.on("twirlip", function(message) {
+            JournalUsingServer.socket.on("twirlip", function(message) {
                 if (message.streamId === JournalUsingServer.streamId) {
                     JournalUsingServer.messageReceived(message)
                 }
             })
             
-            socket.on("connect", function(client) {
-                console.log("connect", socket.id)
+            JournalUsingServer.socket.on("connect", function(client) {
+                console.log("connect", JournalUsingServer.socket.id)
                 
                 JournalUsingServer.requestAllMessages()
             })
         }
     }
-    
-    // TODO: Think about when to call this
-    JournalUsingServer.setup()
 
     return JournalUsingServer
 })

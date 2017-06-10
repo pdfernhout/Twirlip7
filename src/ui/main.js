@@ -5,7 +5,7 @@ requirejs.config({
     }
 })
 
-requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "JournalUsingMemory", "FileUtils", "CanonicalJSON"], function(mDiscardAsMadeGlobal, WorkspaceView, JournalUsingLocalStorage, JournalUsingMemory, FileUtils, CanonicalJSON) {
+requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "JournalUsingMemory", "JournalUsingServer", "FileUtils", "CanonicalJSON"], function(mDiscardAsMadeGlobal, WorkspaceView, JournalUsingLocalStorage, JournalUsingMemory, JournalUsingServer, FileUtils, CanonicalJSON) {
     "use strict"
     
     /* global location */
@@ -37,6 +37,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
             CanonicalJSON,
             JournalUsingLocalStorage,
             JournalUsingMemory,
+            JournalUsingServer,
             getCurrentJournal: () => {
                 return WorkspaceView.currentJournal
             },
@@ -83,6 +84,13 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
                 return result.map(match => match.item)
             }
         }
+        
+        // Try to load socket.io, which may fail
+        requirejs(["/socket.io/socket.io.js"], function(io) {
+            JournalUsingServer.setup(io)
+        }, function(err) {
+            console.log("No socket.io available -- server function disabled")
+        })
     }
 
     function runStartupItem(itemId) {

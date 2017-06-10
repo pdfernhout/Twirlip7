@@ -94,10 +94,13 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         
         currentJournal: JournalUsingLocalStorage,
         journalChoice: "local storage",
-        journalsAvailable: {
-            "local storage": JournalUsingLocalStorage,
-            "memory": JournalUsingMemory,
-            "server": JournalUsingServer,
+        journalsAvailable() {
+            const journals = {
+                "local storage": JournalUsingLocalStorage,
+                "memory": JournalUsingMemory,
+            }
+            if (JournalUsingServer.socket) journals["server"] = JournalUsingServer
+            return journals
         },
         
         aceEditorHeight: 20,
@@ -149,7 +152,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
             WorkspaceView.saveCurrentItemId()
             WorkspaceView.journalChoice = newChoice
-            WorkspaceView.currentJournal = WorkspaceView.journalsAvailable[newChoice]
+            WorkspaceView.currentJournal = WorkspaceView.journalsAvailable()[newChoice]
             WorkspaceView.restoreCurrentItemId()
         },
 
@@ -844,7 +847,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return [
                 "Journal",
                 m("select.ma2", { onchange: journalChanged, title: "Change storage location of snippets" },
-                    Object.keys(WorkspaceView.journalsAvailable).sort().map((journalKey) => {
+                    Object.keys(WorkspaceView.journalsAvailable()).sort().map((journalKey) => {
                         return m("option", { value: journalKey, selected: WorkspaceView.journalChoice === journalKey }, journalKey)
                     })
                 ),
@@ -874,6 +877,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 WorkspaceView.viewToast(),
                 focusMode ? [] : WorkspaceView.viewExtensionsHeader(),
                 WorkspaceView.viewAbout(),
+                focusMode ? [] : WorkspaceView.viewJournalButtons(),
                 focusMode ? [] : WorkspaceView.viewNavigate(),
                 focusMode ? [] : WorkspaceView.viewContext(),
                 WorkspaceView.viewEditor(),
@@ -884,7 +888,6 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 WorkspaceView.viewSpacer(),
                 WorkspaceView.viewEditorButtons(),
                 WorkspaceView.viewBreak(),
-                focusMode ? [] : WorkspaceView.viewJournalButtons(),
                 focusMode ? [] : WorkspaceView.viewExtensionsFooter(),
             ]
         },
