@@ -99,7 +99,6 @@ define(["vendor/sha256"], function(sha256) {
         },
         
         skip(reference, delta, wrap) {
-            // TODO: Need to fix this so can skip over non-prefixed items if store other information
             const itemCount = JournalUsingLocalStorage.itemCount()
             if (itemCount === 0) return null
             let start = (!reference) ? null : JournalUsingLocalStorage.locationForKey(reference)
@@ -118,6 +117,7 @@ define(["vendor/sha256"], function(sha256) {
                     start = -1
                 }
             }
+
             let location
             if (wrap) {
                 delta = delta % itemCount
@@ -127,7 +127,7 @@ define(["vendor/sha256"], function(sha256) {
                 if (location < 0) location = 0
                 if (location >= itemCount) location = itemCount - 1
             }
-            return localStorage.getItem(locationToHashPrefix + location)
+            return JournalUsingLocalStorage.keyForLocation(location)
         }
     }
 
