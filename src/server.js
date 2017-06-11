@@ -1,3 +1,9 @@
+#!/usr/bin/env node
+
+// Test at: http://localhost:8080
+// Set DEBUG=* for low-level socket-io debugging:
+// DEBUG=* node server/twirlip-server.js
+
 /* eslint-env node */
 /*jslint node: true */
 
@@ -35,7 +41,7 @@ app.use(logger)
 app.use(express.static(__dirname + "/ui"))
 
 // Create an HTTP service.
-var server = http.createServer(app).listen(process.env.PORT || 9000, process.env.IP || "0.0.0.0", function () {
+var server = http.createServer(app).listen(process.env.PORT || 8080, process.env.IP || "0.0.0.0", function () {
     var host = server.address().address
     var port = server.address().port
     console.log("Twirlip server listening at http://%s:%s", host, port, process.env.PORT, process.env.IP)
