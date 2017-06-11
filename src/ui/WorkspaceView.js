@@ -222,6 +222,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 WorkspaceView.toast("Saved item as:\n" + addResult.id, 2000)
             }
             WorkspaceView.lastLoadedContents = newContents
+            WorkspaceView.wasEditorDirty = false
             WorkspaceView.currentItemId = addResult.id
             WorkspaceView.saveCurrentItemId()
         },
@@ -440,6 +441,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             }
             // Update lastLoadedContents in case pasted in contents to avoid warning later since data was processed as intended
             WorkspaceView.lastLoadedContents = WorkspaceView.getEditorContents()
+            WorkspaceView.wasEditorDirty = false
             WorkspaceView.toast("Replaced journal from editor")
         },
         
@@ -459,6 +461,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             }
             // Update lastLoadedContents in case pasted in contents to avoid warning later since data was processed as intended
             WorkspaceView.lastLoadedContents = WorkspaceView.getEditorContents()
+            WorkspaceView.wasEditorDirty = false
         },
 
         progress(message) {
