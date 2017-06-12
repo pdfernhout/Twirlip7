@@ -558,6 +558,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         
         viewFocusAndCollapse() {
             return m("div.fr", [
+                WorkspaceView.viewDirty(),
+                m("span.mr3.fr"),
                 m("span.mr3", {  title: "focus mode hides extraneous editor controls to provide more space for testing" },
                     m("input[type=checkbox].ma1", { 
                         checked: WorkspaceView.focusMode,
@@ -572,7 +574,12 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         viewAbout() {
             return m("div#about.bg-lightest-blue.pa1.mb1", [
                 m("a.ml2", { target: "_blank", href: "https://github.com/pdfernhout/Twirlip7" }, "Twirlip7"),
-                WorkspaceView.focusMode? [] : [
+                m("div.ea-header", { style: "display: " + (WorkspaceView.focusMode ? "inline" : "none") }, [
+                    m("span.ml3", { title: "Entity" }, WorkspaceView.currentItem.entity || m("span.i", "<No Entity>")),
+                    m("span.ml2", "::"),
+                    m("span.ml2", { title: "Attribute" }, WorkspaceView.currentItem.attribute || m("span.i", "<No Attribute>"))
+                ]),
+                m("div.help-header", { style: "display: " + (!WorkspaceView.focusMode ? "inline" : "none") }, [
                     m("span.ml1", "uses"),
                     m("a.ml1", { target: "_blank", href: "https://mithril.js.org/" }, "Mithril"),
                     m("a", { target: "_blank", href: "https://github.com/MithrilJS/mithril.js" }, ".js"),
@@ -581,8 +588,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     m("a.ml2", { target: "_blank", href: "https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts" }, "Ace"),
                     m("a.ml2", { target: "_blank", href: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" }, "JavaScript"),
                     m("span.ml2", "|"),
-                    m("a.ml2", { target: "_blank", href: "https://arthurclemens.github.io/mithril-template-converter" }, "HTML->Mithril"),
-                ],
+                    m("a.ml2", { target: "_blank", href: "https://arthurclemens.github.io/mithril-template-converter" }, "HTML->Mithril")
+                ]),
                 WorkspaceView.viewFocusAndCollapse(),
             ])
         },
@@ -654,8 +661,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 undoManager ? [
                     m("button.ma1", {onclick: () => undoManager.undo(), disabled: !undoManager.hasUndo() }, "< Undo"),
                     m("button.ma1", {onclick: () => undoManager.redo(), disabled: !undoManager.hasRedo() }, "Redo >"),
-                ] : [],
-                WorkspaceView.viewDirty()
+                ] : []
             )
         },
         
