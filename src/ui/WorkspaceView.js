@@ -879,17 +879,22 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             function journalChanged(event) {
                 WorkspaceView.changeJournal(event.target.value)
             }
+            const isCurrentJournalLoading = WorkspaceView.journalChoice === "server" && !JournalUsingServer.isLoaded
             return [
                 "Journal",
                 m("select.ma2", { onchange: journalChanged, title: "Change storage location of snippets" },
                     Object.keys(journalsAvailable).sort().map((journalKey) => {
-                        return m("option", { value: journalKey, selected: WorkspaceView.journalChoice === journalKey, disabled: !journalsAvailable[journalKey]}, journalKey)
+                        let name = journalKey
+                        if (journalKey === "server" && journalsAvailable[journalKey] && !JournalUsingServer.isLoaded) {
+                            name += " <-->"
+                        }
+                        return m("option", { value: journalKey, selected: WorkspaceView.journalChoice === journalKey, disabled: !journalsAvailable[journalKey]}, name)
                     })
                 ),
-                m("button.ma1", { onclick: WorkspaceView.showCurrentJournal, title: "Put JSON for current journal contents into editor" }, "Show current journal"),
-                m("button.ma1", { onclick: WorkspaceView.showExampleJournal, title: "Put a journal of sample snippets as JSON into editor (for loading afterwards)" }, "Show example journal"),
-                m("button.ma1", { onclick: WorkspaceView.mergeJournal, title: "Load JSON journal from editor -- merging with the previous snippets" }, "Merge journal"),
-                m("button.ma1", { onclick: WorkspaceView.replaceJournal, title: "Load JSON journal from editor -- replacing all previous snippets!" }, "Replace journal"),
+                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: WorkspaceView.showCurrentJournal, title: "Put JSON for current journal contents into editor" }, "Show current journal"),
+                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: WorkspaceView.showExampleJournal, title: "Put a journal of sample snippets as JSON into editor (for loading afterwards)" }, "Show example journal"),
+                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: WorkspaceView.mergeJournal, title: "Load JSON journal from editor -- merging with the previous snippets" }, "Merge journal"),
+                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: WorkspaceView.replaceJournal, title: "Load JSON journal from editor -- replacing all previous snippets!" }, "Replace journal"),
             ]
         },
         

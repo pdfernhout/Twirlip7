@@ -90,9 +90,11 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
         requirejs(["/socket.io/socket.io.js"], function(io) {
             JournalUsingServer.onLoadedCallback = function() {
                 console.log("done reading data from server")
-                callback()
+                if (WorkspaceView.journalChoice === "server") WorkspaceView.restoreCurrentItemId()
+                m.redraw()
             }
             JournalUsingServer.setup(io)
+            callback()
             console.log("started reading data from server")
         }, function(err) {
             console.log("No socket.io available -- server function disabled")
@@ -185,7 +187,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
                 })
             } else {
                 startEditor(() => {
-                    WorkspaceView.restoreCurrentItemId()
+                    if (WorkspaceView.journalChoice !== "server") WorkspaceView.restoreCurrentItemId()
                 },() => {
                     WorkspaceView.restoreJournalChoice()
                 })
