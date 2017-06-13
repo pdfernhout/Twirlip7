@@ -9,7 +9,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
     "use strict"
     
     /* global location */
-    
+
     function getItemForJSON(itemJSON) {
         if (itemJSON === null) return null
         if (itemJSON.startsWith("{")) {
@@ -24,10 +24,11 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
         return newItem
     }
     
-    function setupTwirlip7Global() {
+    function setupTwirlip7Global(callback) {
         // setup Twirlip7 global for use by evaluated code
         if (window.Twirlip7) {
             alert("Unexpected: Twirlip7 global already exists!")
+            callback()
             return
         }
         window.Twirlip7 = {
@@ -88,8 +89,10 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
         // Try to load socket.io, which may fail
         requirejs(["/socket.io/socket.io.js"], function(io) {
             JournalUsingServer.setup(io)
+            callback()
         }, function(err) {
             console.log("No socket.io available -- server function disabled")
+            callback()
         })
     }
 
@@ -137,12 +140,13 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
         }
     }
     
-    function startEditor(initializationCallback) {
+    function startEditor(postMountCallback, preMountCallback) {
+        if (preMountCallback) preMountCallback()
         const root = document.body
         m.mount(root, WorkspaceView) 
         setTimeout(() => {
-            if (initializationCallback) {
-                initializationCallback()
+            if (postMountCallback) {
+                postMountCallback()
                 m.redraw()
             }
             runAllStartupItems()
@@ -150,36 +154,39 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
     }
     
     function startup() {
-        setupTwirlip7Global()
+        setupTwirlip7Global(() => {
         
-        WorkspaceView.currentContributor = localStorage.getItem("_contributor") || ""
-        
-        const hash = location.hash
-        if (hash && hash.startsWith("#open=")) {
-            const startupItemId = hash.substring("#open=".length)
-            runStartupItem(startupItemId)
-        } else if (hash && hash.startsWith("#eval=")) {
-            const startupSelection = hash.substring("#eval=".length)
-            const startupFileNames = startupSelection.split(";")
-            for (let startupFileName of startupFileNames) {
-                requirejs(["vendor/text!" + startupFileName], function (startupFileContents) {
-                    eval(startupFileContents)
+            WorkspaceView.currentContributor = localStorage.getItem("_contributor") || ""
+            
+            const hash = location.hash
+            if (hash && hash.startsWith("#open=")) {
+                const startupItemId = hash.substring("#open=".length)
+                runStartupItem(startupItemId)
+            } else if (hash && hash.startsWith("#eval=")) {
+                const startupSelection = hash.substring("#eval=".length)
+                const startupFileNames = startupSelection.split(";")
+                for (let startupFileName of startupFileNames) {
+                    requirejs(["vendor/text!" + startupFileName], function (startupFileContents) {
+                        eval(startupFileContents)
+                    })
+                }
+            } else if (hash && hash.startsWith("#edit=")) {
+                const startupSelection = hash.substring("#eval=".length)
+                requirejs(["vendor/text!" + startupSelection], function (startupFileContents) {
+                    startEditor(() => {
+                        WorkspaceView.currentItem.entity = startupSelection
+                        WorkspaceView.currentItem.attribute = "contents"
+                        WorkspaceView.setEditorContents(startupFileContents)
+                    })
+                })
+            } else {
+                startEditor(() => {
+                    WorkspaceView.restoreCurrentItemId()
+                },() => {
+                    WorkspaceView.restoreJournalChoice()
                 })
             }
-        } else if (hash && hash.startsWith("#edit=")) {
-            const startupSelection = hash.substring("#eval=".length)
-            requirejs(["vendor/text!" + startupSelection], function (startupFileContents) {
-                startEditor(() => {
-                    WorkspaceView.currentItem.entity = startupSelection
-                    WorkspaceView.currentItem.attribute = "contents"
-                    WorkspaceView.setEditorContents(startupFileContents)
-                })
-            })
-        } else {
-            startEditor(() => {
-                WorkspaceView.restoreCurrentItemId()
-            })
-        }
+        })
     }
     
     startup()

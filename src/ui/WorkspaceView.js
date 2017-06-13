@@ -145,6 +145,23 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.goToKey(storedItemId, "ignoreDirty")
         },
 
+        saveJournalChoice() {
+            localStorage.setItem("_currentJournalChoice", WorkspaceView.journalChoice)
+        },
+        
+        restoreJournalChoice() {
+            const newChoice = localStorage.getItem("_currentJournalChoice")
+            if (newChoice) {
+                const newJournal = WorkspaceView.journalsAvailable()[newChoice]
+                if (newJournal) {
+                    WorkspaceView.journalChoice = newChoice
+                    WorkspaceView.currentJournal = newJournal
+                } else{
+                    alert("Journal not available for: " + newChoice)
+                }
+            }
+        },
+        
         changeJournal(newChoice) {
             const oldChoice = WorkspaceView.journalChoice
             if (newChoice === oldChoice) return
@@ -161,6 +178,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.journalChoice = newChoice
             WorkspaceView.currentJournal = newJournal
             WorkspaceView.restoreCurrentItemId()
+            WorkspaceView.saveJournalChoice()
         },
 
         setEditorContents(newContents, isNotSaved) {
