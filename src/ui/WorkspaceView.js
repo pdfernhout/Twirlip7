@@ -121,7 +121,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         collapseWorkspace: false,
         
         oninit() {
-            if (WorkspaceView.currentJournal.itemCount() === 0) {
+            if (JournalUsingLocalStorage.itemCount() === 0) {
                 WorkspaceView.show(function () { 
                     return [
                         m("div", "Thanks for trying Twirlip7, an experimental Mithril.js playground -- with aspirations towards becoming a distributed social semantic desktop."),
