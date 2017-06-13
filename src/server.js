@@ -151,18 +151,21 @@ function listen(clientId, message) {
         // console.log("listen sendMessage", clientId, message)
         sendMessageToClient(clientId, message)
     }
+    var fdMessages = null
     try {
-        var fdMessages = fs.openSync(fileName, "r")
+        fdMessages = fs.openSync(fileName, "r")
     } catch (e) {
         // No file, so no saved data to send
-        return
     }
-    try {
-        forEachLine(fdMessages, sendMessage)
-    } finally {
-        // TODO Check error result
-        fs.closeSync(fdMessages)
+    if (fdMessages) {
+        try {
+            forEachLine(fdMessages, sendMessage)
+        } finally {
+            // TODO Check error result
+            fs.closeSync(fdMessages)
+        }
     }
+    sendMessage(JSON.stringify({command: "loaded", streamId: streamId}))
 }
 
 function unlisten(clientId, message) {

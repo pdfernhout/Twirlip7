@@ -8,6 +8,8 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
         streamId: "common",
         userId: "anonymous",
         socket: null,
+        loaded: false,
+        onLoadedCallback: null,
 
         getCapabilities() {
             return {
@@ -142,6 +144,9 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             } else if (message.command === "reset") {
                 // TODO: Should handle timestamps somehow, so earlier messages before last reset are rejected
                 JournalUsingServer.clearItems()
+            } else if (message.command === "loaded") {
+                JournalUsingServer.loaded = true
+                if (JournalUsingServer.onLoadedCallback) JournalUsingServer.onLoadedCallback()
             }
             m.redraw()
         },

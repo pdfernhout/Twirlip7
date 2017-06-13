@@ -88,8 +88,12 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
         
         // Try to load socket.io, which may fail
         requirejs(["/socket.io/socket.io.js"], function(io) {
+            JournalUsingServer.onLoadedCallback = function() {
+                console.log("done reading data from server")
+                callback()
+            }
             JournalUsingServer.setup(io)
-            callback()
+            console.log("started reading data from server")
         }, function(err) {
             console.log("No socket.io available -- server function disabled")
             callback()
