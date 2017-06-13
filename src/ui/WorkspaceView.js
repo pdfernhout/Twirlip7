@@ -86,7 +86,9 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
     
     const WorkspaceView = {
         editor: null,
-        lastLoadedContents: "",
+        
+        lastLoadedItem: newItem(),
+        
         currentItemId: null,
         currentItem: newItem(),
         
@@ -181,20 +183,13 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.saveJournalChoice()
         },
 
-        setEditorContents(newContents, isNotSaved) {
+        setEditorContents(newContents, keepUndo) {
             WorkspaceView.editor.setValue(newContents)
-            WorkspaceView.wasEditorDirty = false
-            if (!isNotSaved) { 
-                WorkspaceView.lastLoadedContents = newContents
-            } else {
-                WorkspaceView.currentItemId = null
-                WorkspaceView.saveCurrentItemId()
-            }
             WorkspaceView.editor.selection.clearSelection()
             WorkspaceView.editor.selection.moveCursorFileStart()
             WorkspaceView.editor.getSession().setScrollTop(0)
             // Replace undoManager since getUndoManager().reset() does not see to work well enough here
-            WorkspaceView.editor.getSession().setUndoManager(new ace.UndoManager())
+            if (!keepUndo) WorkspaceView.editor.getSession().setUndoManager(new ace.UndoManager())
         },
 
         getEditorContents() {
@@ -228,7 +223,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
         save() {
             if (!WorkspaceView.isEditorDirty()) {
-                if (!confirm("There are no changes in the text area.\nSave a new item anyway with a later timestamp?")) return
+                if (!confirm("There are no changes.\nSave a new item anyway with a later timestamp?")) return
             }
             const newContents = WorkspaceView.getEditorContents()
             const itemJSON = WorkspaceView.prepareCurrentItemForSaving(newContents)
@@ -242,14 +237,15 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             } else {
                 WorkspaceView.toast("Saved item as:\n" + addResult.id, 2000)
             }
-            WorkspaceView.lastLoadedContents = newContents
+            WorkspaceView.lastLoadedItem = JSON.parse(itemJSON)
             WorkspaceView.wasEditorDirty = false
             WorkspaceView.currentItemId = addResult.id
             WorkspaceView.saveCurrentItemId()
         },
         
         isEditorDirty() {
-            return WorkspaceView.editor && (WorkspaceView.lastLoadedContents !== WorkspaceView.getEditorContents())
+            // TODO: compare individual strings instead of use CanonicalJSON.stringify to be more efficient
+            return WorkspaceView.editor && (CanonicalJSON.stringify(WorkspaceView.lastLoadedItem) !== CanonicalJSON.stringify(WorkspaceView.currentItem))
         },
 
         confirmClear(promptText) {
@@ -261,9 +257,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
         clear() {
             if (!WorkspaceView.confirmClear()) return
-            WorkspaceView.setEditorContents("")
             WorkspaceView.currentItemId = null
             WorkspaceView.currentItem = newItem()
+            WorkspaceView.setEditorContents(WorkspaceView.currentItem.value)
+            WorkspaceView.wasEditorDirty = false
             WorkspaceView.saveCurrentItemId()
         },
 
@@ -310,10 +307,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             FileUtils.loadFromFile(convertToBase64, (fileName, fileContents) => {
                 if (fileContents) {
                     const newContent = fileContents
-                    WorkspaceView.setEditorContents(newContent)
-                    WorkspaceView.currentItemId = null
-                    WorkspaceView.lastLoadedContents = ""
-                    WorkspaceView.item.encoding = convertToBase64 ? "base64" : ""
+                    WorkspaceView.setEditorContents(newContent, "keepUndo")
+                    // We don't know if the text is changed, so use null for wasEditorDirty
+                    WorkspaceView.wasEditorDirty = null
+                    WorkspaceView.currentItem.encoding = convertToBase64 ? "base64" : ""
                     m.redraw()
                 }
             })
@@ -364,9 +361,14 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             }
             WorkspaceView.currentItemId = key
             WorkspaceView.currentItem = item
+            
             WorkspaceView.setEditorContents(item.value || "")
-            WorkspaceView.saveCurrentItemId()
+            WorkspaceView.wasEditorDirty = false
+            WorkspaceView.updateLastLoadedItemFromCurrentItem()
+                                    
             WorkspaceView.setEditorModeForContentType(item.contentType)
+            
+            WorkspaceView.saveCurrentItemId()
         },
 
         // TODO: Improve adhoc partial handling of character types which also ignores character set
@@ -423,21 +425,31 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         goNext() { WorkspaceView.skip(1) },
 
         goLast() { WorkspaceView.skip(1000000) },
+        
+        updateLastLoadedItemFromCurrentItem() {
+            WorkspaceView.lastLoadedItem = JSON.parse(JSON.stringify(WorkspaceView.currentItem))
+        },
 
         showJournal(journalText) {
-            if (!WorkspaceView.confirmClear()) return
             WorkspaceView.currentItemId = null
             WorkspaceView.currentItem = newItem()
+            WorkspaceView.currentItem.value = journalText
             WorkspaceView.currentItem.contentType = "application/json"
+            
             WorkspaceView.setEditorContents(journalText)
+            WorkspaceView.wasEditorDirty = false
+            WorkspaceView.updateLastLoadedItemFromCurrentItem()
+            
             WorkspaceView.setEditorModeForContentType(WorkspaceView.currentItem.contentType)
         },
 
         showCurrentJournal() {
+            if (!WorkspaceView.confirmClear()) return
             WorkspaceView.showJournal(WorkspaceView.currentJournal.textForJournal())
         },
 
         showExampleJournal() {
+            if (!WorkspaceView.confirmClear()) return
             WorkspaceView.progress("Loading examples; please wait...")
             ExampleJournalLoader.loadAllFiles(
                 (progressMessage) => {
@@ -460,8 +472,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 WorkspaceView.toast("Problem replacing journal from editor:\n" + error)
                 return
             }
-            // Update lastLoadedContents in case pasted in contents to avoid warning later since data was processed as intended
-            WorkspaceView.lastLoadedContents = WorkspaceView.getEditorContents()
+            // Update lastLoadedItem.value in case pasted in contents to avoid warning later since data was processed as intended
+            WorkspaceView.lastLoadedItem.value = WorkspaceView.getEditorContents()
             WorkspaceView.wasEditorDirty = false
             WorkspaceView.toast("Replaced journal from editor")
         },
@@ -480,8 +492,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 WorkspaceView.toast("Problem merging journal from editor:\n" + error)
                 return
             }
-            // Update lastLoadedContents in case pasted in contents to avoid warning later since data was processed as intended
-            WorkspaceView.lastLoadedContents = WorkspaceView.getEditorContents()
+            // Update lastLoadedItem.value in case pasted in contents to avoid warning later since data was processed as intended
+            WorkspaceView.lastLoadedItem.value = WorkspaceView.getEditorContents()
             WorkspaceView.wasEditorDirty = false
         },
 
@@ -710,11 +722,11 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return [
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", "Entity"),
-                    m("input.w-80", {value: WorkspaceView.currentItem.entity || "", onchange: event => WorkspaceView.currentItem.entity = event.target.value})
+                    m("input.w-80", {value: WorkspaceView.currentItem.entity || "", oninput: event => WorkspaceView.currentItem.entity = event.target.value})
                 ),
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", "Attribute"),
-                    m("input.w-80", {value: WorkspaceView.currentItem.attribute || "", onchange: event => WorkspaceView.currentItem.attribute = event.target.value})
+                    m("input.w-80", {value: WorkspaceView.currentItem.attribute || "", oninput: event => WorkspaceView.currentItem.attribute = event.target.value})
                 ),
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", "Value")
@@ -726,27 +738,27 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return [
                 m("div.ma1",
                     m("span.dib.w4.tr.mr2", "Content type"),
-                    m("input.w-40", {value: WorkspaceView.currentItem.contentType || "", onchange: event => WorkspaceView.currentItem.contentType = event.target.value}),
+                    m("input.w-40", {value: WorkspaceView.currentItem.contentType || "", oninput: event => WorkspaceView.currentItem.contentType = event.target.value}),
                     m("span.pa2"),
                     m("span.dib.w4.tr.mr2", {title: "content transfer encoding like \"base64\" for binary data"}, "Encoding"),
-                    m("input.w-20", {value: WorkspaceView.currentItem.encoding || "", onchange: event => WorkspaceView.currentItem.encoding = event.target.value})
+                    m("input.w-20", {value: WorkspaceView.currentItem.encoding || "", oninput: event => WorkspaceView.currentItem.encoding = event.target.value})
                 ),  
                 m("div.ma1",
                     m("span.dib.w4.tr.mr2", WorkspaceView.viewContributor()),
-                    m("input.w-40.bg-light-gray", {readonly: true, value: WorkspaceView.currentItem.contributor || "", onchange: event => WorkspaceView.currentItem.contributor = event.target.value}),
+                    m("input.w-40.bg-light-gray", {readonly: true, value: WorkspaceView.currentItem.contributor || "", oninput: event => WorkspaceView.currentItem.contributor = event.target.value}),
                     m("span.pa2"),
                     m("span.dib.w4.tr.mr2", "Timestamp"),
-                    m("input.w-20.bg-light-gray", {readonly: true, value: WorkspaceView.currentItem.timestamp || "", onchange: event => WorkspaceView.currentItem.timestamp = event.target.value})
+                    m("input.w-20.bg-light-gray", {readonly: true, value: WorkspaceView.currentItem.timestamp || "", oninput: event => WorkspaceView.currentItem.timestamp = event.target.value})
                 ),
                 m("div.ma1",
                     m("span.dib.w4.tr.mr2", {
                         title: "click to go to item",
                         onclick: () => { if (WorkspaceView.currentItem.derivedFrom) WorkspaceView.goToKey(WorkspaceView.currentItem.derivedFrom) },
                     }, "Derived from"),
-                    m("input.w-40.bg-light-gray", {readonly: true, value: WorkspaceView.currentItem.derivedFrom || "", onchange: event => WorkspaceView.currentItem.derivedFrom = event.target.value}),
+                    m("input.w-40.bg-light-gray", {readonly: true, value: WorkspaceView.currentItem.derivedFrom || "", oninput: event => WorkspaceView.currentItem.derivedFrom = event.target.value}),
                     m("span.pa2"),
                     m("span.dib.w4.tr.mr2", "License"),
-                    m("input.w-20", {value: WorkspaceView.currentItem.license || "", onchange: event => WorkspaceView.currentItem.license = event.target.value})
+                    m("input.w-20", {value: WorkspaceView.currentItem.license || "", oninput: event => WorkspaceView.currentItem.license = event.target.value})
                 )
             ]
         },
@@ -775,6 +787,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     WorkspaceView.editor.getSession().setUseSoftTabs(true)
                     WorkspaceView.editor.$blockScrolling = Infinity
                     WorkspaceView.editor.getSession().on("change", function() {
+                        WorkspaceView.currentItem.value = WorkspaceView.getEditorContents()
+                        // optimization with wasEditorDirty to prevent unneeded redraws
                         const isEditorDirty = WorkspaceView.isEditorDirty()
                         if (isEditorDirty !== WorkspaceView.wasEditorDirty) {
                             WorkspaceView.wasEditorDirty = isEditorDirty
