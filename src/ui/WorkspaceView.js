@@ -227,6 +227,9 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
 
         save() {
+            if (!WorkspaceView.isEditorDirty()) {
+                if (!confirm("There are no changes in the text area.\nSave a new item anyway with a later timestamp?")) return
+            }
             const newContents = WorkspaceView.getEditorContents()
             const itemJSON = WorkspaceView.prepareCurrentItemForSaving(newContents)
             const addResult = WorkspaceView.currentJournal.addItem(itemJSON)
