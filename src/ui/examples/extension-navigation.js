@@ -2,15 +2,15 @@
 
 let showNavigation = false
 let cacheItemCount = 0
-const cache = {}
+let cachedJournal = null
+let cache = {}
 
 function processNewJournalItems(callback, startIndex) {
     if (!startIndex) startIndex = 0
-    const journal = Twirlip7.getCurrentJournal()
-    for (let i = startIndex; i < journal.itemCount(); i++) {
-        const item = journal.getItemForLocation(i)
+    for (let i = startIndex; i < cachedJournal.itemCount(); i++) {
+        const item = cachedJournal.getItemForLocation(i)
         if (item) {
-            const key = journal.keyForLocation(i)
+            const key = cachedJournal.keyForLocation(i)
             callback({i, key, item: JSON.parse(item)})
         }
     }
@@ -41,14 +41,19 @@ function addToMap(itemContext) {
 }
 
 function updateCacheIfNeeded() {
-    const currentItemCount = Twirlip7.getCurrentJournal().itemCount()
+    const currentJournal = Twirlip7.getCurrentJournal()
+    if (cachedJournal !== currentJournal) {
+        cachedJournal = currentJournal
+        cache = {}
+        cacheItemCount = 0
+    }
+    const currentItemCount = cachedJournal.itemCount()
     if (cacheItemCount < currentItemCount) {
         processNewJournalItems(addToMap, cacheItemCount)
     }
 }
 
 function load(key) {
-    console.log("load", key)
     if (!Twirlip7.WorkspaceView.confirmClear()) return
     Twirlip7.WorkspaceView.goToKey(key)
 }
