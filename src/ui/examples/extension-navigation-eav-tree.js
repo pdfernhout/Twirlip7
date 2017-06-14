@@ -59,13 +59,13 @@ function load(key) {
 }
 
 Twirlip7.WorkspaceView.extensionsInstall({
-    id: "navigation",
+    id: "navigation-eav-tree",
     tags: "footer",
     code: (context) => {
         // TODO: Updating the cache should be done outside of view function?
         updateCacheIfNeeded()
         return m("div",
-            m("span.i.b", { title: "click to open or close navigation", onclick: () => showNavigation = !showNavigation }, "Item Navigation"),
+            m("span.i.b", { title: "click to open or close navigation tree", onclick: () => showNavigation = !showNavigation }, "Navigation Entity-Attribute-Value Tree"),
             showNavigation ? 
                 Object.keys(cache).sort().map((entityInfoKey) => {
                     const entityInfo = cache[entityInfoKey]

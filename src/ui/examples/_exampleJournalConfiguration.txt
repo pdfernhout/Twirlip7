@@ -97,7 +97,7 @@ image-definition-earth-from-space.txt
 extension-simple.js
 extension-search-plain.js
 extension-search-regex.js
-extension-navigation.js
+extension-navigation-eav-tree.js
 
 // Adding to the journal
 journal-adding.js
