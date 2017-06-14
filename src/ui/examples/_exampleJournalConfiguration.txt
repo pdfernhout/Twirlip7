@@ -63,11 +63,6 @@ image-reading.js
 ibis_icons.js
 ibis_application.js
 
-// Extending the editor
-extension-simple.js
-extension-search-plain.js
-extension-search-regex.js
-
 // Markdown library
 markdown-library-use.js
 extension-markdown-preview.js
@@ -97,6 +92,12 @@ image-definition-earth-from-space.txt
 {"attribute": ""}
 {"contentType": "application/javascript"}
 {"encoding": ""}
+
+// Extending the editor
+extension-simple.js
+extension-search-plain.js
+extension-search-regex.js
+extension-navigation.js
 
 // Adding to the journal
 journal-adding.js

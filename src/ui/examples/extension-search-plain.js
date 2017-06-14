@@ -17,10 +17,6 @@ function search() {
     }
 }
 
-function load(key) {
-    Twirlip7.WorkspaceView.currentItemId = key
-}
-
 Twirlip7.WorkspaceView.extensionsInstall({
     id: "search-plain",
     // For tags, try header, middle, and footer
