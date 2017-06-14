@@ -21,12 +21,12 @@ function addToMap(itemContext) {
     const attribute = itemContext.item.attribute
     let entityInfo = cache["e:" + entity]
     if (!entityInfo) {
-        entityInfo = { entity, attributes: {} }
+        entityInfo = { open: false, entity, attributes: {}, lastItem: null }
         cache["e:" + entity] = entityInfo
     }
     let attributeInfo = entityInfo.attributes["a:" + attribute]
     if (!attributeInfo) {
-        attributeInfo = { attribute, itemsByKey: {}, itemsByOrder: [], open: false }
+        attributeInfo = { open: false, attribute, itemsByKey: {}, itemsByOrder: [] }
         entityInfo.attributes["a:" + attribute] = attributeInfo
     }
     if (!attributeInfo.itemsByKey[itemContext.key]) {
@@ -35,6 +35,7 @@ function addToMap(itemContext) {
         const itemInfo = { open: false, i: itemContext.i, key: itemContext.key, timestamp: item.timestamp, contributor: item.contributor }
         attributeInfo.itemsByKey[itemContext.key] = itemInfo
         attributeInfo.itemsByOrder.push(itemInfo)
+        entityInfo.lastItemInfo = itemInfo
         cacheItemCount++
     }
 }
@@ -63,17 +64,30 @@ Twirlip7.WorkspaceView.extensionsInstall({
             showNavigation ? 
                 Object.keys(cache).sort().map((entityInfoKey) => {
                     const entityInfo = cache[entityInfoKey]
+                    const lastItemInfo = entityInfo.lastItemInfo
+                    const title = "Go to last added\n" + lastItemInfo.timestamp + "\n" + lastItemInfo.contributor
                     return m("div", 
-                        m("span.ml2", { onclick: () => entityInfo.open = !entityInfo.open }, entityInfo.entity || "<no entity name>"),
+                        m("span", { onclick: () => entityInfo.open = !entityInfo.open }, entityInfo.open ? "▼" : "►"),
+                        m("span.ml3", { title: title , onclick: () => load(lastItemInfo.key) }, entityInfo.entity || m("span.i", "<no entity name>")),
                         entityInfo.open ?
                             Object.keys(entityInfo.attributes).sort().map((attributeInfoKey) => {
                                 const attributeInfo = entityInfo.attributes[attributeInfoKey]
                                 const lastItemInfo = attributeInfo.itemsByOrder[attributeInfo.itemsByOrder.length - 1]
                                 const title = "Go to last added\n" + lastItemInfo.timestamp + "\n" + lastItemInfo.contributor
-                                return m("div.ml3",
+                                return m("div.ml4",
+                                    m("span", { onclick: () => attributeInfo.open = !attributeInfo.open }, attributeInfo.open ? "▼" : "►"),
                                     m("span", { title: title, onclick: () => load(lastItemInfo.key) },
-                                        attributeInfo.attribute  || "<no attribute name>"
-                                    )
+                                        attributeInfo.attribute  || m("span.i", "<no attribute name>")
+                                    ),
+                                    attributeInfo.open ? 
+                                        attributeInfo.itemsByOrder.map((itemInfo) => {
+                                            return m("div.ml5", { title: "Go", onclick: () => load(itemInfo.key) },
+                                                itemInfo.timestamp,
+                                                m("span.ma2"),
+                                                itemInfo.contributor
+                                            )
+                                        }) :
+                                        []
                                 )
                             }) :
                             []
