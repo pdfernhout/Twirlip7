@@ -9,6 +9,8 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
     "use strict"
     
     /* global location */
+    
+    let initialKeyToGoTo = null
 
     function getItemForJSON(itemJSON) {
         if (itemJSON === null) return null
@@ -90,7 +92,8 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
         requirejs(["/socket.io/socket.io.js"], function(io) {
             JournalUsingServer.onLoadedCallback = function() {
                 console.log("done reading data from server")
-                if (WorkspaceView.journalChoice === "server") WorkspaceView.restoreCurrentItemId()
+                // assuming callback will always be done before get here to go to initialKeyToGoTo
+                if (initialKeyToGoTo && WorkspaceView.journalChoice === "server") WorkspaceView.goToKey(initialKeyToGoTo)
                 m.redraw()
             }
             JournalUsingServer.setup(io)
@@ -168,7 +171,16 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
             if (hash && hash.startsWith("#open=")) {
                 const startupItemId = hash.substring("#open=".length)
                 runStartupItem(startupItemId)
+            } else if (hash && hash.startsWith("#item=")) {
+                const itemId = hash.substring("#item=".length)
+                initialKeyToGoTo = itemId
+                startEditor(() => {
+                    if (initialKeyToGoTo && WorkspaceView.journalChoice !== "server") WorkspaceView.goToKey(initialKeyToGoTo)
+                }, () => {
+                    WorkspaceView.restoreJournalChoice()
+                })
             } else if (hash && hash.startsWith("#eval=")) {
+                // TODO: Not sure whether to restore journal choice here
                 const startupSelection = hash.substring("#eval=".length)
                 const startupFileNames = startupSelection.split(";")
                 for (let startupFileName of startupFileNames) {
@@ -177,7 +189,8 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
                     })
                 }
             } else if (hash && hash.startsWith("#edit=")) {
-                const startupSelection = hash.substring("#eval=".length)
+                // TODO: Not sure whether to restore journal choice here
+                const startupSelection = hash.substring("#edit=".length)
                 requirejs(["vendor/text!" + startupSelection], function (startupFileContents) {
                     startEditor(() => {
                         WorkspaceView.currentItem.entity = startupSelection
@@ -187,7 +200,8 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
                 })
             } else {
                 startEditor(() => {
-                    if (WorkspaceView.journalChoice !== "server") WorkspaceView.restoreCurrentItemId()
+                    initialKeyToGoTo = WorkspaceView.fetchStoredItemId()
+                    if (WorkspaceView.journalChoice !== "server") WorkspaceView.goToKey(initialKeyToGoTo)
                 },() => {
                     WorkspaceView.restoreJournalChoice()
                 })

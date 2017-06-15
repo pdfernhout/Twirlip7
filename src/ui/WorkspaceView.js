@@ -135,15 +135,23 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
         
         saveCurrentItemId() {
+            console.log("saveCurrentItemId")
             if (WorkspaceView.currentItemId !== null) {
                 localStorage.setItem("_current_" + WorkspaceView.journalChoice, WorkspaceView.currentItemId)
+                location.hash = "#item=" + WorkspaceView.currentItemId
             } else {
                 localStorage.setItem("_current_" + WorkspaceView.journalChoice, "")
+                location.hash = "#"
             }
         },
         
-        restoreCurrentItemId() {
+        fetchStoredItemId() {
             const storedItemId = localStorage.getItem("_current_" + WorkspaceView.journalChoice)
+            return storedItemId
+        },
+        
+        restoreCurrentItemId() {
+            const storedItemId = WorkspaceView.fetchStoredItemId()
             WorkspaceView.goToKey(storedItemId, "ignoreDirty")
         },
 
