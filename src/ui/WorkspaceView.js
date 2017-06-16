@@ -135,7 +135,6 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
         
         saveCurrentItemId() {
-            console.log("saveCurrentItemId")
             if (WorkspaceView.currentItemId !== null) {
                 localStorage.setItem("_current_" + WorkspaceView.journalChoice, WorkspaceView.currentItemId)
                 location.hash = "#item=" + WorkspaceView.currentItemId
