@@ -342,10 +342,6 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 WorkspaceView.toast("No journal items to display. Try saving one first -- or show the example journal in the editor and then load it.")
                 return
             }
-            if (WorkspaceView.currentItemId && WorkspaceView.currentJournal.itemCount() === 1) {
-                WorkspaceView.toast("Only one journal item to display. Try saving another one first.")
-                return
-            }
             const key = WorkspaceView.currentJournal.skip(WorkspaceView.currentItemId, delta, wrap)
             WorkspaceView.goToKey(key)
         },
@@ -357,7 +353,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             let itemText = WorkspaceView.currentJournal.getItem(key)
             let item
             if (itemText === undefined || itemText === null) {
-                WorkspaceView.toast("item not found for:\n\"" + key + "\"")
+                if (key) WorkspaceView.toast("item not found for:\n\"" + key + "\"")
                 item = newItem()
             } else if (itemText[0] !== "{") {
                 // TODO: remove legacy development support
