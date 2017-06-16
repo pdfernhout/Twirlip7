@@ -449,6 +449,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.updateLastLoadedItemFromCurrentItem()
             
             WorkspaceView.setEditorModeForContentType(WorkspaceView.currentItem.contentType)
+            WorkspaceView.saveCurrentItemId()
         },
 
         showCurrentJournal() {
