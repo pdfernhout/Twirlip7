@@ -358,7 +358,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             let itemText = WorkspaceView.currentJournal.getItem(key)
             let item
             if (itemText === undefined || itemText === null) {
-                key = null
+                WorkspaceView.toast("item not found for:\n\"" + key + "\"")
                 item = newItem()
             } else if (itemText[0] !== "{") {
                 // TODO: remove legacy development support
