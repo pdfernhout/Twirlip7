@@ -936,8 +936,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return [
                 WorkspaceView.viewProgress(),
                 WorkspaceView.viewToast(),
-                focusMode ? [] : WorkspaceView.viewExtensionsHeader(),
                 WorkspaceView.viewAbout(),
+                focusMode ? [] : WorkspaceView.viewExtensionsHeader(),
                 focusMode ? [] : WorkspaceView.viewJournalButtons(),
                 focusMode ? [] : WorkspaceView.viewNavigate(),
                 focusMode ? [] : WorkspaceView.viewContext(),
