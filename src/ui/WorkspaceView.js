@@ -96,31 +96,25 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         
         currentJournal: JournalUsingLocalStorage,
         journalChoice: "local storage",
-        journalsAvailable() {
-            const journals = {
-                "local storage": JournalUsingLocalStorage,
-                "memory": JournalUsingMemory,
-                "server": JournalUsingServer.socket ? JournalUsingServer : null
-            }
-            return journals
-        },
         
         aceEditorHeight: 20,
-        toastMessages: [],
         editorMode: "ace/mode/javascript",
         wasEditorDirty: false,
+        
         focusMode: false,
+        collapseWorkspace: false,
         
         // to support user-defined extensions
         extensions: {},
+        
+        toastMessages: [],
         
         // Used for resizing the editor's height
         dragOriginY: 0,
         
         show: show,
-        newItem: newItem,
         
-        collapseWorkspace: false,
+        newItem: newItem,
         
         oninit() {
             if (JournalUsingLocalStorage.itemCount() === 0) {
@@ -153,7 +147,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             const storedItemId = WorkspaceView.fetchStoredItemId()
             WorkspaceView.goToKey(storedItemId, "ignoreDirty")
         },
-
+        
         saveJournalChoice() {
             localStorage.setItem("_currentJournalChoice", WorkspaceView.journalChoice)
         },
@@ -171,6 +165,15 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             }
         },
         
+        journalsAvailable() {
+            const journals = {
+                "local storage": JournalUsingLocalStorage,
+                "memory": JournalUsingMemory,
+                "server": JournalUsingServer.socket ? JournalUsingServer : null
+            }
+            return journals
+        },
+
         changeJournal(newChoice) {
             const oldChoice = WorkspaceView.journalChoice
             if (newChoice === oldChoice) return
@@ -224,7 +227,6 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             if (!WorkspaceView.currentContributor) WorkspaceView.promptForContributor()
             WorkspaceView.currentItem.contributor = WorkspaceView.currentContributor
             WorkspaceView.currentItem.derivedFrom = WorkspaceView.currentItemId || ""
-            // TODO: Maybe check to be sure there is a contributor?
             // TODO: Maybe check to be sure there is a license?
             return CanonicalJSON.stringify(WorkspaceView.currentItem)
         },
@@ -391,7 +393,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 } else if (contentType.startsWith("text/html")) {
                     newMode = "html"
                 } else if (contentType.startsWith("text/xml")) {
-                    newMode ="xml"
+                    newMode = "xml"
                 } else if (contentType.startsWith("image/svg+xml")) {
                     newMode = "svg"
                 } else if (contentType.startsWith("text/plain")) {
@@ -430,10 +432,18 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
         goLast() { WorkspaceView.skip(1000000) },
         
+        goToLatestForEntity() {
+            alert("Unfinished")
+        },
+        
+        goToLatestForEntityAttribute() {
+            alert("Unfinished")
+        },
+        
         updateLastLoadedItemFromCurrentItem() {
             WorkspaceView.lastLoadedItem = JSON.parse(JSON.stringify(WorkspaceView.currentItem))
         },
-
+        
         showJournal(journalText) {
             WorkspaceView.currentItemId = null
             WorkspaceView.currentItem = newItem()
@@ -522,6 +532,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         // Extension sections are intended to be user-defined
         // extension example: {id: "hello", tags: "header", code: (context) => m("div", "Hello from extension") }
         
+        // This finds all extensions with the tag, runs the code for each, and returns an array of the results
         extensionsCallForTag(tag, phase) {
             const result = []
             const sortedKeys = Object.keys(WorkspaceView.extensions).sort()
@@ -735,11 +746,13 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return [
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", "Entity"),
-                    m("input.w-80", {value: WorkspaceView.currentItem.entity || "", oninput: event => WorkspaceView.currentItem.entity = event.target.value})
+                    m("input.w-80", {value: WorkspaceView.currentItem.entity || "", oninput: event => WorkspaceView.currentItem.entity = event.target.value}),
+                    m("button", { onclick: WorkspaceView.goToLatestForEntity }, "Latest >")
                 ),
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", "Attribute"),
-                    m("input.w-80", {value: WorkspaceView.currentItem.attribute || "", oninput: event => WorkspaceView.currentItem.attribute = event.target.value})
+                    m("input.w-80", {value: WorkspaceView.currentItem.attribute || "", oninput: event => WorkspaceView.currentItem.attribute = event.target.value}),
+                    m("button", { onclick: WorkspaceView.goToLatestForEntityAttribute }, "Latest ")
                 ),
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", "Value")
