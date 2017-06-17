@@ -353,6 +353,27 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             const provisionalFileName = fileContents.split("\n")[0]
             FileUtils.saveToFile(provisionalFileName, fileContents)
         },
+               
+        displayCurrentTriple() {
+            if (WorkspaceView.currentItemId) {
+                const itemText = WorkspaceView.currentJournal.getItem(WorkspaceView.currentItemId)
+                prompt("Current item text for copying", itemText)
+                console.log("itemText", itemText)
+            }
+        },
+        
+        readTriple() {
+            const newItem = prompt("Save triple from text?", "")
+            if (newItem) {
+                console.log("Adding", newItem)
+                const addResult = WorkspaceView.currentJournal.addItem(newItem)
+                console.log("addResult", addResult)
+                if (addResult.error) {
+                    alert("save failed -- maybe too many localStorage items?\n" + addResult.error)
+                    return
+                }
+            }
+        },
 
         skip(delta, wrap) {
             if (!WorkspaceView.currentJournal.itemCount()) {
@@ -984,6 +1005,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("button.ma1", { onclick: WorkspaceView.importTextPlain, title: "Load a file into editor" }, "Import"),
                 m("button.ma1", { onclick: WorkspaceView.importTextAsBase64, title: "Load a file into editor as base64" }, "Import as Base64"),
                 m("button.ma1", { onclick: WorkspaceView.exportText, title: "Save current editor text to a file" }, "Export"),
+                m("button.ma1", { onclick: WorkspaceView.displayCurrentTriple, title: "Display the current triple in the editor (to copy)" }, "C*"),
+                m("button.ma1", { onclick: WorkspaceView.readTriple, title: "Read the triple in the editor and save it (like a paste)" }, "P*"),
             ]
         },
         
