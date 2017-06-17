@@ -359,10 +359,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             if (WorkspaceView.currentItemId) {
                 const itemText = WorkspaceView.currentJournal.getItem(WorkspaceView.currentItemId)
                 const encodedItem = "twirlip7://v1/" + WorkspaceView.currentItemId + "/" + encodeURIComponent(itemText)
-                // prompt("Current item text for copying", encodedItem)
-                // WorkspaceView.printIt((selectedText) => encodedItem)
-                WorkspaceView.setEditorContents(encodedItem, "keepUndo")
-                console.log("itemText", encodedItem)
+                WorkspaceView.showText(encodedItem)
             }
         },
         
@@ -370,13 +367,11 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             const prefix = "twirlip7://v1/"
             const encodedItem = WorkspaceView.getSelectedEditorText().text.trim()
             if (encodedItem) {
-                console.log("Adding", encodedItem)
                 if (!encodedItem.startsWith(prefix)) {
                     alert("item should start with: " + prefix)
                     return
                 }
                 const subparts = encodedItem.substring(prefix.length).split("/")
-                console.log("subparts", subparts)
                 if (subparts.length != 2) {
                     alert("item should have exactly two subparts: key/contents")
                     return
@@ -385,13 +380,13 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 const encodedText = subparts[1]
                 // TODO: Check the sha256 of encodedText matches key
                 const itemText = decodeURIComponent(encodedText)
-                // TODO: Consolidate adding
+                // TODO: Consolidate adding with where this is copied from
                 const addResult = WorkspaceView.currentJournal.addItem(itemText)
-                console.log("addResult", addResult)
                 if (addResult.error) {
                     alert("save failed -- maybe too many localStorage items?\n" + addResult.error)
                     return
                 }
+                WorkspaceView.goToKey(key, "ignoreDirty")
             }
         },
 
@@ -543,19 +538,23 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.lastLoadedItem = JSON.parse(JSON.stringify(WorkspaceView.currentItem))
         },
         
-        showJournal(journalText) {
+        showText(newText, contentType) {
             WorkspaceView.currentItemId = null
             WorkspaceView.currentItem = newItem()
-            WorkspaceView.currentItem.value = journalText
-            WorkspaceView.currentItem.contentType = "application/json"
+            WorkspaceView.currentItem.value = newText
+            WorkspaceView.currentItem.contentType = contentType
             
-            WorkspaceView.setEditorContents(journalText)
+            WorkspaceView.setEditorContents(newText)
             WorkspaceView.wasEditorDirty = false
             WorkspaceView.updateLastLoadedItemFromCurrentItem()
             
             WorkspaceView.setEditorModeForContentType(WorkspaceView.currentItem.contentType)
             WorkspaceView.saveCurrentItemId()
             WorkspaceView.updateIsLastMatch(true)
+        },
+        
+        showJournal(journalText) {
+            WorkspaceView.showText(journalText, "application/json")
         },
 
         showCurrentJournal() {
