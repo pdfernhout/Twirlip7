@@ -10,7 +10,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
     CanonicalJSON
 ) {
     "use strict"
-    /* global m, location, localStorage */
+    /* global m, location, localStorage, Twirlip7 */
 
     // Convenience function which examples could use to put up closeable views
     function show(userComponentOrViewFunction, config, componentConfig) {
@@ -433,11 +433,36 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         goLast() { WorkspaceView.skip(1000000) },
         
         goToLatestForEntity() {
-            alert("Unfinished")
+            const key = WorkspaceView.findLatestForEntity()
+            if (key) {
+                WorkspaceView.goToKey(key)
+            }
         },
         
         goToLatestForEntityAttribute() {
-            alert("Unfinished")
+            const key = WorkspaceView.findLatestForEntityAttribute()
+            if (key) {
+                WorkspaceView.goToKey(key)
+            }
+        },
+        
+        findLatestForEntity() {
+            const matches = Twirlip7.findItem({entity: WorkspaceView.currentItem.entity}, { includeMetadata: true, sortBy: "location" })
+            if (matches.length) {
+                return matches[0].key
+            }
+            return null
+        },
+        
+        findLatestForEntityAttribute() {
+            const matches = Twirlip7.findItem({
+                entity: WorkspaceView.currentItem.entity,
+                attribute: WorkspaceView.currentItem.attribute
+            }, { includeMetadata: true, sortBy: "location" })
+            if (matches.length) {
+                return matches[0].key
+            }
+            return null
         },
         
         updateLastLoadedItemFromCurrentItem() {
@@ -743,16 +768,33 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
         
         viewContext() {
+            // TODO: Computing these two variables every redraw is terribly wateful as they both iterate over all items
+            const isLastEntityMatch = WorkspaceView.findLatestForEntity() === WorkspaceView.currentItemId
+            const isLastEntityAttributeMatch = WorkspaceView.findLatestForEntityAttribute() === WorkspaceView.currentItemId
             return [
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", "Entity"),
-                    m("input.w-80", {value: WorkspaceView.currentItem.entity || "", oninput: event => WorkspaceView.currentItem.entity = event.target.value}),
-                    m("button.ml1", { onclick: WorkspaceView.goToLatestForEntity, title: "Latest triple for Entity" }, " E >|")
+                    m("input.w-80", {
+                        value: WorkspaceView.currentItem.entity || "",
+                        oninput: event => WorkspaceView.currentItem.entity = event.target.value
+                    }),
+                    m("button.ml1", {
+                        onclick: WorkspaceView.goToLatestForEntity,
+                        title: "Latest triple for Entity",
+                        disabled: isLastEntityMatch
+                    }, " E >|")
                 ),
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", "Attribute"),
-                    m("input.w-80", {value: WorkspaceView.currentItem.attribute || "", oninput: event => WorkspaceView.currentItem.attribute = event.target.value}),
-                    m("button.ml1", { onclick: WorkspaceView.goToLatestForEntityAttribute, title: "Latest triple for Entity-Attribute pair" }, " EA >|")
+                    m("input.w-80", {
+                        value: WorkspaceView.currentItem.attribute || "",
+                        oninput: event => WorkspaceView.currentItem.attribute = event.target.value
+                    }),
+                    m("button.ml1", {
+                        onclick: WorkspaceView.goToLatestForEntityAttribute,
+                        title: "Latest triple for Entity-Attribute pair",
+                        disabled: isLastEntityAttributeMatch 
+                    }, " EA >|")
                 ),
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", "Value")

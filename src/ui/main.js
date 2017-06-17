@@ -52,7 +52,9 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
                 const itemJSON = CanonicalJSON.stringify(item)
                 return WorkspaceView.currentJournal.addItem(itemJSON)
             },
-            findItem(match) {
+            findItem(match, configuration) {
+                // configuration: { includeMetadata: false, sortBy: "timestamp" (default) | "location" }
+                // returns either array of items -- or if includeMetadata is truthy, {location, item, key}
                 // TODO: This extremely computationally inefficient placeholder needs to be improved
                 // TODO: This should not have to iterate over all stored objects
                 const result = []
@@ -69,21 +71,32 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
                             continue
                         }
                     }
-                    if (isMatch) result.push({i, item})
+                    if (isMatch) {
+                        const key = journal.keyForLocation(i)
+                        result.push({location: i, item, key})
+                    }
                 }
                 // Sort so later items are earlier in list
                 result.sort((a, b) => {
-                    if (a.item.timestamp < b.item.timestamp) return 1
-                    if (a.item.timestamp > b.item.timestamp) return -1
+                    if (!configuration.sortBy || configuration.sortBy === "timestamp") {
+                        if (a.item.timestamp < b.item.timestamp) return 1
+                        if (a.item.timestamp > b.item.timestamp) return -1
+                    } else if (configuration.sortBy === "location") {
+                        if (a.location < b.location) return 1
+                        if (a.location > b.location) return -1
+                    } else {
+                        console.log("unexpected sortBy option", configuration.sortBy)
+                    }
                     // compare on triple hash if timestamps match
-                    const aHash = journal.keyForLocation(a.i)
-                    const bHash = journal.keyForLocation(b.i)
+                    const aHash = a.key
+                    const bHash = b.key
                     if (aHash < bHash) return 1
                     if (aHash > bHash) return -1
                     // Should never get here unless incorrectly storing duplicates
                     console.log("duplicate item error", a, b)
                     return 0
                 })
+                if (configuration.includeMetadata) return result
                 return result.map(match => match.item)
             }
         }
