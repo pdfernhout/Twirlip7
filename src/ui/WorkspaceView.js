@@ -297,9 +297,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             }
         },
 
-        printIt() {
+        printIt(callback) {
+            if (!callback) callback = EvalUtils.evalOrError
             const selection = WorkspaceView.getSelectedEditorText()
-            const evalResult = "" + EvalUtils.evalOrError(selection.text)
+            const evalResult = "" + callback(selection.text)
             if (selection.isNoSelection) { WorkspaceView.editor.selection.moveCursorFileEnd() }
             const selectedRange = WorkspaceView.editor.selection.getRange()
             const start = selectedRange.end
@@ -357,16 +358,35 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         displayCurrentTriple() {
             if (WorkspaceView.currentItemId) {
                 const itemText = WorkspaceView.currentJournal.getItem(WorkspaceView.currentItemId)
-                prompt("Current item text for copying", itemText)
-                console.log("itemText", itemText)
+                const encodedItem = "twirlip7://v1/" + WorkspaceView.currentItemId + "/" + encodeURIComponent(itemText)
+                // prompt("Current item text for copying", encodedItem)
+                // WorkspaceView.printIt((selectedText) => encodedItem)
+                WorkspaceView.setEditorContents(encodedItem, "keepUndo")
+                console.log("itemText", encodedItem)
             }
         },
         
         readTriple() {
-            const newItem = prompt("Save triple from text?", "")
-            if (newItem) {
-                console.log("Adding", newItem)
-                const addResult = WorkspaceView.currentJournal.addItem(newItem)
+            const prefix = "twirlip7://v1/"
+            const encodedItem = WorkspaceView.getSelectedEditorText().text.trim()
+            if (encodedItem) {
+                console.log("Adding", encodedItem)
+                if (!encodedItem.startsWith(prefix)) {
+                    alert("item should start with: " + prefix)
+                    return
+                }
+                const subparts = encodedItem.substring(prefix.length).split("/")
+                console.log("subparts", subparts)
+                if (subparts.length != 2) {
+                    alert("item should have exactly two subparts: key/contents")
+                    return
+                }
+                const key = subparts[0]
+                const encodedText = subparts[1]
+                // TODO: Check the sha256 of encodedText matches key
+                const itemText = decodeURIComponent(encodedText)
+                // TODO: Consolidate adding
+                const addResult = WorkspaceView.currentJournal.addItem(itemText)
                 console.log("addResult", addResult)
                 if (addResult.error) {
                     alert("save failed -- maybe too many localStorage items?\n" + addResult.error)
@@ -391,7 +411,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             let itemText = WorkspaceView.currentJournal.getItem(key)
             let item
             if (itemText === undefined || itemText === null) {
-                if (key) WorkspaceView.toast("item not found for:\n\"" + key + "\"")
+                if (key && WorkspaceView.journalChoice !== "memory") WorkspaceView.toast("item not found for:\n\"" + key + "\"")
                 item = newItem()
             } else if (itemText[0] !== "{") {
                 // TODO: remove legacy development support
@@ -560,7 +580,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
 
         replaceJournal() {
-            if (WorkspaceView.currentJournal.itemCount() && !confirm("Replace all items with entered text for a journal?")) return
+            if (WorkspaceView.currentJournal.itemCount() && !confirm("Replace all items with entered text for the " + WorkspaceView.journalChoice + " journal?")) return
             try {
                 WorkspaceView.currentJournal.loadFromJournalText(WorkspaceView.getEditorContents())
             } catch (error) {
@@ -1005,8 +1025,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("button.ma1", { onclick: WorkspaceView.importTextPlain, title: "Load a file into editor" }, "Import"),
                 m("button.ma1", { onclick: WorkspaceView.importTextAsBase64, title: "Load a file into editor as base64" }, "Import as Base64"),
                 m("button.ma1", { onclick: WorkspaceView.exportText, title: "Save current editor text to a file" }, "Export"),
-                m("button.ma1", { onclick: WorkspaceView.displayCurrentTriple, title: "Display the current triple in the editor (to copy)" }, "C*"),
-                m("button.ma1", { onclick: WorkspaceView.readTriple, title: "Read the triple in the editor and save it (like a paste)" }, "P*"),
+                m("button.ma1", { onclick: WorkspaceView.displayCurrentTriple, title: "Print the current triple in the editor (to copy)" }, "P*"),
+                m("button.ma1", { onclick: WorkspaceView.readTriple, title: "Read the triple in the editor and create it" }, "C*"),
             ]
         },
         
