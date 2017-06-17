@@ -200,7 +200,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
                 const itemId = hash.substring("#item=".length)
                 initialKeyToGoTo = itemId
                 startEditor(() => {
-                    if (initialKeyToGoTo && WorkspaceView.journalChoice !== "server") WorkspaceView.goToKey(initialKeyToGoTo)
+                    if (initialKeyToGoTo && WorkspaceView.journalChoice == "local storage") WorkspaceView.goToKey(initialKeyToGoTo)
                 }, () => {
                     WorkspaceView.restoreJournalChoice()
                 })
