@@ -747,12 +747,12 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", "Entity"),
                     m("input.w-80", {value: WorkspaceView.currentItem.entity || "", oninput: event => WorkspaceView.currentItem.entity = event.target.value}),
-                    m("button", { onclick: WorkspaceView.goToLatestForEntity }, "Latest >")
+                    m("button.ml1", { onclick: WorkspaceView.goToLatestForEntity, title: "Latest triple for Entity" }, " E >|")
                 ),
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", "Attribute"),
                     m("input.w-80", {value: WorkspaceView.currentItem.attribute || "", oninput: event => WorkspaceView.currentItem.attribute = event.target.value}),
-                    m("button", { onclick: WorkspaceView.goToLatestForEntityAttribute }, "Latest ")
+                    m("button.ml1", { onclick: WorkspaceView.goToLatestForEntityAttribute, title: "Latest triple for Entity-Attribute pair" }, " EA >|")
                 ),
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", "Value")
