@@ -357,9 +357,12 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                
         displayCurrentTriple() {
             if (WorkspaceView.currentItemId) {
+                if (!WorkspaceView.confirmClear()) return
                 const itemText = WorkspaceView.currentJournal.getItem(WorkspaceView.currentItemId)
                 const encodedItem = "twirlip7://v1/" + WorkspaceView.currentItemId + "/" + encodeURIComponent(itemText)
-                WorkspaceView.showText(encodedItem)
+                WorkspaceView.showText(encodedItem, "text/plain")
+                WorkspaceView.editor.selection.selectAll()
+                WorkspaceView.editor.focus()
             }
         },
         
@@ -549,7 +552,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.updateLastLoadedItemFromCurrentItem()
             
             WorkspaceView.setEditorModeForContentType(WorkspaceView.currentItem.contentType)
-            WorkspaceView.saveCurrentItemId()
+            // WorkspaceView.saveCurrentItemId()
             WorkspaceView.updateIsLastMatch(true)
         },
         
@@ -1024,7 +1027,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("button.ma1", { onclick: WorkspaceView.importTextPlain, title: "Load a file into editor" }, "Import"),
                 m("button.ma1", { onclick: WorkspaceView.importTextAsBase64, title: "Load a file into editor as base64" }, "Import as Base64"),
                 m("button.ma1", { onclick: WorkspaceView.exportText, title: "Save current editor text to a file" }, "Export"),
-                m("button.ma1", { onclick: WorkspaceView.displayCurrentTriple, title: "Print the current triple in the editor (to copy)" }, "P*"),
+                m("button.ma1", { onclick: WorkspaceView.displayCurrentTriple, title: "Print the current triple in the editor (to copy)", disabled: !WorkspaceView.currentItemId }, "P*"),
                 m("button.ma1", { onclick: WorkspaceView.readTriple, title: "Read the triple in the editor and create it" }, "C*"),
             ]
         },
