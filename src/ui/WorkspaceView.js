@@ -267,8 +267,17 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
         clear() {
             if (!WorkspaceView.confirmClear()) return
+            // Preserve some fields if it has a value -- so can push twice to totally clear
+            const oldItem = WorkspaceView.currentItem
             WorkspaceView.currentItemId = null
             WorkspaceView.currentItem = newItem()
+            if (oldItem.value) {
+                WorkspaceView.currentItem.entity = oldItem.entity
+                WorkspaceView.currentItem.attribute = oldItem.attribute
+                WorkspaceView.currentItem.contentType = oldItem.contentType
+                WorkspaceView.currentItem.encoding = oldItem.encoding
+                WorkspaceView.currentItem.license = oldItem.license
+            }
             WorkspaceView.setEditorContents(WorkspaceView.currentItem.value)
             WorkspaceView.wasEditorDirty = false
             WorkspaceView.saveCurrentItemId()
@@ -942,7 +951,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         viewEditorButtons() {
             return [
                 m("button.ma1", { onclick: WorkspaceView.save, title: "Save current snippet into the journal"  }, "Save"),
-                m("button.ma1", { onclick: WorkspaceView.clear, title: "Clear out text in editor" }, "Clear"),
+                m("button.ma1", { onclick: WorkspaceView.clear, title: "Clear out text in editor and the derivedFrom link\nPress a second time to clear other fields too" }, "Clear"),
                 m("button.ma1", { onclick: WorkspaceView.importTextPlain, title: "Load a file into editor" }, "Import"),
                 m("button.ma1", { onclick: WorkspaceView.importTextAsBase64, title: "Load a file into editor as base64" }, "Import as Base64"),
                 m("button.ma1", { onclick: WorkspaceView.exportText, title: "Save current editor text to a file" }, "Export"),
