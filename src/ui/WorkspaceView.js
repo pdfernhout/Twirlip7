@@ -97,6 +97,9 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         currentJournal: JournalUsingLocalStorage,
         journalChoice: "local storage",
         
+        isLastEntityMatch: false,
+        isLastEntityAttributeMatch: false,
+        
         aceEditorHeight: 20,
         editorMode: "ace/mode/javascript",
         wasEditorDirty: false,
@@ -251,6 +254,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.wasEditorDirty = false
             WorkspaceView.currentItemId = addResult.id
             WorkspaceView.saveCurrentItemId()
+            WorkspaceView.updateIsLastMatch(true)
         },
         
         isEditorDirty() {
@@ -281,6 +285,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.setEditorContents(WorkspaceView.currentItem.value)
             WorkspaceView.wasEditorDirty = false
             WorkspaceView.saveCurrentItemId()
+            WorkspaceView.updateIsLastMatch()
         },
 
         doIt() {
@@ -384,6 +389,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.setEditorModeForContentType(item.contentType)
             
             WorkspaceView.saveCurrentItemId()
+            WorkspaceView.updateIsLastMatch()
         },
 
         // TODO: Improve adhoc partial handling of character types which also ignores character set
@@ -474,6 +480,24 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return null
         },
         
+        updateIsLastMatch(value) {
+            // TODO: Computing these two variables is CPU intensive as they both iterate over all items
+            if (value !== undefined) {
+                WorkspaceView.isLastEntityMatch = value
+                WorkspaceView.isLastEntityAttributeMatch = value
+                return
+            }
+            if (WorkspaceView.isEditorDirty() || !WorkspaceView.currentItemId) {
+                WorkspaceView.isLastEntityMatch = !WorkspaceView.findLatestForEntity()
+                WorkspaceView.isLastEntityAttributeMatch = !WorkspaceView.findLatestForEntityAttribute()
+                return
+            }
+            if (WorkspaceView.currentItemId) {
+                WorkspaceView.isLastEntityMatch = WorkspaceView.findLatestForEntity() === WorkspaceView.currentItemId
+                WorkspaceView.isLastEntityAttributeMatch = WorkspaceView.findLatestForEntityAttribute() === WorkspaceView.currentItemId
+            }
+        },
+        
         updateLastLoadedItemFromCurrentItem() {
             WorkspaceView.lastLoadedItem = JSON.parse(JSON.stringify(WorkspaceView.currentItem))
         },
@@ -490,6 +514,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             
             WorkspaceView.setEditorModeForContentType(WorkspaceView.currentItem.contentType)
             WorkspaceView.saveCurrentItemId()
+            WorkspaceView.updateIsLastMatch(true)
         },
 
         showCurrentJournal() {
@@ -777,32 +802,35 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
         
         viewContext() {
-            // TODO: Computing these two variables every redraw is terribly wateful as they both iterate over all items
-            const isLastEntityMatch = WorkspaceView.findLatestForEntity() === WorkspaceView.currentItemId
-            const isLastEntityAttributeMatch = WorkspaceView.findLatestForEntityAttribute() === WorkspaceView.currentItemId
             return [
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", "Entity"),
                     m("input.w-80", {
                         value: WorkspaceView.currentItem.entity || "",
-                        oninput: event => WorkspaceView.currentItem.entity = event.target.value
+                        oninput: event => {
+                            WorkspaceView.currentItem.entity = event.target.value
+                            WorkspaceView.updateIsLastMatch()
+                        }
                     }),
                     m("button.ml1", {
                         onclick: WorkspaceView.goToLatestForEntity,
                         title: "Latest triple for Entity",
-                        disabled: isLastEntityMatch
+                        disabled: WorkspaceView.isLastEntityMatch
                     }, " E >|")
                 ),
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", "Attribute"),
                     m("input.w-80", {
                         value: WorkspaceView.currentItem.attribute || "",
-                        oninput: event => WorkspaceView.currentItem.attribute = event.target.value
+                        oninput: event => {
+                            WorkspaceView.currentItem.attribute = event.target.value
+                            WorkspaceView.updateIsLastMatch()
+                        }
                     }),
                     m("button.ml1", {
                         onclick: WorkspaceView.goToLatestForEntityAttribute,
                         title: "Latest triple for Entity-Attribute pair",
-                        disabled: isLastEntityAttributeMatch 
+                        disabled: WorkspaceView.isLastEntityAttributeMatch 
                     }, " EA >|")
                 ),
                 m("div.ma1",
@@ -863,6 +891,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         const isEditorDirty = WorkspaceView.isEditorDirty()
                         if (isEditorDirty !== WorkspaceView.wasEditorDirty) {
                             WorkspaceView.wasEditorDirty = isEditorDirty
+                            WorkspaceView.updateIsLastMatch()
                             // Use setTimeout to give undo manager some time to update itself
                             setTimeout(m.redraw, 0)
                         }
