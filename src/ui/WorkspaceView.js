@@ -221,6 +221,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             // TODO: reference previous if relevant and also set timestamps and author as needed
             WorkspaceView.currentItem.value = value
             WorkspaceView.currentItem.timestamp = new Date().toISOString()
+            if (!WorkspaceView.currentContributor) WorkspaceView.promptForContributor()
             WorkspaceView.currentItem.contributor = WorkspaceView.currentContributor
             WorkspaceView.currentItem.derivedFrom = WorkspaceView.currentItemId || ""
             // TODO: Maybe check to be sure there is a contributor?
@@ -577,6 +578,14 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             localStorage.setItem("_startup", JSON.stringify(info))
         },
         
+        promptForContributor() {
+            const contributor = prompt("Contributor? e.g. Jane Smith <jane.smith@example.com>", WorkspaceView.currentContributor)
+            if (contributor !== null) {
+                WorkspaceView.currentContributor = contributor
+                localStorage.setItem("_contributor", contributor)
+            }
+        },
+        
         // View functions which are composed into one big view at the end
         
         viewProgress() {
@@ -769,15 +778,9 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         
         viewContributor() {
             return m("span", {
-                onclick: event => {
-                    const contributor = prompt("contributor", WorkspaceView.currentContributor)
-                    if (contributor !== null) {
-                        WorkspaceView.currentContributor = contributor
-                        localStorage.setItem("_contributor", contributor)
-                    }
-                },
+                onclick: WorkspaceView.promptForContributor,
                 title: "Click to set current contributor for next contribution" + (WorkspaceView.currentContributor ? "\n" + WorkspaceView.currentContributor : ""),
-            }, "Contributor") // , WorkspaceView.currentContributor || "<configure>")
+            }, "Contributor")
         },
         
         viewEditor() {
