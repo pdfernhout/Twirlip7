@@ -147,7 +147,9 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
         
         restoreCurrentItemId() {
-            const storedItemId = WorkspaceView.fetchStoredItemId()
+            let storedItemId = WorkspaceView.fetchStoredItemId()
+            // Memory is transient on reload, so don't try to go to missing keys to avoid a warning
+            if (WorkspaceView.journalChoice === "memory" && WorkspaceView.currentJournal.getItem(storedItemId) === null) storedItemId = null
             WorkspaceView.goToKey(storedItemId, "ignoreDirty")
         },
         
@@ -542,7 +544,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         },
         
         showText(newText, contentType) {
-            WorkspaceView.currentItemId = null
+            // WorkspaceView.currentItemId = null
             WorkspaceView.currentItem = newItem()
             WorkspaceView.currentItem.value = newText
             WorkspaceView.currentItem.contentType = contentType
