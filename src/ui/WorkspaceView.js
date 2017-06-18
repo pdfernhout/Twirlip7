@@ -301,13 +301,17 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
         printIt(event, callback) {
             if (!callback) callback = EvalUtils.evalOrError
+            
             const selection = WorkspaceView.getSelectedEditorText()
-            const evalResult = "" + callback(selection.text)
+            const evalResult = callback(selection.text)
+            const textToInsert = " " + evalResult
+            
             if (selection.isNoSelection) { WorkspaceView.editor.selection.moveCursorFileEnd() }
             const selectedRange = WorkspaceView.editor.selection.getRange()
             const start = selectedRange.end
-            const end = WorkspaceView.editor.session.insert(start, evalResult)
+            const end = WorkspaceView.editor.session.insert(start, textToInsert)
             WorkspaceView.editor.selection.setRange({start, end})
+            
             WorkspaceView.editor.focus()
         },
 
