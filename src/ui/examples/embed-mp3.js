@@ -1,4 +1,4 @@
-// Mithril component which embeds mp3 file Journey composed by Isiah Meadows
+// Mithril component which embeds mp3 file Journey composed by Isiah Meadows (one of the contributors to Mithril.js)
 // Source: https://www.isiahmeadows.com/music/journey.html
 
 const MyComponent = {
