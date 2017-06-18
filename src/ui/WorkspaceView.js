@@ -299,7 +299,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             }
         },
 
-        printIt(callback) {
+        printIt(event, callback) {
             if (!callback) callback = EvalUtils.evalOrError
             const selection = WorkspaceView.getSelectedEditorText()
             const evalResult = "" + callback(selection.text)
