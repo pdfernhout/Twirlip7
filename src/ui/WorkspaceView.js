@@ -1,4 +1,4 @@
-define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorage", "JournalUsingServer", "ace/ace", "ace/ext/modelist", "ExampleJournalLoader", "CanonicalJSON"], function(
+define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorage", "JournalUsingServer", "ace/ace", "ace/ext/modelist", "ExampleJournalLoader", "CanonicalJSON", "vendor/sha256"], function(
     FileUtils,
     EvalUtils,
     JournalUsingMemory,
@@ -7,7 +7,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
     ace,
     modelist,
     ExampleJournalLoader,
-    CanonicalJSON
+    CanonicalJSON,
+    sha256
 ) {
     "use strict"
     /* global m, location, localStorage, Twirlip7 */
@@ -83,6 +84,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             license: ""
         }
     }
+    
+    const twirlip7DataUrlPrefix = "twirlip7://v1/"
     
     const WorkspaceView = {
         editor: null,
@@ -365,37 +368,60 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             if (WorkspaceView.currentItemId) {
                 if (!WorkspaceView.confirmClear()) return
                 const itemText = WorkspaceView.currentJournal.getItem(WorkspaceView.currentItemId)
-                const encodedItem = "twirlip7://v1/" + WorkspaceView.currentItemId + "/" + encodeURIComponent(itemText)
-                WorkspaceView.showText(encodedItem, "text/plain")
+                const encodedText = encodeURIComponent(itemText)
+                const dataURL = twirlip7DataUrlPrefix + WorkspaceView.currentItemId + "/" + itemText.length + "/" + encodedText.length + "/" + encodedText
+                WorkspaceView.showText(dataURL, "text/plain")
                 WorkspaceView.editor.selection.selectAll()
                 WorkspaceView.editor.focus()
             }
         },
         
         readTriple() {
-            const prefix = "twirlip7://v1/"
-            const encodedItem = WorkspaceView.getSelectedEditorText().text.trim()
-            if (encodedItem) {
-                if (!encodedItem.startsWith(prefix)) {
-                    alert("item should start with: " + prefix)
+            const dataURL = WorkspaceView.getSelectedEditorText().text.trim()
+            if (dataURL) {
+                if (!dataURL.startsWith(twirlip7DataUrlPrefix)) {
+                    alert("item should start with: " + twirlip7DataUrlPrefix)
                     return
                 }
-                const subparts = encodedItem.substring(prefix.length).split("/")
-                if (subparts.length != 2) {
-                    alert("item should have exactly two subparts: key/contents")
+                
+                const subparts = dataURL.substring(twirlip7DataUrlPrefix.length).split("/")
+                if (subparts.length != 4) {
+                    alert("Twirlip7 data URL should have exactly four subparts: key/itemLength/contentsLength/contents")
                     return
                 }
+                
                 const key = subparts[0]
-                const encodedText = subparts[1]
-                // TODO: Check the sha256 of encodedText matches key
+                const itemLength = parseInt(subparts[1])
+                const contentsLength = parseInt(subparts[2])
+                const encodedText = subparts[3]
+                
+                if (encodedText.length !== contentsLength) {
+                    alert("Twirlip7 data URL contents length of " + encodedText.length + " does not match expected length of " + contentsLength)
+                    return
+                }
+                
                 const itemText = decodeURIComponent(encodedText)
-                // TODO: Consolidate adding with where this is copied from
+                if (itemText.length !== itemLength) {
+                    alert("Twirlip7 data URL decoded item length of " + itemText.length + " does not match expected length of " + itemLength)
+                    return
+                }
+                
+                const itemSHA256 = "" + sha256.sha256(itemText)
+                if (itemSHA256 !== key) {
+                    alert("Twirlip7 data URL decoded item sha256 of " + itemSHA256 + " does not match expected sha256 of " + key)
+                    return
+                }
+                
+                // TODO: Consolidate the copy/paste adding of item with where this is copied from
                 const addResult = WorkspaceView.currentJournal.addItem(itemText)
                 if (addResult.error) {
                     alert("save failed -- maybe too many localStorage items?\n" + addResult.error)
                     return
                 }
+                
                 WorkspaceView.goToKey(key, "ignoreDirty")
+            } else {
+                alert("Please enter a Twirlip 7 data url starting with " + twirlip7DataUrlPrefix)
             }
         },
 
@@ -410,7 +436,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
         goToKey(key, ignoreDirty) {
             // First check is to prevent losing redo stack if not moving
-            if (key === WorkspaceView.currentItemId && !WorkspaceView.isEditorDirty()) return
+            const keepUndo = (key === WorkspaceView.currentItemId && WorkspaceView.isEditorDirty())
             if (!ignoreDirty && !WorkspaceView.confirmClear()) return
             let itemText = WorkspaceView.currentJournal.getItem(key)
             let item
@@ -427,7 +453,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.currentItemId = key
             WorkspaceView.currentItem = item
             
-            WorkspaceView.setEditorContents(item.value || "")
+            WorkspaceView.setEditorContents(item.value || "", keepUndo)
             WorkspaceView.wasEditorDirty = false
             WorkspaceView.updateLastLoadedItemFromCurrentItem()
                                     
@@ -781,7 +807,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             
             function itemIdentifierClicked() {
                 const newItemId = prompt("Go to item id", WorkspaceView.currentItemId)
-                if (!newItemId || newItemId === WorkspaceView.currentItemId) return
+                if (!newItemId) return
                 // TODO: Should have a check for "exists"
                 if (WorkspaceView.currentJournal.getItem(newItemId) === null) {
                     alert("Could not find item for id:\n" + newItemId)
