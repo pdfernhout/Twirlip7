@@ -260,6 +260,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.currentItemId = addResult.id
             WorkspaceView.saveCurrentItemId()
             WorkspaceView.updateIsLastMatch(true)
+            WorkspaceView.setDocumentTitleForCurrentItem()
         },
         
         isEditorDirty() {
@@ -461,8 +462,19 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             
             WorkspaceView.saveCurrentItemId()
             WorkspaceView.updateIsLastMatch()
+            WorkspaceView.setDocumentTitleForCurrentItem()
         },
 
+        setDocumentTitleForCurrentItem() {
+            let newTitle
+            if (!WorkspaceView.currentItem.entity && !WorkspaceView.currentItem.attribute) {
+                newTitle = "Twirlip7"
+            } else {
+                newTitle = WorkspaceView.currentItem.entity + " :: " + WorkspaceView.currentItem.attribute 
+            }
+            document.title = newTitle
+        },
+        
         // TODO: Improve adhoc partial handling of character types which also ignores character set
 
         setEditorModeForContentType(contentType) {
