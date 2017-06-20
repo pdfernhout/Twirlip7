@@ -1132,13 +1132,23 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         viewJournalButtons() {
             const journalsAvailable = WorkspaceView.journalsAvailable()
             function journalChanged(event) {
-                if (!WorkspaceView.confirmClear()) return
+                if (!WorkspaceView.confirmClear()) {
+                    // Put back old selection as Mithril does not seem to handle that:
+                    // https://gitter.im/mithriljs/mithril.js?at=59492498cf9c13503ca57fdd
+                    // https://jsbin.com/ludafuxipu/1/edit?html,js,output
+                    event.target.value = WorkspaceView.journalChoice
+                    return
+                }
                 WorkspaceView.changeJournal(event.target.value)
             }
             const isCurrentJournalLoading = WorkspaceView.journalChoice === "server" && !JournalUsingServer.isLoaded
             return [
                 "Journal",
-                m("select.ma2", { onchange: journalChanged, title: "Change storage location of snippets" },
+                m("select.ma2", {
+                    onchange: journalChanged,
+                    title: "Change storage location of snippets",
+                    value: WorkspaceView.journalChoice
+                },
                     Object.keys(journalsAvailable).sort().map((journalKey) => {
                         let name = journalKey
                         if (journalKey === "server" && journalsAvailable[journalKey] && !JournalUsingServer.isLoaded) {
