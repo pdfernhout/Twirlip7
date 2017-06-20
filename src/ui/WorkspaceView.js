@@ -895,8 +895,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 WorkspaceView.editor.getSession().setMode(WorkspaceView.editorMode)
                 WorkspaceView.currentItem.contentType = WorkspaceView.guessContentTypeForEditorMode(newEditorMode)
             }
-            return m("select.ma2", { onchange: selectChanged }, 
-                modelist.modes.map(mode => m("option", { value: mode.mode, selected: WorkspaceView.editorMode === mode.mode }, mode.name))
+            return m("select.ma2", { value: WorkspaceView.editorMode, onchange: selectChanged }, 
+                modelist.modes.map(mode => m("option", { value: mode.mode }, mode.name))
             )
         },
         
@@ -1133,10 +1133,6 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             const journalsAvailable = WorkspaceView.journalsAvailable()
             function journalChanged(event) {
                 if (!WorkspaceView.confirmClear()) {
-                    // Put back old selection as Mithril does not seem to handle that:
-                    // https://gitter.im/mithriljs/mithril.js?at=59492498cf9c13503ca57fdd
-                    // https://jsbin.com/ludafuxipu/1/edit?html,js,output
-                    event.target.value = WorkspaceView.journalChoice
                     return
                 }
                 WorkspaceView.changeJournal(event.target.value)
@@ -1147,6 +1143,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("select.ma2", {
                     onchange: journalChanged,
                     title: "Change storage location of snippets",
+                    // The value is required here in addition to settign the options: https://gitter.im/mithriljs/mithril.js?at=59492498cf9c13503ca57fdd
                     value: WorkspaceView.journalChoice
                 },
                     Object.keys(journalsAvailable).sort().map((journalKey) => {
@@ -1154,7 +1151,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         if (journalKey === "server" && journalsAvailable[journalKey] && !JournalUsingServer.isLoaded) {
                             name += " <-->"
                         }
-                        return m("option", { value: journalKey, selected: WorkspaceView.journalChoice === journalKey, disabled: !journalsAvailable[journalKey]}, name)
+                        return m("option", { value: journalKey, disabled: !journalsAvailable[journalKey]}, name)
                     })
                 ),
                 m("button.ma1", { disabled: isCurrentJournalLoading, onclick: WorkspaceView.showCurrentJournal, title: "Put JSON for current journal contents into editor" }, "Show current journal"),
