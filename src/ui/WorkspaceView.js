@@ -153,7 +153,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             let storedItemId = WorkspaceView.fetchStoredItemId()
             // Memory is transient on reload, so don't try to go to missing keys to avoid a warning
             if (WorkspaceView.journalChoice === "memory" && WorkspaceView.currentJournal.getItem(storedItemId) === null) storedItemId = null
-            WorkspaceView.goToKey(storedItemId, "ignoreDirty")
+            WorkspaceView.goToKey(storedItemId, {ignoreDirty: true})
         },
         
         saveJournalChoice() {
@@ -255,7 +255,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             } else {
                 WorkspaceView.toast("Saved item as:\n" + addResult.id, 2000)
             }
-            WorkspaceView.lastLoadedItem = JSON.parse(itemJSON)
+            WorkspaceView.updateLastLoadedItemFromCurrentItem()
             WorkspaceView.wasEditorDirty = false
             WorkspaceView.currentItemId = addResult.id
             WorkspaceView.saveCurrentItemId()
@@ -439,7 +439,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     return
                 }
                 
-                WorkspaceView.goToKey(key, "ignoreDirty")
+                WorkspaceView.goToKey(key, {ignoreDirty: true})
             } else {
                 alert("Please enter a Twirlip 7 data url starting with " + twirlip7DataUrlPrefix)
             }
@@ -454,10 +454,11 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.goToKey(key)
         },
 
-        goToKey(key, ignoreDirty) {
-            // First check is to prevent losing redo stack if not moving
-            const keepUndo = (key === WorkspaceView.currentItemId && WorkspaceView.isEditorDirty())
-            if (!ignoreDirty && !WorkspaceView.confirmClear()) return
+        goToKey(key, options) {
+            if (!options) options = {}
+            // First check is to prevent losing redo stack and cursor position if not moving
+            if (!options.reload && key === WorkspaceView.currentItemId) return
+            if (!options.ignoreDirty && !WorkspaceView.confirmClear()) return
             let itemText = WorkspaceView.currentJournal.getItem(key)
             let item
             if (itemText === undefined || itemText === null) {
@@ -473,7 +474,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.currentItemId = key
             WorkspaceView.currentItem = item
             
-            WorkspaceView.setEditorContents(item.value || "", keepUndo)
+            WorkspaceView.setEditorContents(item.value || "")
             WorkspaceView.wasEditorDirty = false
             WorkspaceView.updateLastLoadedItemFromCurrentItem()
                                     
@@ -843,7 +844,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 if (WorkspaceView.currentJournal.getItem(newItemId) === null) {
                     alert("Could not find item for id:\n" + newItemId)
                 } else {
-                    WorkspaceView.goToKey(newItemId)
+                    WorkspaceView.goToKey(newItemId, {reload: true})
                 }
             }
             
@@ -855,7 +856,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 if (WorkspaceView.currentJournal.getItem(newItemId) === null) {
                     alert("Could not find item for index:\n" + newItemIndex)
                 } else {
-                    WorkspaceView.goToKey(newItemId)
+                    WorkspaceView.goToKey(newItemId, {reload: true})
                 }
             }
             
@@ -1131,6 +1132,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         viewJournalButtons() {
             const journalsAvailable = WorkspaceView.journalsAvailable()
             function journalChanged(event) {
+                if (!WorkspaceView.confirmClear()) return
                 WorkspaceView.changeJournal(event.target.value)
             }
             const isCurrentJournalLoading = WorkspaceView.journalChoice === "server" && !JournalUsingServer.isLoaded

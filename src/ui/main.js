@@ -181,7 +181,9 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
         // do our own routing and ignore things that don't match in case other evaluated code is using Mithril's router
         if (hash && hash.startsWith("#item=")) {
             const itemId = hash.substring("#item=".length)
-            WorkspaceView.goToKey(itemId)
+            if (WorkspaceView.currentItemId !== itemId) {
+                WorkspaceView.goToKey(itemId)
+            }
         }        
     }
     
