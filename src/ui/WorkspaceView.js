@@ -263,6 +263,25 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.setDocumentTitleForCurrentItem()
         },
         
+        interceptSaveKey(evt) {
+            // derived from: https://stackoverflow.com/questions/2903991/how-to-detect-ctrlv-ctrlc-using-javascript
+            evt = evt || window.event // IE support
+            var c = evt.keyCode
+            var ctrlDown = evt.ctrlKey || evt.metaKey // Mac support
+        
+            // Check for Alt+Gr (http://en.wikipedia.org/wiki/AltGr_key)
+            if (ctrlDown && evt.altKey) return true
+        
+            // Check for ctrl+s
+            if (ctrlDown && c == 83) {
+                WorkspaceView.save()
+                return false
+            }
+        
+            // Otherwise allow
+            return true
+        },
+        
         isEditorDirty() {
             // TODO: compare individual strings instead of use CanonicalJSON.stringify to be more efficient
             return WorkspaceView.editor && (CanonicalJSON.stringify(WorkspaceView.lastLoadedItem) !== CanonicalJSON.stringify(WorkspaceView.currentItem))
@@ -897,7 +916,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         oninput: event => {
                             WorkspaceView.currentItem.entity = event.target.value
                             WorkspaceView.updateIsLastMatch()
-                        }
+                        },
+                        onkeydown: WorkspaceView.interceptSaveKey
                     }),
                     m("button.ml1", {
                         onclick: WorkspaceView.goToLatestForEntity,
@@ -912,7 +932,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         oninput: event => {
                             WorkspaceView.currentItem.attribute = event.target.value
                             WorkspaceView.updateIsLastMatch()
-                        }
+                        },
+                        onkeydown: WorkspaceView.interceptSaveKey
                     }),
                     m("button.ml1", {
                         onclick: WorkspaceView.goToLatestForEntityAttribute,
@@ -930,27 +951,54 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return [
                 m("div.ma1",
                     m("span.dib.w4.tr.mr2", "Content type"),
-                    m("input.w-40", {value: WorkspaceView.currentItem.contentType || "", oninput: event => WorkspaceView.currentItem.contentType = event.target.value}),
+                    m("input.w-40", {
+                        value: WorkspaceView.currentItem.contentType || "",
+                        oninput: event => WorkspaceView.currentItem.contentType = event.target.value,
+                        onkeydown: WorkspaceView.interceptSaveKey
+                    }),
                     m("span.pa2"),
                     m("span.dib.w4.tr.mr2", {title: "content transfer encoding like \"base64\" for binary data"}, "Encoding"),
-                    m("input.w-20", {value: WorkspaceView.currentItem.encoding || "", oninput: event => WorkspaceView.currentItem.encoding = event.target.value})
+                    m("input.w-20", {
+                        value: WorkspaceView.currentItem.encoding || "",
+                        oninput: event => WorkspaceView.currentItem.encoding = event.target.value,
+                        onkeydown: WorkspaceView.interceptSaveKey
+                    })
                 ),  
                 m("div.ma1",
                     m("span.dib.w4.tr.mr2", WorkspaceView.viewContributor()),
-                    m("input.w-40.bg-light-gray", {readonly: true, value: WorkspaceView.currentItem.contributor || "", oninput: event => WorkspaceView.currentItem.contributor = event.target.value}),
+                    m("input.w-40.bg-light-gray", {
+                        readonly: true,
+                        value: WorkspaceView.currentItem.contributor || "",
+                        oninput: event => WorkspaceView.currentItem.contributor = event.target.value,
+                        onkeydown: WorkspaceView.interceptSaveKey
+                    }),
                     m("span.pa2"),
                     m("span.dib.w4.tr.mr2", "Timestamp"),
-                    m("input.w-20.bg-light-gray", {readonly: true, value: WorkspaceView.currentItem.timestamp || "", oninput: event => WorkspaceView.currentItem.timestamp = event.target.value})
+                    m("input.w-20.bg-light-gray", {
+                        readonly: true,
+                        value: WorkspaceView.currentItem.timestamp || "",
+                        oninput: event => WorkspaceView.currentItem.timestamp = event.target.value,
+                        onkeydown: WorkspaceView.interceptSaveKey
+                    })
                 ),
                 m("div.ma1",
                     m("span.dib.w4.tr.mr2", {
                         title: "click to go to item",
                         onclick: () => { if (WorkspaceView.currentItem.derivedFrom) WorkspaceView.goToKey(WorkspaceView.currentItem.derivedFrom) },
                     }, "Derived from"),
-                    m("input.w-40.bg-light-gray", {readonly: true, value: WorkspaceView.currentItem.derivedFrom || "", oninput: event => WorkspaceView.currentItem.derivedFrom = event.target.value}),
+                    m("input.w-40.bg-light-gray", {
+                        readonly: true,
+                        value: WorkspaceView.currentItem.derivedFrom || "",
+                        oninput: event => WorkspaceView.currentItem.derivedFrom = event.target.value,
+                        onkeydown: WorkspaceView.interceptSaveKey
+                    }),
                     m("span.pa2"),
                     m("span.dib.w4.tr.mr2", "License"),
-                    m("input.w-20", {value: WorkspaceView.currentItem.license || "", oninput: event => WorkspaceView.currentItem.license = event.target.value})
+                    m("input.w-20", {
+                        value: WorkspaceView.currentItem.license || "",
+                        oninput: event => WorkspaceView.currentItem.license = event.target.value,
+                        onkeydown: WorkspaceView.interceptSaveKey
+                    })
                 )
             ]
         },
