@@ -482,7 +482,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 keys.push(key)
             }
             if (keys.length && keys.length === dataURLs.length) {
-                WorkspaceView.goToKey(keys[0], {ignoreDirty: true})
+                WorkspaceView.goToKey(keys[keys.length - 1], {ignoreDirty: true})
             }
         },
 
