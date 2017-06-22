@@ -126,7 +126,7 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
         const itemText = Twirlip7.getCurrentJournal().getItem(earlierItemKey)
         const item = JSON.parse(itemText)
         earlierText = item.value
-        window.aceDiffer = makeAceDiffer()
+        makeAceDiffer()
     }
     
     function laterClicked() {
@@ -134,7 +134,7 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
         const itemText = Twirlip7.getCurrentJournal().getItem(laterItemKey)
         const item = JSON.parse(itemText)
         laterText = item.value
-        window.aceDiffer = makeAceDiffer()
+        makeAceDiffer()
     }
     
     function diffClicked() {
@@ -149,13 +149,13 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
         earlierText = earlierItem.value
         laterText = laterItem.value
         
-        window.aceDiffer = makeAceDiffer()
+        makeAceDiffer()
     }
     
     // TODO: Handle destroying this differ and not having two or more if reinstall
     function makeAceDiffer() {
         cleanupAceDiffer()
-        return new AceDiff({
+        const aceDiffer = new AceDiff({
             mode: Twirlip7.WorkspaceView.editorMode,
             left: {
                 id: "editor1",
@@ -169,6 +169,7 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
                 gutterID: "gutter"
             }
         })
+        window.aceDiffer = aceDiffer
     }
     
     Twirlip7.WorkspaceView.extensionsInstall({
@@ -178,13 +179,9 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
             return m("div",
                 m("button", { onclick: diffClicked }, "Diff from previous version"),
                 m("button.ml2", { onclick: cleanupAceDiffer }, "Hide Diff"),
-                m("br"),
-                m("button.ma1", { onclick: earlierClicked }, "Earlier"),
-                earlierItemKey,
-                m("br"),
-                m("button.ma1", { onclick: laterClicked }, "Later"),
-                laterItemKey,
-                m("br"),
+                m("button.ml2", { onclick: makeAceDiffer }, "Show Diff"),
+                m("button.ml2", { onclick: earlierClicked, title: earlierItemKey }, "Earlier"),
+                m("button.ml2", { onclick: laterClicked, title: laterItemKey }, "Later"),
                 m("#flex-container",
                     [
                         m("div",
