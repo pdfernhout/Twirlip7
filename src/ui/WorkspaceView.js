@@ -383,31 +383,57 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             const provisionalFileName = fileContents.split("\n")[0]
             FileUtils.saveToFile(provisionalFileName, fileContents)
         },
+        
+        makeDataURLForItemId(itemId) {
+            const itemText = WorkspaceView.currentJournal.getItem(itemId)
+            const encodedText = encodeURIComponent(itemText)
+            const dataURL = twirlip7DataUrlPrefix + itemId + "/" + itemText.length + "/" + encodedText.length + "/" + encodedText
+            return { itemId, itemText, dataURL }
+        },
                
         displayCurrentTriple() {
             if (WorkspaceView.currentItemId) {
                 if (!WorkspaceView.confirmClear()) return
-                const itemText = WorkspaceView.currentJournal.getItem(WorkspaceView.currentItemId)
-                const encodedText = encodeURIComponent(itemText)
-                const dataURL = twirlip7DataUrlPrefix + WorkspaceView.currentItemId + "/" + itemText.length + "/" + encodedText.length + "/" + encodedText
+                const dataURL = WorkspaceView.makeDataURLForItemId(WorkspaceView.currentItemId).dataURL
                 WorkspaceView.showText(dataURL, "text/plain")
                 WorkspaceView.editor.selection.selectAll()
                 WorkspaceView.editor.focus()
+            } else {
+                alert("Please select a saved triple first")
             }
         },
         
-        readTriple() {
-            const dataURL = WorkspaceView.getSelectedEditorText().text.trim()
+        displayCurrentTripleAndHistory() {
+            if (WorkspaceView.currentItemId) {
+                if (!WorkspaceView.confirmClear()) return
+                let dataURLs = []
+                let itemId = WorkspaceView.currentItemId
+                while (itemId) {
+                    const dataURLConversionResult = WorkspaceView.makeDataURLForItemId(itemId)
+                    dataURLs.unshift(dataURLConversionResult.dataURL)
+                    const item = Twirlip7.getItemForJSON(dataURLConversionResult.itemText)
+                    itemId = item.derivedFrom
+                }
+                const textForAllItems = dataURLs.join("\n")
+                WorkspaceView.showText(textForAllItems, "text/plain")
+                WorkspaceView.editor.selection.selectAll()
+                WorkspaceView.editor.focus()
+            } else {
+                alert("Please select a saved triple first")
+            }
+        },
+        
+        makeTripleForDataURL(dataURL) {
             if (dataURL) {
                 if (!dataURL.startsWith(twirlip7DataUrlPrefix)) {
                     alert("item should start with: " + twirlip7DataUrlPrefix)
-                    return
+                    return null
                 }
                 
                 const subparts = dataURL.substring(twirlip7DataUrlPrefix.length).split("/")
                 if (subparts.length != 4) {
                     alert("Twirlip7 data URL should have exactly four subparts: key/itemLength/contentsLength/contents")
-                    return
+                    return null
                 }
                 
                 const key = subparts[0]
@@ -417,31 +443,46 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 
                 if (encodedText.length !== contentsLength) {
                     alert("Twirlip7 data URL contents length of " + encodedText.length + " does not match expected length of " + contentsLength)
-                    return
+                    return null
                 }
                 
                 const itemText = decodeURIComponent(encodedText)
                 if (itemText.length !== itemLength) {
                     alert("Twirlip7 data URL decoded item length of " + itemText.length + " does not match expected length of " + itemLength)
-                    return
+                    return null
                 }
                 
                 const itemSHA256 = "" + sha256.sha256(itemText)
                 if (itemSHA256 !== key) {
                     alert("Twirlip7 data URL decoded item sha256 of " + itemSHA256 + " does not match expected sha256 of " + key)
-                    return
+                    return null
                 }
                 
                 // TODO: Consolidate the copy/paste adding of item with where this is copied from
                 const addResult = WorkspaceView.currentJournal.addItem(itemText)
                 if (addResult.error) {
                     alert("save failed -- maybe too many localStorage items?\n" + addResult.error)
-                    return
+                    return null
                 }
                 
-                WorkspaceView.goToKey(key, {ignoreDirty: true})
+                return key
             } else {
                 alert("Please enter a Twirlip 7 data url starting with " + twirlip7DataUrlPrefix)
+                return null
+            }
+        },
+        
+        readTriplesFromDataURLs() {
+            const textForAllItems = WorkspaceView.getSelectedEditorText().text.trim()
+            const dataURLs = textForAllItems.split("\n")
+            const keys = []
+            for (let dataURL of dataURLs) {
+                const key = WorkspaceView.makeTripleForDataURL(dataURL)
+                if (!key) break
+                keys.push(key)
+            }
+            if (keys.length && keys.length === dataURLs.length) {
+                WorkspaceView.goToKey(keys[0], {ignoreDirty: true})
             }
         },
 
@@ -1120,8 +1161,9 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("button.ma1", { onclick: WorkspaceView.importTextPlain, title: "Load a file into editor" }, "Import"),
                 m("button.ma1", { onclick: WorkspaceView.importTextAsBase64, title: "Load a file into editor as base64" }, "Import as Base64"),
                 m("button.ma1", { onclick: WorkspaceView.exportText, title: "Save current editor text to a file" }, "Export"),
-                m("button.ma1", { onclick: WorkspaceView.displayCurrentTriple, title: "Print the current triple in the editor (to copy)", disabled: !WorkspaceView.currentItemId }, "P*"),
-                m("button.ma1", { onclick: WorkspaceView.readTriple, title: "Read the triple in the editor and create it" }, "C*"),
+                m("button.ma1", { onclick: WorkspaceView.displayCurrentTriple, title: "Print the current triple in the editor as a data URL (to copy)", disabled: !WorkspaceView.currentItemId }, "P*"),
+                m("button.ma1", { onclick: WorkspaceView.displayCurrentTripleAndHistory, title: "Print the current triple and its entire derived-from histroy in the editor as data URLs (to copy)", disabled: !WorkspaceView.currentItemId }, "E*"),
+                m("button.ma1", { onclick: WorkspaceView.readTriplesFromDataURLs, title: "Read one or more triples from data URLs in the editor (like from a paste) and save them into the current journal" }, "C*"),
             ]
         },
         
