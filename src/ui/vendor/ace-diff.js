@@ -93,15 +93,20 @@
     this.editors.right.ace.setReadOnly(!this.options.right.editable);
     this.editors.left.ace.setTheme(getTheme(this, C.EDITOR_LEFT));
     this.editors.right.ace.setTheme(getTheme(this, C.EDITOR_RIGHT));
+    
+    // Twirlip7 added to disable warning for: "Automatically scrolling cursor into view after selection change this will be disabled in the next version"
+    this.editors.left.ace.$blockScrolling = Infinity
+    this.editors.right.ace.$blockScrolling = Infinity
 
     createCopyContainers(this);
     createGutter(this);
 
     // if the data is being supplied by an option, set the editor values now
-    if (this.options.left.content) {
+    // Twirlip7 modified so empty string can be set
+    if (typeof this.options.left.content === 'string') {
       this.editors.left.ace.setValue(this.options.left.content, -1);
     }
-    if (this.options.right.content) {
+    if (typeof this.options.right.content === 'string') {
       this.editors.right.ace.setValue(this.options.right.content, -1);
     }
 
