@@ -120,12 +120,14 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
     let earlierText = ""
     let laterItemKey = ""
     let laterText = ""
+    let editorMode = "ace/mode/javascript"
     
     function earlierClicked() {
         earlierItemKey = Twirlip7.WorkspaceView.currentItemId
         const itemText = Twirlip7.getCurrentJournal().getItem(earlierItemKey)
         const item = JSON.parse(itemText)
         earlierText = item.value
+        editorMode = Twirlip7.WorkspaceView.editorMode
         makeAceDiffer()
     }
     
@@ -134,6 +136,7 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
         const itemText = Twirlip7.getCurrentJournal().getItem(laterItemKey)
         const item = JSON.parse(itemText)
         laterText = item.value
+        editorMode = Twirlip7.WorkspaceView.editorMode
         makeAceDiffer()
     }
     
@@ -144,7 +147,7 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
         earlierItemKey = laterItem.derivedFrom || ""
         const earlierItemText = Twirlip7.getCurrentJournal().getItem(earlierItemKey)
         const earlierItem = JSON.parse(earlierItemText)
-        const editorMode = Twirlip7.WorkspaceView.editorMode
+        editorMode = Twirlip7.WorkspaceView.editorMode
         
         earlierText = earlierItem.value
         laterText = laterItem.value
@@ -182,7 +185,7 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
                 m("button.ml2", { onclick: makeAceDiffer }, "Show Diff"),
                 m("button.ml2", { onclick: earlierClicked, title: earlierItemKey }, "Earlier"),
                 m("button.ml2", { onclick: laterClicked, title: laterItemKey }, "Later"),
-                m("#flex-container",
+                m("#flex-container.mt2.mb2",
                     [
                         m("div",
                             m("#editor1")
