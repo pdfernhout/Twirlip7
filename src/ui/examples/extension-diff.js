@@ -116,24 +116,47 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
     
     cleanupAceDiffer()
     
+    let earlierItemKey = ""
+    let earlierText = ""
+    let laterItemKey = ""
+    let laterText = ""
+    
+    function earlierClicked() {
+        earlierItemKey = Twirlip7.WorkspaceView.currentItemId
+        const itemText = Twirlip7.getCurrentJournal().getItem(earlierItemKey)
+        const item = JSON.parse(itemText)
+        earlierText = item.value
+        window.aceDiffer = makeAceDiffer()
+    }
+    
+    function laterClicked() {
+        laterItemKey = Twirlip7.WorkspaceView.currentItemId
+        const itemText = Twirlip7.getCurrentJournal().getItem(laterItemKey)
+        const item = JSON.parse(itemText)
+        laterText = item.value
+        window.aceDiffer = makeAceDiffer()
+    }
+    
     function diffClicked() {
-        console.log("diffClicked")
-        cleanupAceDiffer()
-        
-        const laterItemText = Twirlip7.getCurrentJournal().getItem(Twirlip7.WorkspaceView.currentItemId)
+        laterItemKey = Twirlip7.WorkspaceView.currentItemId
+        const laterItemText = Twirlip7.getCurrentJournal().getItem(laterItemKey)
         const laterItem = JSON.parse(laterItemText)
-        const earlierItemKey = laterItem.derivedFrom || ""
+        earlierItemKey = laterItem.derivedFrom || ""
         const earlierItemText = Twirlip7.getCurrentJournal().getItem(earlierItemKey)
         const earlierItem = JSON.parse(earlierItemText)
         const editorMode = Twirlip7.WorkspaceView.editorMode
         
-        window.aceDiffer = makeAceDiffer(earlierItem.value, laterItem.value, editorMode)
+        earlierText = earlierItem.value
+        laterText = laterItem.value
+        
+        window.aceDiffer = makeAceDiffer()
     }
     
     // TODO: Handle destroying this differ and not having two or more if reinstall
-    function makeAceDiffer(earlierText, laterText, editorMode) {
+    function makeAceDiffer() {
+        cleanupAceDiffer()
         return new AceDiff({
-            mode: editorMode || "ace/mode/javascript",
+            mode: Twirlip7.WorkspaceView.editorMode,
             left: {
                 id: "editor1",
                 content: earlierText
@@ -155,13 +178,20 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
             return m("div",
                 m("button", { onclick: diffClicked }, "Diff from previous version"),
                 m("button.ml2", { onclick: cleanupAceDiffer }, "Hide Diff"),
+                m("br"),
+                m("button.ma1", { onclick: earlierClicked }, "Earlier"),
+                earlierItemKey,
+                m("br"),
+                m("button.ma1", { onclick: laterClicked }, "Later"),
+                laterItemKey,
+                m("br"),
                 m("#flex-container",
                     [
-                        m("div", 
+                        m("div",
                             m("#editor1")
                         ),
                         m("[#gutter"),
-                        m("div", 
+                        m("div",
                             m("#editor2")
                         )
                     ]
