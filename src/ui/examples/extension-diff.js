@@ -1,5 +1,5 @@
 // Extend the application with diff functionality
-// See: https://github.com/benkeen/ace-diff
+// Ace editor differ code from: https://github.com/benkeen/ace-diff
 
 /* global require, diff_match_patch */
 
@@ -164,7 +164,6 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
         makeAceDiffer()
     }
     
-    // TODO: Handle destroying this differ and not having two or more if reinstall
     function makeAceDiffer() {
         cleanupAceDiffer()
         const aceDiffer = new AceDiff({
@@ -211,8 +210,6 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
     
     // Need to redraw since the install happens in an asynchronous require
     m.redraw()
-    
-    // setTimeout(() => window.aceDiffer = makeAceDiffer(), 100)
-    
+
     // Twirlip7.WorkspaceView.extensionsUninstall({id: "diff"})
 })
