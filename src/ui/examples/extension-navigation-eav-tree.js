@@ -11,7 +11,7 @@ function processNewJournalItems(callback, startIndex) {
         const item = cachedJournal.getItemForLocation(i)
         if (item) {
             const key = cachedJournal.keyForLocation(i)
-            callback({i, key, item: JSON.parse(item)})
+            callback({i, key, item:  Twirlip7.getItemForJSON(item) })
         }
     }
 }
