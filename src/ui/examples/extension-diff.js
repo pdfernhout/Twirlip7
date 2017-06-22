@@ -112,6 +112,7 @@ function cleanupAceDiffer() {
         window.aceDiffer = undefined
     }
 }
+
 require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(discard, AceDiff) {
     
     cleanupAceDiffer()
@@ -124,34 +125,42 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
     
     function earlierClicked() {
         earlierItemKey = Twirlip7.WorkspaceView.currentItemId
-        const itemText = Twirlip7.getCurrentJournal().getItem(earlierItemKey)
-        const item = Twirlip7.getItemForJSON(itemText)
-        earlierText = item.value
+        earlierText = Twirlip7.WorkspaceView.getEditorContents()
         editorMode = Twirlip7.WorkspaceView.editorMode
         makeAceDiffer()
     }
     
     function laterClicked() {
         laterItemKey = Twirlip7.WorkspaceView.currentItemId
-        const itemText = Twirlip7.getCurrentJournal().getItem(laterItemKey)
-        const item = Twirlip7.getItemForJSON(itemText)
-        laterText = item.value
+        laterText = Twirlip7.WorkspaceView.getEditorContents()
         editorMode = Twirlip7.WorkspaceView.editorMode
         makeAceDiffer()
     }
     
     function diffClicked() {
-        laterItemKey = Twirlip7.WorkspaceView.currentItemId
-        const laterItemText = Twirlip7.getCurrentJournal().getItem(laterItemKey)
-        const laterItem = Twirlip7.getItemForJSON(laterItemText)
-        earlierItemKey = laterItem.derivedFrom || ""
-        const earlierItemText = Twirlip7.getCurrentJournal().getItem(earlierItemKey)
-        const earlierItem = Twirlip7.getItemForJSON(earlierItemText)
-        editorMode = Twirlip7.WorkspaceView.editorMode
+        let earlierItem
+        let laterItem
+        
+        if (Twirlip7.WorkspaceView.isEditorDirty()) {
+            earlierItemKey = Twirlip7.WorkspaceView.currentItemId
+            const earlierItemText = Twirlip7.getCurrentJournal().getItem(earlierItemKey)
+            earlierItem = Twirlip7.getItemForJSON(earlierItemText)
+            
+            laterItemKey = "<editor>"
+            laterItem = { value: Twirlip7.WorkspaceView.getEditorContents() }
+        } else {
+            laterItemKey = Twirlip7.WorkspaceView.currentItemId
+            const laterItemText = Twirlip7.getCurrentJournal().getItem(laterItemKey)
+            laterItem = Twirlip7.getItemForJSON(laterItemText)
+            
+            earlierItemKey = laterItem.derivedFrom || ""
+            const earlierItemText = Twirlip7.getCurrentJournal().getItem(earlierItemKey)
+            earlierItem = Twirlip7.getItemForJSON(earlierItemText)
+        }
         
         earlierText = earlierItem.value
         laterText = laterItem.value
-        
+        editorMode = Twirlip7.WorkspaceView.editorMode
         makeAceDiffer()
     }
     
@@ -180,7 +189,7 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
         tags: "footer",
         code: (context) => {
             return m("div",
-                m("button", { onclick: diffClicked }, "Diff from previous version"),
+                m("button", { onclick: diffClicked }, "Diff from " + (Twirlip7.WorkspaceView.isEditorDirty() ? "saved" : "previous") + " version"),
                 m("button.ml2", { onclick: cleanupAceDiffer }, "Hide Diff"),
                 m("button.ml2", { onclick: makeAceDiffer }, "Show Diff"),
                 m("button.ml2", { onclick: earlierClicked, title: earlierItemKey }, "Earlier"),
