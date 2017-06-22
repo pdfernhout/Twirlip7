@@ -158,8 +158,8 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
             earlierItem = Twirlip7.getItemForJSON(earlierItemText)
         }
         
-        earlierText = earlierItem.value
-        laterText = laterItem.value
+        earlierText = (earlierItem && earlierItem.value) || ""
+        laterText = (laterItem && laterItem.value) || ""
         editorMode = Twirlip7.WorkspaceView.editorMode
         makeAceDiffer()
     }
