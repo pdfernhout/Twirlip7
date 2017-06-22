@@ -3,59 +3,13 @@
 
 /* global require, diff_match_patch */
 
-require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(discard, AceDiff) {
-    
-    function diffClicked() {
-        console.log("diffClicked", diff_match_patch, AceDiff)
-    }
-    
-    // TODO: Handle destroying this differ and not having two or more if reinstall
-    function makeAceDiffer() {
-        return new AceDiff({
-            mode: "ace/mode/javascript",
-            left: {
-                id: "editor1",
-                content: "Test 1 same\nanother line 1\nanother line 2"
-            },
-            right: {
-                id: "editor2",
-                content: "Test 2 same\nanother line 2"
-            },
-            classes: {
-                gutterID: "gutter"
-            }
-        })
-    }
-    
-    setTimeout(makeAceDiffer, 100)
-    
-    Twirlip7.WorkspaceView.extensionsInstall({
-        id: "diff",
-        tags: "footer",
-        code: (context) => {
-            return m("div",
-                m("button", { onclick: diffClicked }, "Diff from previous version"),
-                m("#flex-container",
-                    [
-                        m("div", 
-                            m("#editor1", "Test2")
-                        ),
-                        m("[#gutter"),
-                        m("div", 
-                            m("#editor2")
-                        )
-                    ]
-                )
-            )
-        }
-    })
-    
-    // Stylesheet from: https://github.com/benkeen/ace-diff/blob/master/demos/demo2/styles.css
-    const aceDiffStyleSheet = 
+// Stylesheet modified from: https://github.com/benkeen/ace-diff/blob/master/demos/demo2/styles.css
+const aceDiffStyleSheet = 
 `#flex-container {
     display: flex;
     display: -webkit-flex;
     flex-direction: row;
+    position: relative;
     bottom: 0;
     width: 100%;
     top: 0px !important;
@@ -98,17 +52,20 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
     background-color: #d8f2ff;
     border-top: 1px solid #a2d7f2;
     border-bottom: 1px solid #a2d7f2;
+    position: absolute;
     z-index: 4;
 }
 .acediff-diff.targetOnly {
     height: 0px !important;
     border-top: 1px solid #a2d7f2;
     border-bottom: 0px;
+    position: absolute;
 }
 .acediff-connector {
     fill: #d8f2ff;
     stroke: #a2d7f2;
 }
+
 .acediff-copy-left {
     float: right;
 }
@@ -119,6 +76,7 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
 .acediff-copy-right div {
     color: #000000;
     text-shadow: 1px 1px #ffffff;
+    position: absolute;
     margin: -3px 2px;
     cursor: pointer;
 }
@@ -128,6 +86,7 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
 .acediff-copy-left div {
     color: #000000;
     text-shadow: 1px 1px #ffffff;
+    position: absolute;
     right: 0px;
     margin: -3px 2px;
     cursor: pointer;
@@ -136,12 +95,85 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
     color: #c98100;
 }`
     
-    const sheet = document.createElement("style")
-    sheet.innerHTML = aceDiffStyleSheet
-    document.body.appendChild(sheet)
+function addAceDiffStylesheetIfNeeded() {
+    if (!document.getElementById("aceDiffStyleSheet")) {
+        const sheet = document.createElement("style")
+        sheet.innerHTML = aceDiffStyleSheet
+        sheet.id = "aceDiffStyleSheet"
+        document.body.appendChild(sheet)
+    }
+}
+  
+addAceDiffStylesheetIfNeeded()
+    
+function cleanupAceDiffer() {
+    if (window.aceDiffer) {
+        window.aceDiffer.destroy()
+        window.aceDiffer = undefined
+    }
+}
+require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(discard, AceDiff) {
+    
+    cleanupAceDiffer()
+    
+    function diffClicked() {
+        console.log("diffClicked")
+        cleanupAceDiffer()
+        
+        const laterItemText = Twirlip7.getCurrentJournal().getItem(Twirlip7.WorkspaceView.currentItemId)
+        const laterItem = JSON.parse(laterItemText)
+        const earlierItemKey = laterItem.derivedFrom || ""
+        const earlierItemText = Twirlip7.getCurrentJournal().getItem(earlierItemKey)
+        const earlierItem = JSON.parse(earlierItemText)
+        const editorMode = Twirlip7.WorkspaceView.editorMode
+        
+        window.aceDiffer = makeAceDiffer(earlierItem.value, laterItem.value, editorMode)
+    }
+    
+    // TODO: Handle destroying this differ and not having two or more if reinstall
+    function makeAceDiffer(earlierText, laterText, editorMode) {
+        return new AceDiff({
+            mode: editorMode || "ace/mode/javascript",
+            left: {
+                id: "editor1",
+                content: earlierText
+            },
+            right: {
+                id: "editor2",
+                content: laterText
+            },
+            classes: {
+                gutterID: "gutter"
+            }
+        })
+    }
+    
+    Twirlip7.WorkspaceView.extensionsInstall({
+        id: "diff",
+        tags: "footer",
+        code: (context) => {
+            return m("div",
+                m("button", { onclick: diffClicked }, "Diff from previous version"),
+                m("button.ml2", { onclick: cleanupAceDiffer }, "Hide Diff"),
+                m("#flex-container",
+                    [
+                        m("div", 
+                            m("#editor1")
+                        ),
+                        m("[#gutter"),
+                        m("div", 
+                            m("#editor2")
+                        )
+                    ]
+                )
+            )
+        }
+    })
     
     // Need to redraw since the install happens in an asynchronous require
     m.redraw()
+    
+    // setTimeout(() => window.aceDiffer = makeAceDiffer(), 100)
     
     // Twirlip7.WorkspaceView.extensionsUninstall({id: "diff"})
 })
