@@ -1,4 +1,4 @@
-// Using the "Print it" and "Inspect it" buttons 
+// Using the "Print it" button 
 
 // You can click the "Print it" button to print the result of evaluating the "1+1" expression below.
 // The result is printed directly into the editor window at the end, modifying the text.
