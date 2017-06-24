@@ -57,6 +57,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
                 // returns either array of items -- or if includeMetadata is truthy, {location, item, key}
                 // TODO: This extremely computationally inefficient placeholder needs to be improved
                 // TODO: This should not have to iterate over all stored objects
+                if (!configuration) configuration = {}
                 const result = []
                 const journal = WorkspaceView.currentJournal
                 const count = journal.itemCount()
