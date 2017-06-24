@@ -6,17 +6,18 @@ Right now, this is just a simple IDE for playing with JavaScript and Mithril.js 
 
 As an experiment, questions include how could these snippets be stored, retrieved, visualized, referenced, annotated, shared, versioned, or discussed? The goal of the experiment is to explore such ideas as another step towards a social semantic desktop.
 
-The journal is stored in local storage by default (or memory if desired).
-The journal of snippets can be exported or imported as JSON.
+The journal is stored in local storage by default.
+You can click on the "Journal" dropdown to switch from using local storage to memory storage or server storage for new items.
 
-However, all that may change as the experiment progresses in new directions. For example, as one possibililty, these snippets and content they generate might someday be distributed through the decentralized Matrix.org.
+And entire journal of snippets can be exported or imported as JSON.
+You can also copy and paste individual items (including their history) between Twirlip7 journals via data URLs using the clipboard.
+
+However, all that may change as the experiment progresses in new directions.
+For example, as one possibililty, these snippets and content they generate might someday be distributed through the decentralized Matrix.org.
 
 The IDE supports some functionality inspired by the Smalltalk "Workspace". You can select a section of code in the editor and then "do it" to evaluate the code, "print it" to insert the evaluation result in the editor, or "inspect it" to see the evaluation result (in the JavaScript console in this case). If you don't select anything specific, all the code in the editor is evaluated.
 
 To test this, click "Show example log" which will put some JSON text in the editor window, and then click "Load log" to start using the log of snippets. Then use Previous and Next buttons to scroll through snippets. Click "Do it" to evaluate a snippet. Select text and then Do, Print, or Inspect just that text (e.g. "1 + 1"). Supports Import and Export of editor content to a file. You can edit snippets and click "Save" to add them to the log of snippets.
-
-You can click on the "Journal" dropdown to switch from using local storage to memory storage or server storage for new items.
-You can copy and paste individual items (including their history) between Twirlip7 journals via data URLs using the clipboard.
 
 The UI uses Mithril.js, Tachyons.js, RequireJS, and the ACE editor in plain JavaScript. The UI currently expects ES6 in a modern browser.
 
