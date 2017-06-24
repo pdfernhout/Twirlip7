@@ -8,22 +8,24 @@ As an experiment, questions include how could these snippets be stored, retrieve
 
 The journal is stored in local storage by default (or memory if desired).
 The journal of snippets can be exported or imported as JSON.
-You can also copy and paste individual items between Twirlip7 applications.
 
 However, all that may change as the experiment progresses in new directions. For example, as one possibililty, these snippets and content they generate might someday be distributed through the decentralized Matrix.org.
 
 The IDE supports some functionality inspired by the Smalltalk "Workspace". You can select a section of code in the editor and then "do it" to evaluate the code, "print it" to insert the evaluation result in the editor, or "inspect it" to see the evaluation result (in the JavaScript console in this case). If you don't select anything specific, all the code in the editor is evaluated.
 
-To test this, click "Show example log" which will put some JSON text in the editor window, and then click "Load log" to start using the log of snippets. Then use Previous and Next buttons to scroll through snippets. Click "Do it" to evaluate a snippet. Select text and then Do, Print, or Inspect just that text (e.g. "1 + 1"). Supports Import and Export of editor content to a file. You can edit snippets and click "Save" to add them to the log of snippets. You can click on the top button labelled "Archive: local storage" to switch from using local storage to memory storage and then back again; the two storages maintain different logs.
+To test this, click "Show example log" which will put some JSON text in the editor window, and then click "Load log" to start using the log of snippets. Then use Previous and Next buttons to scroll through snippets. Click "Do it" to evaluate a snippet. Select text and then Do, Print, or Inspect just that text (e.g. "1 + 1"). Supports Import and Export of editor content to a file. You can edit snippets and click "Save" to add them to the log of snippets.
+
+You can click on the "Journal" dropdown to switch from using local storage to memory storage or server storage for new items.
+You can copy and paste individual items (including their history) between Twirlip7 journals via data URLs using the clipboard.
 
 The UI uses Mithril.js, Tachyons.js, RequireJS, and the ACE editor in plain JavaScript. The UI currently expects ES6 in a modern browser.
 
 The Server uses Node.js with Express to serve the UI files and to store and retrieve items shared by all users.
+Using the server requires running "npm install" to load the supporting npm modules and then "npm start" to run the server. 
 
-Using the server requires running "npm install" to load the supporting npm modules and then "npm run server" to run the server. 
-But you don't need to install and run the server to do some simple tests.
+You don't need to install and run the server to do some simple tests.
 You can just load the UI files directly into your browser (like with the rawgit example).
-If run without the server, you can only store data in memory or local storage and the server journal option will be disabled in the UI.
+If you run without the server, however, you can only store data in memory or local storage; the server journal option will be greyed out in the UI.
 
 No required build step (yet).
 
