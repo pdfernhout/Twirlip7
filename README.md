@@ -8,6 +8,7 @@ As an experiment, questions include how could these snippets be stored, retrieve
 
 The journal is stored in local storage by default (or memory if desired).
 The journal of snippets can be exported or imported as JSON.
+You can also copy and paste individual items between Twirlip7 applications.
 
 However, all that may change as the experiment progresses in new directions. For example, as one possibililty, these snippets and content they generate might someday be distributed through the decentralized Matrix.org.
 
@@ -17,7 +18,12 @@ To test this, click "Show example log" which will put some JSON text in the edit
 
 The UI uses Mithril.js, Tachyons.js, RequireJS, and the ACE editor in plain JavaScript. The UI currently expects ES6 in a modern browser.
 
-The Server uses Node.js with Express to server the UI files. Eventually the server may do something more than just serving files. Using the server requires running "npm install" to load the supporting npm modules and then "npm run server" to run the server. However you don't actually need to install and run the server yet as you can just load the files directly into your browser.
+The Server uses Node.js with Express to serve the UI files and to store and retrieve items shared by all users.
+
+Using the server requires running "npm install" to load the supporting npm modules and then "npm run server" to run the server. 
+But you don't need to install and run the server to do some simple tests.
+You can just load the UI files directly into your browser (like with the rawgit example).
+If run without the server, you can only store data in memory or local storage and the server journal option will be disabled in the UI.
 
 No required build step (yet).
 
@@ -51,7 +57,7 @@ Using the Mithril router in an app is also problematical if other apps you run i
 
 ### Screenshots
 
-Note: The IDE screenshot here is out-of-date as more features have been added since it was made.
+Note: The IDE screenshot here is significantly out-of-date as more features have been added since it was made.
 
 Screenshot of Twirlip7 editor showing a code snippet with a simple temperature convertor in Mithril (after having pressed "Do it"):
 
