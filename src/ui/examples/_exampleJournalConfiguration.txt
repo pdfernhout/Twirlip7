@@ -67,12 +67,18 @@ extension-markdown-preview.js
 {"entity": "Twirlip7 examples"}
 
 // Other file types -- user has to change editor mode
+
 {"contentType": "text/markdown; charset=UTF-8"}
 markdown-example.md
+
 {"contentType": "text/html"}
 html-example.html
+
 {"contentType": "text/x-fortran"}
 fortran-example.txt
+
+{"contentType": "text/plain"}
+text-example.txt
 
 // Include a JSON file that IBIS can read
 {"entity": "Knife sharpening"}
