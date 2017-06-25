@@ -1,6 +1,6 @@
 // Mithril component which embeds an iframe with HTML
 // Doug Engelbart Unfinished Revolution II Colloquium -- UnRev-II - headers sorted By Date
-// This also demostrates supplying a title to display instead of "Untitled" when the component is collapsed
+// This also demonstrates supplying a specific title to display instead of the triple entity and attribute when the component is collapsed
 
 const MyComponent = {
     view(controller, args) {
