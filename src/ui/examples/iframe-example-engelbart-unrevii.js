@@ -10,4 +10,4 @@ const MyComponent = {
     }
 }
 
-Twirlip7.show(MyComponent, { extraStyling: ".bg-light-purple", collapsedTitle: "Doug Engelbart Unfinished Revolution II Colloquium" })
+Twirlip7.show(MyComponent, { extraStyling: ".bg-light-purple", title: "Doug Engelbart Unfinished Revolution II Colloquium" })

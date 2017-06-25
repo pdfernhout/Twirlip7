@@ -15,7 +15,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
     // Convenience function which examples could use to put up closeable views
     function show(userComponentOrViewFunction, config, componentConfig) {
-        // config supports extraStyling and onclose and collapsedTitle (as string or function)
+        // config supports extraStyling and onclose and title (as string or function) displayed when collapsed
         if (typeof config === "string") {
             config = { extraStyling: config }
         }
@@ -45,10 +45,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         
         let collapsed = false
         
-        function collapsedTitle() {
-            if (config.collapsedTitle === undefined || config.collapsedTitle === null) return "Untitled"
-            if (typeof config.collapsedTitle === "function") return config.collapsedTitle()
-            return config.collapsedTitle
+        function title() {
+            if (config.title === undefined || config.title === null) return "Untitled"
+            if (typeof config.title === "function") return config.title()
+            return config.title
         }
 
         const ClosableComponent = {            
@@ -59,7 +59,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         { style: collapsed ? "display: none" : "display: block" },
                         m(userComponent, componentConfig)
                     ),
-                    collapsed ? collapsedTitle() : [],
+                    collapsed ? title() : [],
                     isCloseButtonHidden ? [] : [
                         m("button.absolute", {
                             style: "top: 0.25rem; right: 3rem; min-width: 1.5rem",

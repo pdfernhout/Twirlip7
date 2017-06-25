@@ -15,4 +15,4 @@ const MyComponent = {
     }
 }
 
-Twirlip7.show(MyComponent, { collapsedTitle: "Videos on the future, the present, and the past" } )
+Twirlip7.show(MyComponent, { title: "Videos on the future, the present, and the past" } )
