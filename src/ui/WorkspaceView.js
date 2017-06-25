@@ -15,7 +15,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
     // Convenience function which examples could use to put up closeable views
     function show(userComponentOrViewFunction, config, componentConfig) {
-        // config supports extraStyling and onclose and title (as string or function) displayed when collapsed
+        // config supports extraStyling, onclose, and title displayed when collapsed or run stand alone (title can be a string or function) 
         if (typeof config === "string") {
             config = { extraStyling: config }
         }
@@ -51,15 +51,27 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return config.title
         }
 
+        const isCloseButtonHidden = location.hash.startsWith("#open=")
+        
+        let currentTitle
+                
         const ClosableComponent = {            
             view() {
-                const isCloseButtonHidden = location.hash.startsWith("#open=")
+                if (collapsed || isCloseButtonHidden) {
+                    const newTitle = title()
+                    if (newTitle !== currentTitle) {
+                        currentTitle = newTitle
+                        if (isCloseButtonHidden) {
+                            document.title = currentTitle
+                        }
+                    }
+                }
                 return m("div.ba.ma3.pa3.bg-light-purple.relative" + config.extraStyling,
                     m("div",
                         { style: collapsed ? "display: none" : "display: block" },
                         m(userComponent, componentConfig)
                     ),
-                    collapsed ? title() : [],
+                    collapsed ? currentTitle : [],
                     isCloseButtonHidden ? [] : [
                         m("button.absolute", {
                             style: "top: 0.25rem; right: 3rem; min-width: 1.5rem",
