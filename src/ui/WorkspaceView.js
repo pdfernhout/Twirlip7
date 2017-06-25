@@ -232,7 +232,6 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             // TODO: reference previous if relevant and also set timestamps and author as needed
             WorkspaceView.currentItem.value = value
             WorkspaceView.currentItem.timestamp = new Date().toISOString()
-            if (!WorkspaceView.currentContributor) WorkspaceView.promptForContributor()
             WorkspaceView.currentItem.contributor = WorkspaceView.currentContributor
             WorkspaceView.currentItem.derivedFrom = WorkspaceView.currentItemId || ""
             // TODO: Maybe check to be sure there is a license?
@@ -242,6 +241,9 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         save() {
             if (!WorkspaceView.isEditorDirty()) {
                 if (!confirm("There are no changes.\nSave a new item anyway with a later timestamp?")) return
+            }
+            if (!WorkspaceView.currentContributor) {
+                if (!WorkspaceView.promptForContributor()) return
             }
             const newContents = WorkspaceView.getEditorContents()
             const itemJSON = WorkspaceView.prepareCurrentItemForSaving(newContents)
@@ -801,7 +803,9 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             if (contributor !== null) {
                 WorkspaceView.currentContributor = contributor
                 localStorage.setItem("_contributor", contributor)
+                return true
             }
+            return false
         },
         
         // View functions which are composed into one big view at the end
