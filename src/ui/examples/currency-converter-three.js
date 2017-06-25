@@ -84,4 +84,4 @@ Twirlip7.show(() => {
             m("input", { value: getCurrencyValue("pounds"), oninput: inputPounds } )
         ])
     ])
-})
+}, { title: "Currency converter for three currencies" } )

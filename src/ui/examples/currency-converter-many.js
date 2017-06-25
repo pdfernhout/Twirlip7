@@ -102,7 +102,7 @@ Twirlip7.show(() => {
             ])
         })
     ])
-})
+}, { title: "Currency converter for many currencies" } )
 
 // Rates on 2016-05-31 from https://www.oanda.com/currency
 
