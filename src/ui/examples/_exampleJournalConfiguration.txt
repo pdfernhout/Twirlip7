@@ -56,13 +56,6 @@ draggable-simplified.js
 // Canvas
 canvas-example.js
 
-// Image reading
-image-reading.js
-
-// IBIS
-ibis_icons.js
-ibis_application.js
-
 // Markdown library
 markdown-library-use.js
 extension-markdown-preview.js
@@ -93,12 +86,21 @@ image-definition-earth-from-space.txt
 {"contentType": "application/javascript"}
 {"encoding": ""}
 
+// Image reading
+image-reading.js
+
+// Adding to the journal
+{"entity": "Twirlip7 examples"}
+journal-adding.js
+
+// IBIS application
+ibis_icons.js
+ibis_application.js
+
 // Extending the editor
+{"entity": "Twirlip7 extensions"}
 extension-simple.js
 extension-search-plain.js
 extension-search-regex.js
 extension-navigation-eav-tree.js
 extension-diff.js
-
-// Adding to the journal
-journal-adding.js
