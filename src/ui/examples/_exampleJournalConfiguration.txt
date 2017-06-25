@@ -58,7 +58,13 @@ canvas-example.js
 
 // Markdown library
 markdown-library-use.js
+
+// Categorize this as an extension
+{"entity": "Twirlip7 extensions"}
 extension-markdown-preview.js
+
+// Go back to adding examples
+{"entity": "Twirlip7 examples"}
 
 // Other file types -- user has to change editor mode
 {"contentType": "text/markdown; charset=UTF-8"}
