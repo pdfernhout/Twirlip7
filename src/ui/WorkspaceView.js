@@ -54,6 +54,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         const isCloseButtonHidden = location.hash.startsWith("#open=")
         
         let currentTitle
+        
+        if (!isCloseButtonHidden && !config.title && WorkspaceView.currentItem && (WorkspaceView.currentItem.entity || WorkspaceView.currentItem.attribute)) {
+            config.title = (WorkspaceView.currentItem.entity || "<No Entity>") + " :: " + (WorkspaceView.currentItem.attribute || "<No Attribute>")
+        }
                 
         const ClosableComponent = {            
             view() {
