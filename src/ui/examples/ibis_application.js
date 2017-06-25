@@ -504,4 +504,4 @@ Twirlip7.show(() => {
         viewItemPanel(),
         viewJSONPanel(),
     ]
-}, ".bg-blue.br4")
+}, { extraStyling: ".bg-blue.br4", collapsedTitle: () => "IBIS Diagram for: " + diagram.diagramName })

@@ -15,7 +15,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
     // Convenience function which examples could use to put up closeable views
     function show(userComponentOrViewFunction, config, componentConfig) {
-        // config supports extraStyling and onclose
+        // config supports extraStyling and onclose and collapsedTitle (as string or function)
         if (typeof config === "string") {
             config = { extraStyling: config }
         }
@@ -42,15 +42,33 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             }
         }
         userComponent.view = protect(userComponent.view)
+        
+        let collapsed = false
+        
+        function collapsedTitle() {
+            if (config.collapsedTitle === undefined || config.collapsedTitle === null) return "Untitled"
+            if (typeof config.collapsedTitle === "function") return config.collapsedTitle()
+            return config.collapsedTitle
+        }
 
         const ClosableComponent = {            
             view() {
-                const isCloseButtonShown = location.hash.startsWith("#open=")
+                const isCloseButtonHidden = location.hash.startsWith("#open=")
                 return m("div.ba.ma3.pa3.bg-light-purple.relative" + config.extraStyling,
-                    m(userComponent, componentConfig),
-                    isCloseButtonShown ?
-                        [] :
-                        m("button.absolute.right-1.top-1", {
+                    m("div",
+                        { style: collapsed ? "display: none" : "display: block" },
+                        m(userComponent, componentConfig)
+                    ),
+                    collapsed ? collapsedTitle() : [],
+                    isCloseButtonHidden ? [] : [
+                        m("button.absolute", {
+                            style: "top: 0.25rem; right: 3rem; min-width: 1.5rem",
+                            title: collapsed ? "Expand" : "Collapse",
+                            onclick: () => collapsed = !collapsed
+                        }, (collapsed ? "+" : "-")),
+                        m("button.absolute", {
+                            style: "top: 0.25rem; right: 1rem",
+                            title: "Close",
                             onclick: function () {
                                 if (config.onclose) {
                                     try {
@@ -63,6 +81,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                                 document.body.removeChild(div)
                             }
                         }, "X")
+                    ]
                 )
             }
         }
@@ -827,20 +846,20 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         viewFocusAndCollapse() {
             return m("div.fr", [
                 WorkspaceView.viewDirty(),
-                m("span.mr3.fr"),
-                m("span.mr3", {  title: "focus mode hides extraneous editor controls to provide more space for testing" },
+                m("span.mr2"),
+                m("span.mr2", {  title: "focus mode hides extraneous editor controls to provide more space for testing" },
                     m("input[type=checkbox].ma1", { 
                         checked: WorkspaceView.focusMode,
                         onchange: (event) => WorkspaceView.focusMode = event.target.checked
                     }),
                     "focus"
                 ),
-                m("span", { onclick: () => WorkspaceView.collapseWorkspace = true, title: "click here to hide the editor" }, "[collapse]"),
+                m("button.fr", { style: "min-width: 1.5rem", onclick: () => WorkspaceView.collapseWorkspace = true, title: "click here to hide the editor" }, "-"),
             ])
         },
         
         viewAbout() {
-            return m("div#about.bg-lightest-blue.pa1.mb1", [
+            return m("div#about.bg-lightest-blue.pa1.mb1", { style: "padding-bottom: 0.5rem" }, [
                 m("a.ml2", { target: "_blank", href: "https://github.com/pdfernhout/Twirlip7" }, "Twirlip7"),
                 m("div.ea-header", { style: "display: " + (WorkspaceView.focusMode ? "inline" : "none") }, [
                     m("span.ml3", { title: "Entity" }, WorkspaceView.currentItem.entity || m("span.i", "<No Entity>")),
@@ -1244,10 +1263,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         view() {
             return m("#main.ma2", [
                 m("div.bg-lightest-blue.pa1.w-100", {
-                    style: "display:" + (WorkspaceView.collapseWorkspace ? "block" : "none"),
+                    style: "padding-bottom: 0.5rem; display:" + (WorkspaceView.collapseWorkspace ? "block" : "none"),
                     onclick: () => WorkspaceView.collapseWorkspace = false,
                     title: "click here to show the editor",
-                }, m("span.ml2", "Twirlip7 Editor"), m("span.fr", "[expand]")),
+                }, m("span.ml2", "Twirlip7 Editor"), m("button.fr", { style: "min-width: 1.5rem", title: "Click here to expand the editor" }, "+")),
                 m("div", {
                     style: "display: " + (WorkspaceView.collapseWorkspace ? "none" : "initial")
                 }, WorkspaceView.viewMain())
