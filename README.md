@@ -1,10 +1,12 @@
-### Yet another experiment towards a social semantic desktop
+### Twirlip7 Programmable Notebook
 
 Try it here: http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/twirlip7.html
 
 Right now, this is just a simple IDE for playing with JavaScript and Mithril.js which stores snippets of code or text in a local journal.
 
-As an experiment, questions include how could these snippets be stored, retrieved, visualized, referenced, annotated, shared, versioned, or discussed? The goal of the experiment is to explore such ideas as another step towards a social semantic desktop.
+As an experiment, questions include how could these snippets be stored, retrieved, visualized, referenced, annotated, shared, versioned, or discussed?
+
+The goal of the experiment is to explore such ideas as another step towards a social semantic desktop.
 
 The journal is stored in local storage by default.
 You can click on the "Journal" dropdown to switch from using local storage to memory storage or server storage for new items.

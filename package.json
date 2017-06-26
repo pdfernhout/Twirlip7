@@ -1,7 +1,7 @@
 {
   "name": "twirlip7",
   "version": "1.0.0",
-  "description": "Social Semantic Desktop",
+  "description": "Twirlip7 Programmable Notebook",
   "repository": "https://github.com/pdfernhout/Twirlip7",
   "main": "server.js",
   "scripts": {
