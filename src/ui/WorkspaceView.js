@@ -992,7 +992,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         viewContext() {
             return [
                 m("div.ma1",
-                    m("span.dib.w3.tr.mr2", "Entity"),
+                    m("span.dib.w3.tr.mr2", { title: "Entity: the object, event, idea, or group being described or defined" }, "Entity"),
                     m("input.w-80", {
                         value: WorkspaceView.currentItem.entity || "",
                         oninput: event => {
@@ -1008,7 +1008,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     }, " E >|")
                 ),
                 m("div.ma1",
-                    m("span.dib.w3.tr.mr2", "Attribute"),
+                    m("span.dib.w3.tr.mr2", { title: "Attribute: the parameter, field, aspect, or subpart of what is being described or defined" }, "Attribute"),
                     m("input.w-80", {
                         value: WorkspaceView.currentItem.attribute || "",
                         oninput: event => {
@@ -1024,7 +1024,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     }, " EA >|")
                 ),
                 m("div.ma1",
-                    m("span.dib.w3.tr.mr2", "Value")
+                    m("span.dib.w3.tr.mr2", { title: "Value: a note, observation, or specification about the state of the entity's attribute at some point in time" }, "Value")
                 ), 
             ]
         },
