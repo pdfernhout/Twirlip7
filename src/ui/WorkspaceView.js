@@ -348,6 +348,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             WorkspaceView.wasEditorDirty = false
             WorkspaceView.saveCurrentItemId()
             WorkspaceView.updateIsLastMatch()
+            WorkspaceView.setDocumentTitleForCurrentItem()
         },
 
         doIt() {
@@ -566,7 +567,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         setDocumentTitleForCurrentItem() {
             let newTitle
             if (!WorkspaceView.currentItem.entity && !WorkspaceView.currentItem.attribute) {
-                newTitle = "Twirlip7"
+                newTitle = "Twirlip7 Programmable Notebook"
             } else {
                 newTitle = WorkspaceView.currentItem.entity + " :: " + WorkspaceView.currentItem.attribute 
             }
