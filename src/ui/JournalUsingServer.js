@@ -10,6 +10,7 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
         socket: null,
         isLoaded: false,
         onLoadedCallback: null,
+        messagesReceivedCount: 0,
 
         getCapabilities() {
             return {
@@ -136,6 +137,7 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
         },
         
         messageReceived(message) {
+            JournalUsingServer.messagesReceivedCount++
             // console.log("messageReceived", message)
             if (message.command === "insert") {
                 JournalUsingServer.addItem(message.item, "isFromServer")
