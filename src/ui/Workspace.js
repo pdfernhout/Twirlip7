@@ -7,7 +7,7 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
     // so the clarity has no significant cost here.
     
     function Workspace() {
-        const notebooks = {}
+        const notebooks = []
         const currentNotebook = null
         
         function getNotebooks() {
