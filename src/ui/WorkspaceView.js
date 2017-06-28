@@ -12,99 +12,6 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 ) {
     "use strict"
     /* global m, location, localStorage, Twirlip7 */
-
-    // Convenience function which examples could use to put up closeable views
-    function show(userComponentOrViewFunction, config, componentConfig) {
-        // config supports extraStyling, onclose, and title displayed when collapsed or run stand alone (title can be a string or function) 
-        if (typeof config === "string") {
-            config = { extraStyling: config }
-        }
-        if (!config) config = {}
-        if (!config.extraStyling) { config.extraStyling = "" }
-        
-        let div = document.createElement("div")
-        
-        const userComponent = userComponentOrViewFunction.view ?
-            userComponentOrViewFunction : {
-                view: userComponentOrViewFunction
-            }
-        
-        function protect(viewFunction) {
-            return function() {
-                let subview
-                try {
-                    subview = viewFunction.call(arguments)
-                } catch (e) {
-                    console.log("Error in show function", e)
-                    subview = m("div.ba.ma2.pa2.bg-red", "Error in show function: " + e)
-                }
-                return subview
-            }
-        }
-        userComponent.view = protect(userComponent.view)
-        
-        let collapsed = false
-        
-        function title() {
-            if (config.title === undefined || config.title === null) return "Untitled"
-            if (typeof config.title === "function") return config.title()
-            return config.title
-        }
-
-        const isCloseButtonHidden = location.hash.startsWith("#open=")
-        
-        let currentTitle
-        
-        if (!isCloseButtonHidden && !config.title && WorkspaceView.currentItem && (WorkspaceView.currentItem.entity || WorkspaceView.currentItem.attribute)) {
-            config.title = (WorkspaceView.currentItem.entity || "<No Entity>") + " :: " + (WorkspaceView.currentItem.attribute || "<No Attribute>")
-        }
-                
-        const ClosableComponent = {            
-            view() {
-                if (collapsed || isCloseButtonHidden) {
-                    const newTitle = title()
-                    if (newTitle !== currentTitle) {
-                        currentTitle = newTitle
-                        if (isCloseButtonHidden) {
-                            document.title = currentTitle
-                        }
-                    }
-                }
-                return m("div.ba.ma3.pa3.bg-light-purple.relative" + config.extraStyling,
-                    m("div",
-                        { style: collapsed ? "display: none" : "display: block" },
-                        m(userComponent, componentConfig)
-                    ),
-                    collapsed ? currentTitle : [],
-                    isCloseButtonHidden ? [] : [
-                        m("button.absolute", {
-                            style: "top: 0.25rem; right: 3rem; min-width: 1.5rem",
-                            title: collapsed ? "Expand" : "Collapse",
-                            onclick: () => collapsed = !collapsed
-                        }, (collapsed ? "+" : "-")),
-                        m("button.absolute", {
-                            style: "top: 0.25rem; right: 1rem",
-                            title: "Close",
-                            onclick: function () {
-                                if (config.onclose) {
-                                    try {
-                                        config.onclose()
-                                    } catch (e) {
-                                        console.log("Error in onclose function", e)
-                                    }
-                                }
-                                m.mount(div, null)
-                                document.body.removeChild(div)
-                            }
-                        }, "X")
-                    ]
-                )
-            }
-        }
-
-        document.body.appendChild(div)
-        m.mount(div, ClosableComponent)
-    }
     
     function newItem() {
         return {
@@ -122,44 +29,43 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
     
     const twirlip7DataUrlPrefix = "twirlip7://v1/"
     
-    const WorkspaceView = {
-        editor: null,
+    function WorkspaceView() {
+        let editor = null
         
-        lastLoadedItem: newItem(),
+        let lastLoadedItem = newItem()
         
-        currentItemId: null,
-        currentItem: newItem(),
+        let currentItemId = null
+        let currentItem = newItem()
         
-        currentContributor: "",
+        let currentContributor = ""
         
-        currentJournal: JournalUsingLocalStorage,
-        journalChoice: "local storage",
+        let currentJournal = JournalUsingLocalStorage
+        let journalChoice = "local storage"
         
-        isLastEntityMatch: false,
-        isLastEntityAttributeMatch: false,
+        let isLastEntityMatch = false
+        let isLastEntityAttributeMatch = false
         
-        aceEditorHeight: 20,
-        editorMode: "ace/mode/javascript",
-        wasEditorDirty: false,
+        let aceEditorHeight = 20
+        let editorMode = "ace/mode/javascript"
+        let wasEditorDirty = false
         
-        focusMode: false,
-        collapseWorkspace: false,
+        let focusMode = false
+        let collapseWorkspace = false
         
         // to support user-defined extensions
-        extensions: {},
+        const extensions = {}
         
-        toastMessages: [],
+        const toastMessages = []
+        let progressMessage = null
         
         // Used for resizing the editor's height
-        dragOriginY: 0,
+        let dragOriginY = 0
         
-        show: show,
+        let startupGoToKey = null
         
-        newItem: newItem,
-        
-        oninit() {
+        function oninit() {
             if (JournalUsingLocalStorage.itemCount() === 0) {
-                WorkspaceView.show(function () { 
+                show(function () { 
                     return [
                         m("div", "Thanks for trying Twirlip7, a programmable notebook and experimental Mithril.js playground -- with aspirations towards becoming a distributed social semantic desktop."),
                         m("div", "To get started with some example code snippets, click \"Show example journal\", then \"Merge journal\", then \"Next\", and then \"Do it\"."),
@@ -167,140 +73,233 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     ]
                 })
             }
-        },
+        }
         
-        saveCurrentItemId() {
-            if (WorkspaceView.currentItemId !== null) {
-                localStorage.setItem("_current_" + WorkspaceView.journalChoice, WorkspaceView.currentItemId)
-                location.hash = "#item=" + WorkspaceView.currentItemId
+        // Convenience function which examples could use to put up closeable views
+        function show(userComponentOrViewFunction, config, componentConfig) {
+            // config supports extraStyling, onclose, and title displayed when collapsed or run stand alone (title can be a string or function) 
+            if (typeof config === "string") {
+                config = { extraStyling: config }
+            }
+            if (!config) config = {}
+            if (!config.extraStyling) { config.extraStyling = "" }
+            
+            let div = document.createElement("div")
+            
+            const userComponent = userComponentOrViewFunction.view ?
+                userComponentOrViewFunction : {
+                    view: userComponentOrViewFunction
+                }
+            
+            function protect(viewFunction) {
+                return function() {
+                    let subview
+                    try {
+                        subview = viewFunction.call(arguments)
+                    } catch (e) {
+                        console.log("Error in show function", e)
+                        subview = m("div.ba.ma2.pa2.bg-red", "Error in show function: " + e)
+                    }
+                    return subview
+                }
+            }
+            userComponent.view = protect(userComponent.view)
+            
+            let collapsed = false
+            
+            function title() {
+                if (config.title === undefined || config.title === null) return "Untitled"
+                if (typeof config.title === "function") return config.title()
+                return config.title
+            }
+    
+            const isCloseButtonHidden = location.hash.startsWith("#open=")
+            
+            let currentTitle
+            
+            if (!isCloseButtonHidden && !config.title && currentItem && (currentItem.entity || currentItem.attribute)) {
+                config.title = (currentItem.entity || "<No Entity>") + " :: " + (currentItem.attribute || "<No Attribute>")
+            }
+                    
+            const ClosableComponent = {            
+                view() {
+                    if (collapsed || isCloseButtonHidden) {
+                        const newTitle = title()
+                        if (newTitle !== currentTitle) {
+                            currentTitle = newTitle
+                            if (isCloseButtonHidden) {
+                                document.title = currentTitle
+                            }
+                        }
+                    }
+                    return m("div.ba.ma3.pa3.bg-light-purple.relative" + config.extraStyling,
+                        m("div",
+                            { style: collapsed ? "display: none" : "display: block" },
+                            m(userComponent, componentConfig)
+                        ),
+                        collapsed ? currentTitle : [],
+                        isCloseButtonHidden ? [] : [
+                            m("button.absolute", {
+                                style: "top: 0.25rem; right: 3rem; min-width: 1.5rem",
+                                title: collapsed ? "Expand" : "Collapse",
+                                onclick: () => collapsed = !collapsed
+                            }, (collapsed ? "+" : "-")),
+                            m("button.absolute", {
+                                style: "top: 0.25rem; right: 1rem",
+                                title: "Close",
+                                onclick: function () {
+                                    if (config.onclose) {
+                                        try {
+                                            config.onclose()
+                                        } catch (e) {
+                                            console.log("Error in onclose function", e)
+                                        }
+                                    }
+                                    m.mount(div, null)
+                                    document.body.removeChild(div)
+                                }
+                            }, "X")
+                        ]
+                    )
+                }
+            }
+    
+            document.body.appendChild(div)
+            m.mount(div, ClosableComponent)
+        }
+        
+        function saveCurrentItemId() {
+            if (currentItemId !== null) {
+                localStorage.setItem("_current_" + journalChoice, currentItemId)
+                location.hash = "#item=" + currentItemId
             } else {
-                localStorage.setItem("_current_" + WorkspaceView.journalChoice, "")
+                localStorage.setItem("_current_" + journalChoice, "")
                 location.hash = "#"
             }
-        },
+        }
         
-        fetchStoredItemId() {
-            const storedItemId = localStorage.getItem("_current_" + WorkspaceView.journalChoice)
+        function fetchStoredItemId() {
+            const storedItemId = localStorage.getItem("_current_" + journalChoice)
             return storedItemId
-        },
+        }
         
-        restoreCurrentItemId() {
-            let storedItemId = WorkspaceView.fetchStoredItemId()
+        function restoreCurrentItemId() {
+            let storedItemId = fetchStoredItemId()
             // Memory is transient on reload, so don't try to go to missing keys to avoid a warning
-            if (WorkspaceView.journalChoice === "memory" && WorkspaceView.currentJournal.getItem(storedItemId) === null) storedItemId = null
-            WorkspaceView.goToKey(storedItemId, {ignoreDirty: true})
-        },
+            if (journalChoice === "memory" && currentJournal.getItem(storedItemId) === null) storedItemId = null
+            goToKey(storedItemId, {ignoreDirty: true})
+        }
         
-        saveJournalChoice() {
-            localStorage.setItem("_currentJournalChoice", WorkspaceView.journalChoice)
-        },
+        function saveJournalChoice() {
+            localStorage.setItem("_currentJournalChoice", journalChoice)
+        }
         
-        restoreJournalChoice() {
+        function restoreJournalChoice() {
             const newChoice = localStorage.getItem("_currentJournalChoice")
             if (newChoice) {
-                const newJournal = WorkspaceView.journalsAvailable()[newChoice]
+                const newJournal = journalsAvailable()[newChoice]
                 if (newJournal) {
-                    WorkspaceView.journalChoice = newChoice
-                    WorkspaceView.currentJournal = newJournal
+                    journalChoice = newChoice
+                    currentJournal = newJournal
                 } else{
                     alert("Journal not available for: " + newChoice)
                 }
             }
-        },
+        }
         
-        journalsAvailable() {
+        function journalsAvailable() {
             const journals = {
                 "local storage": JournalUsingLocalStorage,
                 "memory": JournalUsingMemory,
                 "server": JournalUsingServer.socket ? JournalUsingServer : null
             }
             return journals
-        },
+        }
 
-        changeJournal(newChoice) {
-            const oldChoice = WorkspaceView.journalChoice
+        function changeJournal(newChoice) {
+            const oldChoice = journalChoice
             if (newChoice === oldChoice) return
             
-            const newJournal = WorkspaceView.journalsAvailable()[newChoice]
+            const newJournal = journalsAvailable()[newChoice]
             if (!newJournal) {
                 alert("Journal not available for: " + newChoice)
                 return
             }
             
-            if (!WorkspaceView.confirmClear()) return
+            if (!confirmClear()) return
 
-            WorkspaceView.saveCurrentItemId()
-            WorkspaceView.journalChoice = newChoice
-            WorkspaceView.currentJournal = newJournal
-            WorkspaceView.restoreCurrentItemId()
-            WorkspaceView.saveJournalChoice()
-        },
+            saveCurrentItemId()
+            journalChoice = newChoice
+            currentJournal = newJournal
+            restoreCurrentItemId()
+            saveJournalChoice()
+        }
 
-        setEditorContents(newContents, keepUndo) {
-            WorkspaceView.editor.setValue(newContents)
-            WorkspaceView.editor.selection.clearSelection()
-            WorkspaceView.editor.selection.moveCursorFileStart()
-            WorkspaceView.editor.getSession().setScrollTop(0)
+        function setEditorContents(newContents, keepUndo) {
+            editor.setValue(newContents)
+            editor.selection.clearSelection()
+            editor.selection.moveCursorFileStart()
+            editor.getSession().setScrollTop(0)
             // Replace undoManager since getUndoManager().reset() does not see to work well enough here
-            if (!keepUndo) WorkspaceView.editor.getSession().setUndoManager(new ace.UndoManager())
-        },
+            if (!keepUndo) editor.getSession().setUndoManager(new ace.UndoManager())
+        }
 
-        getEditorContents() {
-            return WorkspaceView.editor.getValue()
-        },
+        function getEditorContents() {
+            return editor.getValue()
+        }
 
-        getSelectedEditorText() {
-            let selectedText = WorkspaceView.editor.session.getTextRange(WorkspaceView.editor.getSelectionRange())
+        function getSelectedEditorText() {
+            let selectedText = editor.session.getTextRange(editor.getSelectionRange())
             let isNoSelection = false
             if (!selectedText) {
                 // assume user wants all text if nothing is selected
-                selectedText = WorkspaceView.editor.getValue()
+                selectedText = editor.getValue()
                 isNoSelection = true
             }
             return {
                 text: selectedText,
                 isNoSelection,
             }
-        },
+        }
          
-        prepareCurrentItemForSaving(value) {
+        function prepareCurrentItemForSaving(value) {
             // TODO: reference previous if relevant and also set timestamps and author as needed
-            WorkspaceView.currentItem.value = value
-            WorkspaceView.currentItem.timestamp = new Date().toISOString()
-            WorkspaceView.currentItem.contributor = WorkspaceView.currentContributor
-            WorkspaceView.currentItem.derivedFrom = WorkspaceView.currentItemId || ""
+            currentItem.value = value
+            currentItem.timestamp = new Date().toISOString()
+            currentItem.contributor = currentContributor
+            currentItem.derivedFrom = currentItemId || ""
             // TODO: Maybe check to be sure there is a license?
-            return CanonicalJSON.stringify(WorkspaceView.currentItem)
-        },
+            return CanonicalJSON.stringify(currentItem)
+        }
 
-        save() {
-            if (!WorkspaceView.isEditorDirty()) {
+        function save() {
+            if (!isEditorDirty()) {
                 if (!confirm("There are no changes.\nSave a new item anyway with a later timestamp?")) return
             }
-            if (!WorkspaceView.currentContributor) {
-                if (!WorkspaceView.promptForContributor()) return
+            if (!currentContributor) {
+                if (!promptForContributor()) return
             }
-            const newContents = WorkspaceView.getEditorContents()
-            const itemJSON = WorkspaceView.prepareCurrentItemForSaving(newContents)
-            const addResult = WorkspaceView.currentJournal.addItem(itemJSON)
+            const newContents = getEditorContents()
+            const itemJSON = prepareCurrentItemForSaving(newContents)
+            const addResult = currentJournal.addItem(itemJSON)
             if (addResult.error) {
                 alert("save failed -- maybe too many localStorage items?\n" + addResult.error)
                 return
             }
             if (addResult.existed) {
-                WorkspaceView.toast("Item already saved", 1000)
+                toast("Item already saved", 1000)
             } else {
-                WorkspaceView.toast("Saved item as:\n" + addResult.id, 2000)
+                toast("Saved item as:\n" + addResult.id, 2000)
             }
-            WorkspaceView.updateLastLoadedItemFromCurrentItem()
-            WorkspaceView.wasEditorDirty = false
-            WorkspaceView.currentItemId = addResult.id
-            WorkspaceView.saveCurrentItemId()
-            WorkspaceView.updateIsLastMatch(true)
-            WorkspaceView.setDocumentTitleForCurrentItem()
-        },
+            updateLastLoadedItemFromCurrentItem()
+            wasEditorDirty = false
+            currentItemId = addResult.id
+            saveCurrentItemId()
+            updateIsLastMatch(true)
+            setDocumentTitleForCurrentItem()
+        }
         
-        interceptSaveKey(evt) {
+        function interceptSaveKey(evt) {
             // derived from: https://stackoverflow.com/questions/2903991/how-to-detect-ctrlv-ctrlc-using-javascript
             evt = evt || window.event // IE support
             var c = evt.keyCode
@@ -311,157 +310,157 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         
             // Check for ctrl+s
             if (ctrlDown && c == 83) {
-                WorkspaceView.save()
+                save()
                 return false
             }
         
             // Otherwise allow
             return true
-        },
+        }
         
-        isEditorDirty() {
+        function isEditorDirty() {
             // TODO: compare individual strings instead of use CanonicalJSON.stringify to be more efficient
-            return WorkspaceView.editor && (CanonicalJSON.stringify(WorkspaceView.lastLoadedItem) !== CanonicalJSON.stringify(WorkspaceView.currentItem))
-        },
+            return editor && (CanonicalJSON.stringify(lastLoadedItem) !== CanonicalJSON.stringify(currentItem))
+        }
 
-        confirmClear(promptText) {
-            if (!WorkspaceView.getEditorContents()) return true
-            if (!WorkspaceView.isEditorDirty()) return true
+        function confirmClear(promptText) {
+            if (!getEditorContents()) return true
+            if (!isEditorDirty()) return true
             if (!promptText) promptText = "You have unsaved editor changes. Proceed?"
             return confirm(promptText)
-        },
+        }
 
-        clear() {
-            if (!WorkspaceView.confirmClear()) return
+        function clear() {
+            if (!confirmClear()) return
             // Preserve some fields if it has a value -- so can push twice to totally clear
-            const oldItem = WorkspaceView.currentItem
-            WorkspaceView.currentItemId = null
-            WorkspaceView.currentItem = newItem()
+            const oldItem = currentItem
+            currentItemId = null
+            currentItem = newItem()
             if (oldItem.value) {
-                WorkspaceView.currentItem.entity = oldItem.entity
-                WorkspaceView.currentItem.attribute = oldItem.attribute
-                WorkspaceView.currentItem.contentType = oldItem.contentType
-                WorkspaceView.currentItem.encoding = oldItem.encoding
-                WorkspaceView.currentItem.license = oldItem.license
+                currentItem.entity = oldItem.entity
+                currentItem.attribute = oldItem.attribute
+                currentItem.contentType = oldItem.contentType
+                currentItem.encoding = oldItem.encoding
+                currentItem.license = oldItem.license
             }
-            WorkspaceView.setEditorContents(WorkspaceView.currentItem.value)
-            WorkspaceView.wasEditorDirty = false
-            WorkspaceView.saveCurrentItemId()
-            WorkspaceView.updateIsLastMatch()
-            WorkspaceView.setDocumentTitleForCurrentItem()
-        },
+            setEditorContents(currentItem.value)
+            wasEditorDirty = false
+            saveCurrentItemId()
+            updateIsLastMatch()
+            setDocumentTitleForCurrentItem()
+        }
 
-        doIt() {
-            const selection = WorkspaceView.getSelectedEditorText()
+        function doIt() {
+            const selection = getSelectedEditorText()
             try {
                 EvalUtils.eval(selection.text)
             } catch (error) {
-                WorkspaceView.toast("Eval error:\n" + error)
+                toast("Eval error:\n" + error)
             }
-        },
+        }
 
-        printIt(event, callback) {
+        function printIt(event, callback) {
             if (!callback) callback = EvalUtils.evalOrError
             
-            const selection = WorkspaceView.getSelectedEditorText()
+            const selection = getSelectedEditorText()
             const evalResult = callback(selection.text)
             const textToInsert = " " + evalResult
             
-            if (selection.isNoSelection) { WorkspaceView.editor.selection.moveCursorFileEnd() }
-            const selectedRange = WorkspaceView.editor.selection.getRange()
+            if (selection.isNoSelection) { editor.selection.moveCursorFileEnd() }
+            const selectedRange = editor.selection.getRange()
             const start = selectedRange.end
-            const end = WorkspaceView.editor.session.insert(start, textToInsert)
-            WorkspaceView.editor.selection.setRange({start, end})
+            const end = editor.session.insert(start, textToInsert)
+            editor.selection.setRange({start, end})
             
-            WorkspaceView.editor.focus()
-        },
+            editor.focus()
+        }
 
-        inspectIt() {
-            const selection = WorkspaceView.getSelectedEditorText()
+        function inspectIt() {
+            const selection = getSelectedEditorText()
             const evalResult = EvalUtils.evalOrError(selection.text)
             console.dir(evalResult)
-        },
+        }
 
-        openIt() {
-            if (WorkspaceView.currentJournal !== JournalUsingLocalStorage) {
+        function openIt() {
+            if (currentJournal !== JournalUsingLocalStorage) {
                 alert("Snippets need to be in the local storage journal (not memory or server)\nto be opened in a new window.")
                 return
             }
-            if (WorkspaceView.currentItemId === null) {
+            if (currentItemId === null) {
                 alert("To open a snippet in its own window, you need to\nnavigate to a snippet from local storage first or save a new one.")
                 return
             }
-            window.open("#open=" + WorkspaceView.currentItemId)
-        },
+            window.open("#open=" + currentItemId)
+        }
         
-        importText(convertToBase64) {
-            if (!WorkspaceView.confirmClear()) return
+        function importText(convertToBase64) {
+            if (!confirmClear()) return
             FileUtils.loadFromFile(convertToBase64, (fileName, fileContents) => {
                 if (fileContents) {
                     const newContent = fileContents
-                    WorkspaceView.setEditorContents(newContent, "keepUndo")
+                    setEditorContents(newContent, "keepUndo")
                     // We don't know if the text is changed, so use null for wasEditorDirty
-                    WorkspaceView.wasEditorDirty = null
-                    WorkspaceView.currentItem.encoding = convertToBase64 ? "base64" : ""
+                    wasEditorDirty = null
+                    currentItem.encoding = convertToBase64 ? "base64" : ""
                     m.redraw()
                 }
             })
-        },
+        }
         
-        importTextPlain() {
-            WorkspaceView.importText(false)
-        },
+        function importTextPlain() {
+            importText(false)
+        }
         
-        importTextAsBase64() {
-            WorkspaceView.importText(true)
-        },
+        function importTextAsBase64() {
+            importText(true)
+        }
         
-        exportText() {
-            const fileContents = WorkspaceView.getEditorContents()
+        function exportText() {
+            const fileContents = getEditorContents()
             const provisionalFileName = fileContents.split("\n")[0]
             FileUtils.saveToFile(provisionalFileName, fileContents)
-        },
+        }
         
-        makeDataURLForItemId(itemId) {
-            const itemText = WorkspaceView.currentJournal.getItem(itemId)
+        function makeDataURLForItemId(itemId) {
+            const itemText = currentJournal.getItem(itemId)
             const encodedText = encodeURIComponent(itemText)
             const dataURL = twirlip7DataUrlPrefix + itemId + "/" + itemText.length + "/" + encodedText.length + "/" + encodedText
             return { itemId, itemText, dataURL }
-        },
+        }
                
-        displayCurrentTriple() {
-            if (WorkspaceView.currentItemId) {
-                if (!WorkspaceView.confirmClear()) return
-                const dataURL = WorkspaceView.makeDataURLForItemId(WorkspaceView.currentItemId).dataURL
-                WorkspaceView.showText(dataURL, "text/plain")
-                WorkspaceView.editor.selection.selectAll()
-                WorkspaceView.editor.focus()
+        function displayCurrentTriple() {
+            if (currentItemId) {
+                if (!confirmClear()) return
+                const dataURL = makeDataURLForItemId(currentItemId).dataURL
+                showText(dataURL, "text/plain")
+                editor.selection.selectAll()
+                editor.focus()
             } else {
                 alert("Please select a saved triple first")
             }
-        },
+        }
         
-        displayCurrentTripleAndHistory() {
-            if (WorkspaceView.currentItemId) {
-                if (!WorkspaceView.confirmClear()) return
+        function displayCurrentTripleAndHistory() {
+            if (currentItemId) {
+                if (!confirmClear()) return
                 let dataURLs = []
-                let itemId = WorkspaceView.currentItemId
+                let itemId = currentItemId
                 while (itemId) {
-                    const dataURLConversionResult = WorkspaceView.makeDataURLForItemId(itemId)
+                    const dataURLConversionResult = makeDataURLForItemId(itemId)
                     dataURLs.unshift(dataURLConversionResult.dataURL)
                     const item = Twirlip7.getItemForJSON(dataURLConversionResult.itemText)
                     itemId = item.derivedFrom
                 }
                 const textForAllItems = dataURLs.join("\n")
-                WorkspaceView.showText(textForAllItems, "text/plain")
-                WorkspaceView.editor.selection.selectAll()
-                WorkspaceView.editor.focus()
+                showText(textForAllItems, "text/plain")
+                editor.selection.selectAll()
+                editor.focus()
             } else {
                 alert("Please select a saved triple first")
             }
-        },
+        }
         
-        makeTripleForDataURL(dataURL) {
+        function makeTripleForDataURL(dataURL) {
             if (dataURL) {
                 if (!dataURL.startsWith(twirlip7DataUrlPrefix)) {
                     alert("item should start with: " + twirlip7DataUrlPrefix)
@@ -497,7 +496,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 }
                 
                 // TODO: Consolidate the copy/paste adding of item with where this is copied from
-                const addResult = WorkspaceView.currentJournal.addItem(itemText)
+                const addResult = currentJournal.addItem(itemText)
                 if (addResult.error) {
                     alert("save failed -- maybe too many localStorage items?\n" + addResult.error)
                     return null
@@ -508,40 +507,46 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 alert("Please enter a Twirlip 7 data url starting with " + twirlip7DataUrlPrefix)
                 return null
             }
-        },
+        }
         
-        readTriplesFromDataURLs() {
-            const textForAllItems = WorkspaceView.getSelectedEditorText().text.trim()
+        function readTriplesFromDataURLs() {
+            const textForAllItems = getSelectedEditorText().text.trim()
             const dataURLs = textForAllItems.split("\n")
             const keys = []
             for (let dataURL of dataURLs) {
-                const key = WorkspaceView.makeTripleForDataURL(dataURL)
+                const key = makeTripleForDataURL(dataURL)
                 if (!key) break
                 keys.push(key)
             }
             if (keys.length && keys.length === dataURLs.length) {
-                WorkspaceView.goToKey(keys[keys.length - 1], {ignoreDirty: true})
+                goToKey(keys[keys.length - 1], {ignoreDirty: true})
             }
-        },
+        }
 
-        skip(delta, wrap) {
-            if (!WorkspaceView.currentJournal.itemCount()) {
-                WorkspaceView.toast("No journal items to display. Try saving one first -- or show the example journal in the editor and then load it.")
+        function skip(delta, wrap) {
+            if (!currentJournal.itemCount()) {
+                toast("No journal items to display. Try saving one first -- or show the example journal in the editor and then load it.")
                 return
             }
-            const key = WorkspaceView.currentJournal.skip(WorkspaceView.currentItemId, delta, wrap)
-            WorkspaceView.goToKey(key)
-        },
+            const key = currentJournal.skip(currentItemId, delta, wrap)
+            goToKey(key)
+        }
 
-        goToKey(key, options) {
+        function goToKey(key, options) {
+            if (!editor) {
+                console.log("EARLY GOTOKEY")
+                // Called before we are ready -- defer this for later
+                startupGoToKey = {key, options}
+                return
+            }
             if (!options) options = {}
             // First check is to prevent losing redo stack and cursor position if not moving
-            if (!options.reload && key === WorkspaceView.currentItemId) return
-            if (!options.ignoreDirty && !WorkspaceView.confirmClear()) return
-            let itemText = WorkspaceView.currentJournal.getItem(key)
+            if (!options.reload && key === currentItemId) return
+            if (!options.ignoreDirty && !confirmClear()) return
+            let itemText = currentJournal.getItem(key)
             let item
             if (itemText === undefined || itemText === null) {
-                if (key) WorkspaceView.toast("item not found for:\n\"" + key + "\"")
+                if (key) toast("item not found for:\n\"" + key + "\"")
                 item = newItem()
             } else if (itemText[0] !== "{") {
                 // TODO: remove legacy development support
@@ -550,33 +555,33 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             } else {
                 item = JSON.parse(itemText)
             }
-            WorkspaceView.currentItemId = key
-            WorkspaceView.currentItem = item
+            currentItemId = key
+            currentItem = item
             
-            WorkspaceView.setEditorContents(item.value || "")
-            WorkspaceView.wasEditorDirty = false
-            WorkspaceView.updateLastLoadedItemFromCurrentItem()
+            setEditorContents(item.value || "")
+            wasEditorDirty = false
+            updateLastLoadedItemFromCurrentItem()
                                     
-            WorkspaceView.setEditorModeForContentType(item.contentType)
+            setEditorModeForContentType(item.contentType)
             
-            WorkspaceView.saveCurrentItemId()
-            WorkspaceView.updateIsLastMatch()
-            WorkspaceView.setDocumentTitleForCurrentItem()
-        },
+            saveCurrentItemId()
+            updateIsLastMatch()
+            setDocumentTitleForCurrentItem()
+        }
 
-        setDocumentTitleForCurrentItem() {
+        function setDocumentTitleForCurrentItem() {
             let newTitle
-            if (!WorkspaceView.currentItem.entity && !WorkspaceView.currentItem.attribute) {
+            if (!currentItem.entity && !currentItem.attribute) {
                 newTitle = "Twirlip7 Programmable Notebook"
             } else {
-                newTitle = WorkspaceView.currentItem.entity + " :: " + WorkspaceView.currentItem.attribute 
+                newTitle = currentItem.entity + " :: " + currentItem.attribute 
             }
             document.title = newTitle
-        },
+        }
         
         // TODO: Improve adhoc partial handling of character types which also ignores character set
 
-        setEditorModeForContentType(contentType) {
+        function setEditorModeForContentType(contentType) {
             let newMode = "javascript"
             if (contentType) {
                 // try to change editor mode to match content type
@@ -605,11 +610,11 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
             newMode = "ace/mode/" + newMode
 
-            WorkspaceView.editorMode = newMode
-            WorkspaceView.editor.getSession().setMode(newMode)
-        },
+            editorMode = newMode
+            editor.getSession().setMode(newMode)
+        }
 
-        guessContentTypeForEditorMode(editorMode) {
+        function guessContentTypeForEditorMode(editorMode) {
             const modeName = editorMode.substring("ace/mode/".length)
             if (modeName === "javascript") return "application/javascript"
             if (modeName == "json") return "application/json"
@@ -619,170 +624,170 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             if (modeName == "svg") return "image/svg+xml"
             if (modeName == "text") return "text/plain; charset=utf-8"
             return "text/x-" + modeName
-        },
+        }
 
-        goFirst() { WorkspaceView.skip(-1000000) },
+        function goFirst() { skip(-1000000) }
 
-        goPrevious() { WorkspaceView.skip(-1) },
+        function goPrevious() { skip(-1) }
 
-        goNext() { WorkspaceView.skip(1) },
+        function goNext() { skip(1) }
 
-        goLast() { WorkspaceView.skip(1000000) },
+        function goLast() { skip(1000000) }
         
-        goToLatestForEntity() {
-            const key = WorkspaceView.findLatestForEntity()
+        function goToLatestForEntity() {
+            const key = findLatestForEntity()
             if (key) {
-                WorkspaceView.goToKey(key)
+                goToKey(key)
             }
-        },
+        }
         
-        goToLatestForEntityAttribute() {
-            const key = WorkspaceView.findLatestForEntityAttribute()
+        function goToLatestForEntityAttribute() {
+            const key = findLatestForEntityAttribute()
             if (key) {
-                WorkspaceView.goToKey(key)
+                goToKey(key)
             }
-        },
+        }
         
-        findLatestForEntity() {
-            const matches = Twirlip7.findItem({entity: WorkspaceView.currentItem.entity}, { includeMetadata: true, sortBy: "location" })
+        function findLatestForEntity() {
+            const matches = Twirlip7.findItem({entity: currentItem.entity}, { includeMetadata: true, sortBy: "location" })
             if (matches.length) {
                 return matches[0].key
             }
             return null
-        },
+        }
         
-        findLatestForEntityAttribute() {
+        function findLatestForEntityAttribute() {
             const matches = Twirlip7.findItem({
-                entity: WorkspaceView.currentItem.entity,
-                attribute: WorkspaceView.currentItem.attribute
+                entity: currentItem.entity,
+                attribute: currentItem.attribute
             }, { includeMetadata: true, sortBy: "location" })
             if (matches.length) {
                 return matches[0].key
             }
             return null
-        },
+        }
         
-        updateIsLastMatch(value) {
+        function updateIsLastMatch(value) {
             // TODO: Computing these two variables is CPU intensive as they both iterate over all items
             if (value !== undefined) {
-                WorkspaceView.isLastEntityMatch = value
-                WorkspaceView.isLastEntityAttributeMatch = value
+                isLastEntityMatch = value
+                isLastEntityAttributeMatch = value
                 return
             }
-            if (WorkspaceView.isEditorDirty() || !WorkspaceView.currentItemId) {
-                WorkspaceView.isLastEntityMatch = !WorkspaceView.findLatestForEntity()
-                WorkspaceView.isLastEntityAttributeMatch = !WorkspaceView.findLatestForEntityAttribute()
+            if (isEditorDirty() || !currentItemId) {
+                isLastEntityMatch = !findLatestForEntity()
+                isLastEntityAttributeMatch = !findLatestForEntityAttribute()
                 return
             }
-            if (WorkspaceView.currentItemId) {
-                WorkspaceView.isLastEntityMatch = WorkspaceView.findLatestForEntity() === WorkspaceView.currentItemId
-                WorkspaceView.isLastEntityAttributeMatch = WorkspaceView.findLatestForEntityAttribute() === WorkspaceView.currentItemId
+            if (currentItemId) {
+                isLastEntityMatch = findLatestForEntity() === currentItemId
+                isLastEntityAttributeMatch = findLatestForEntityAttribute() === currentItemId
             }
-        },
+        }
         
-        updateLastLoadedItemFromCurrentItem() {
-            WorkspaceView.lastLoadedItem = JSON.parse(JSON.stringify(WorkspaceView.currentItem))
-        },
+        function updateLastLoadedItemFromCurrentItem() {
+            lastLoadedItem = JSON.parse(JSON.stringify(currentItem))
+        }
         
-        showText(newText, contentType) {
-            // WorkspaceView.currentItemId = null
-            WorkspaceView.currentItem = newItem()
-            WorkspaceView.currentItem.value = newText
-            WorkspaceView.currentItem.contentType = contentType
+        function showText(newText, contentType) {
+            // currentItemId = null
+            currentItem = newItem()
+            currentItem.value = newText
+            currentItem.contentType = contentType
             
-            WorkspaceView.setEditorContents(newText)
-            WorkspaceView.wasEditorDirty = false
-            WorkspaceView.updateLastLoadedItemFromCurrentItem()
+            setEditorContents(newText)
+            wasEditorDirty = false
+            updateLastLoadedItemFromCurrentItem()
             
-            WorkspaceView.setEditorModeForContentType(WorkspaceView.currentItem.contentType)
-            // WorkspaceView.saveCurrentItemId()
-            WorkspaceView.updateIsLastMatch(true)
-        },
+            setEditorModeForContentType(currentItem.contentType)
+            // saveCurrentItemId()
+            updateIsLastMatch(true)
+        }
         
-        showJournal(journalText) {
-            WorkspaceView.showText(journalText, "application/json")
-        },
+        function showJournal(journalText) {
+            showText(journalText, "application/json")
+        }
 
-        showCurrentJournal() {
-            if (!WorkspaceView.confirmClear()) return
-            WorkspaceView.showJournal(WorkspaceView.currentJournal.textForJournal())
-        },
+        function showCurrentJournal() {
+            if (!confirmClear()) return
+            showJournal(currentJournal.textForJournal())
+        }
 
-        showExampleJournal() {
-            if (!WorkspaceView.confirmClear()) return
-            WorkspaceView.progress("Loading examples; please wait...")
+        function showExampleJournal() {
+            if (!confirmClear()) return
+            progress("Loading examples; please wait...")
             ExampleJournalLoader.loadAllFiles(
                 (progressMessage) => {
-                    WorkspaceView.progress(progressMessage)
+                    progress(progressMessage)
                     m.redraw()
                 },
                 (exampleJournal) => {
-                    WorkspaceView.showJournal(JSON.stringify(exampleJournal, null, 4))
-                    WorkspaceView.progress(null)
+                    showJournal(JSON.stringify(exampleJournal, null, 4))
+                    progress(null)
                     m.redraw()
                 }
             )
-        },
+        }
 
-        replaceJournal() {
-            if (WorkspaceView.currentJournal.itemCount() && !confirm("Replace all items with entered text for the " + WorkspaceView.journalChoice + " journal?")) return
+        function replaceJournal() {
+            if (currentJournal.itemCount() && !confirm("Replace all items with entered text for the " + journalChoice + " journal?")) return
             try {
-                WorkspaceView.currentJournal.loadFromJournalText(WorkspaceView.getEditorContents())
+                currentJournal.loadFromJournalText(getEditorContents())
             } catch (error) {
-                WorkspaceView.toast("Problem replacing journal from editor:\n" + error)
+                toast("Problem replacing journal from editor:\n" + error)
                 return
             }
             // Update lastLoadedItem.value in case pasted in contents to avoid warning later since data was processed as intended
-            WorkspaceView.lastLoadedItem.value = WorkspaceView.getEditorContents()
-            WorkspaceView.wasEditorDirty = false
-            WorkspaceView.toast("Replaced journal from editor")
-        },
+            lastLoadedItem.value = getEditorContents()
+            wasEditorDirty = false
+            toast("Replaced journal from editor")
+        }
         
-        mergeJournal() {
-            if (WorkspaceView.currentJournal.itemCount() && !confirm("Merge existing journal items with entered text for a journal?")) return
+        function mergeJournal() {
+            if (currentJournal.itemCount() && !confirm("Merge existing journal items with entered text for a journal?")) return
             try {
                 let addedItemCount = 0
-                const newJournalItems = JSON.parse(WorkspaceView.getEditorContents())
+                const newJournalItems = JSON.parse(getEditorContents())
                 for (let itemJSON of newJournalItems) {
-                    const addResult = WorkspaceView.currentJournal.addItem(itemJSON)
+                    const addResult = currentJournal.addItem(itemJSON)
                     if (!addResult.existed) addedItemCount++
                 }
-                WorkspaceView.toast("Added " + addedItemCount + " item" + ((addedItemCount === 1 ? "" : "s")) + " to existing journal")
+                toast("Added " + addedItemCount + " item" + ((addedItemCount === 1 ? "" : "s")) + " to existing journal")
             } catch (error) {
-                WorkspaceView.toast("Problem merging journal from editor:\n" + error)
+                toast("Problem merging journal from editor:\n" + error)
                 return
             }
             // Update lastLoadedItem.value in case pasted in contents to avoid warning later since data was processed as intended
-            WorkspaceView.lastLoadedItem.value = WorkspaceView.getEditorContents()
-            WorkspaceView.wasEditorDirty = false
-        },
+            lastLoadedItem.value = getEditorContents()
+            wasEditorDirty = false
+        }
 
-        progress(message) {
-            WorkspaceView.progressMessage = message
-        },
+        function progress(message) {
+            progressMessage = message
+        }
         
-        toast(message, delay) {
+        function toast(message, delay) {
             function removeToastAfterDelay() {
                 setTimeout(function() {
-                    WorkspaceView.toastMessages.shift()
-                    if ( WorkspaceView.toastMessages.length ) { removeToastAfterDelay() }
+                    toastMessages.shift()
+                    if ( toastMessages.length ) { removeToastAfterDelay() }
                     m.redraw()
-                }, WorkspaceView.toastMessages[0].delay)
+                }, toastMessages[0].delay)
             }
             if (delay === undefined) { delay = 3000 }
-            WorkspaceView.toastMessages.push({message, delay})
-            if ( WorkspaceView.toastMessages.length === 1) { removeToastAfterDelay() }
-        },
+            toastMessages.push({message, delay})
+            if ( toastMessages.length === 1) { removeToastAfterDelay() }
+        }
         
         // Extension sections are intended to be user-defined
         // extension example: {id: "hello", tags: "header", code: (context) => m("div", "Hello from extension") }
         
         // This finds all extensions with the tag, runs the code for each, and returns an array of the results
-        extensionsCallForTag(tag, phase) {
+        function extensionsCallForTag(tag, phase) {
             const result = []
-            const sortedKeys = Object.keys(WorkspaceView.extensions).sort()
+            const sortedKeys = Object.keys(extensions).sort()
             for (let key of sortedKeys) {
-                const extension = WorkspaceView.extensions[key]
+                const extension = extensions[key]
                 if (!extension) continue
                 if (extension.tags && (tag === extension.tags || extension.tags[tag])) {
                     if (extension.code) {
@@ -794,25 +799,25 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 }
             }
             return result
-        },
+        }
         
-        extensionsInstall(extension) {
+        function extensionsInstall(extension) {
             if (!extension.id) {
                 console.log("no id for extension to install\n" + JSON.stringify(extension))
                 return
             }
-            WorkspaceView.extensions[extension.id] = extension
-        },
+            extensions[extension.id] = extension
+        }
         
-        extensionsUninstall(extension) {
+        function extensionsUninstall(extension) {
             if (!extension.id) {
                 console.log("no id for extension to uninstall\n" + JSON.stringify(extension))
                 return
             }
-            delete WorkspaceView.extensions[extension.id]
-        },
+            delete extensions[extension.id]
+        }
         
-        getStartupInfo() {
+        function getStartupInfo() {
             // format: { startupItemIds: [ids...] }
             const startupInfo = localStorage.getItem("_startup")
             if (startupInfo) {
@@ -824,66 +829,66 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 } catch (error) {
                     console.log("Problem parsing startup info", error)
                     console.log("Startup infor was", startupInfo)
-                    WorkspaceView.setStartupInfo(null)
+                    setStartupInfo(null)
                 }
             }
             return { startupItemIds: [] }
-        },
+        }
         
-        setStartupInfo(info) {
+        function setStartupInfo(info) {
             localStorage.setItem("_startup", JSON.stringify(info))
-        },
+        }
         
-        promptForContributor() {
-            const contributor = prompt("Contributor? e.g. Jane Smith <jane.smith@example.com>", WorkspaceView.currentContributor)
+        function promptForContributor() {
+            const contributor = prompt("Contributor? e.g. Jane Smith <jane.smith@example.com>", currentContributor)
             if (contributor !== null) {
-                WorkspaceView.currentContributor = contributor
+                currentContributor = contributor
                 localStorage.setItem("_contributor", contributor)
                 return true
             }
             return false
-        },
+        }
         
         // View functions which are composed into one big view at the end
         
-        viewProgress() {
+        function viewProgress() {
             return m(".progressDiv.fixed.top-2.left-2.pa2.fieldset.bg-light-blue.pl3.pr3.tc.o-90.z-max", 
-                { hidden: !WorkspaceView.progressMessage },
-                WorkspaceView.progressMessage
+                { hidden: !progressMessage },
+                progressMessage
             )
-        },
+        }
         
-        viewToast() {
+        function viewToast() {
             return m(".toastDiv.fixed.top-2.left-2.pa2.fieldset.bg-gold.pl3.pr3.tc.o-90.z-max", 
-                { hidden: WorkspaceView.toastMessages.length === 0 },
-                WorkspaceView.toastMessages.length ? WorkspaceView.toastMessages[0].message : ""
+                { hidden: toastMessages.length === 0 },
+                toastMessages.length ? toastMessages[0].message : ""
             ) 
-        },
+        }
         
-        viewFocusAndCollapse() {
+        function viewFocusAndCollapse() {
             return m("div.fr", [
-                WorkspaceView.viewDirty(),
+                viewDirty(),
                 m("span.mr2"),
                 m("span.mr2", {  title: "focus mode hides extraneous editor controls to provide more space for testing" },
                     m("input[type=checkbox].ma1", { 
-                        checked: WorkspaceView.focusMode,
-                        onchange: (event) => WorkspaceView.focusMode = event.target.checked
+                        checked: focusMode,
+                        onchange: (event) => focusMode = event.target.checked
                     }),
                     "focus"
                 ),
-                m("button.fr", { style: "min-width: 1.5rem", onclick: () => WorkspaceView.collapseWorkspace = true, title: "click here to hide the editor" }, "-"),
+                m("button.fr", { style: "min-width: 1.5rem", onclick: () => collapseWorkspace = true, title: "click here to hide the editor" }, "-"),
             ])
-        },
+        }
         
-        viewAbout() {
+        function viewAbout() {
             return m("div#about.bg-lightest-blue.pa1.mb1", { style: "padding-bottom: 0.5rem" }, [
                 m("a.ml2", { target: "_blank", href: "https://github.com/pdfernhout/Twirlip7" }, "Twirlip7"),
-                m("div.ea-header", { style: "display: " + (WorkspaceView.focusMode ? "inline" : "none") }, [
-                    m("span.ml3", { title: "Entity" }, WorkspaceView.currentItem.entity || m("span.i", "<No Entity>")),
+                m("div.ea-header", { style: "display: " + (focusMode ? "inline" : "none") }, [
+                    m("span.ml3", { title: "Entity" }, currentItem.entity || m("span.i", "<No Entity>")),
                     m("span.ml2", "::"),
-                    m("span.ml2", { title: "Attribute" }, WorkspaceView.currentItem.attribute || m("span.i", "<No Attribute>"))
+                    m("span.ml2", { title: "Attribute" }, currentItem.attribute || m("span.i", "<No Attribute>"))
                 ]),
-                m("div.help-header", { style: "display: " + (!WorkspaceView.focusMode ? "inline" : "none") }, [
+                m("div.help-header", { style: "display: " + (!focusMode ? "inline" : "none") }, [
                     m("span.ml1", "uses"),
                     m("a.ml1", { target: "_blank", href: "https://mithril.js.org/" }, "Mithril"),
                     m("a", { target: "_blank", href: "https://github.com/MithrilJS/mithril.js" }, ".js"),
@@ -894,13 +899,13 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     m("span.ml2", "|"),
                     m("a.ml2", { target: "_blank", href: "https://arthurclemens.github.io/mithril-template-converter" }, "HTML->Mithril")
                 ]),
-                WorkspaceView.viewFocusAndCollapse(),
+                viewFocusAndCollapse(),
             ])
-        },
+        }
         
-        viewNavigate() {
-            const itemCount = WorkspaceView.currentJournal.itemCount()
-            const itemIndex = WorkspaceView.currentJournal.locationForKey(WorkspaceView.currentItemId)
+        function viewNavigate() {
+            const itemCount = currentJournal.itemCount()
+            const itemIndex = currentJournal.locationForKey(currentItemId)
             
             function isPreviousDisabled() {
                 if (itemCount === 0) return true
@@ -919,40 +924,40 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             }
             
             function itemIdentifierClicked() {
-                const newItemId = prompt("Go to item id", WorkspaceView.currentItemId)
+                const newItemId = prompt("Go to item id", currentItemId)
                 if (!newItemId) return
                 // TODO: Should have a check for "exists"
-                if (WorkspaceView.currentJournal.getItem(newItemId) === null) {
+                if (currentJournal.getItem(newItemId) === null) {
                     alert("Could not find item for id:\n" + newItemId)
                 } else {
-                    WorkspaceView.goToKey(newItemId, {reload: true})
+                    goToKey(newItemId, {reload: true})
                 }
             }
             
             function itemPositionClicked() {
                 const newItemIndex = prompt("Go to item index", itemIndex === null ? "" : itemIndex + 1)
                 if (!newItemIndex || newItemIndex === itemIndex) return
-                const newItemId = WorkspaceView.currentJournal.keyForLocation(parseInt(newItemIndex) - 1)
+                const newItemId = currentJournal.keyForLocation(parseInt(newItemIndex) - 1)
                 // TODO: Should have a check for "exists"
-                if (WorkspaceView.currentJournal.getItem(newItemId) === null) {
+                if (currentJournal.getItem(newItemId) === null) {
                     alert("Could not find item for index:\n" + newItemIndex)
                 } else {
-                    WorkspaceView.goToKey(newItemId, {reload: true})
+                    goToKey(newItemId, {reload: true})
                 }
             }
             
-            const undoManager = WorkspaceView.editor && WorkspaceView.editor.getSession().getUndoManager()
-            const itemIdentifier = (WorkspaceView.currentItemId === null) ? 
+            const undoManager = editor && editor.getSession().getUndoManager()
+            const itemIdentifier = (currentItemId === null) ? 
                 "???" : 
-                ("" + WorkspaceView.currentItemId).substring(0, 12) + ((("" + WorkspaceView.currentItemId).length > 12) ? "..." : "")
+                ("" + currentItemId).substring(0, 12) + ((("" + currentItemId).length > 12) ? "..." : "")
             return m("div.ba.ma1",
-                m("button.ma1", { onclick: WorkspaceView.goFirst, title: "Go to first snippet", disabled: isPreviousDisabled() }, "|<"),
-                m("button.ma1", { onclick: WorkspaceView.goPrevious, title: "Go to earlier snippet", disabled: isPreviousDisabled() }, "< Previous"),
-                m("button.ma1", { onclick: WorkspaceView.goNext, title: "Go to later snippet", disabled: isNextDisabled() }, "Next >"),
-                m("button.ma1", { onclick: WorkspaceView.goLast, title: "Go to last snippet", disabled: isNextDisabled() }, ">|"),
+                m("button.ma1", { onclick: goFirst, title: "Go to first snippet", disabled: isPreviousDisabled() }, "|<"),
+                m("button.ma1", { onclick: goPrevious, title: "Go to earlier snippet", disabled: isPreviousDisabled() }, "< Previous"),
+                m("button.ma1", { onclick: goNext, title: "Go to later snippet", disabled: isNextDisabled() }, "Next >"),
+                m("button.ma1", { onclick: goLast, title: "Go to last snippet", disabled: isNextDisabled() }, ">|"),
                "Item ",
                 m("span", { title: "Click to jump to different item by identifier", onclick: itemIdentifierClicked }, itemIdentifier),
-                WorkspaceView.currentJournal.getCapabilities().idIsPosition ? 
+                currentJournal.getCapabilities().idIsPosition ? 
                     "" : 
                     m("span", { onclick: itemPositionClicked, title: "Click to jump to different item by index" },
                         " : " + (itemIndex === null ?
@@ -961,334 +966,394 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     ),
                 " of ",
                 itemCount,
-                WorkspaceView.viewEditorMode(),
+                viewEditorMode(),
                 undoManager ? [
                     m("button.ma1", {onclick: () => undoManager.undo(), disabled: !undoManager.hasUndo() }, "< Undo"),
                     m("button.ma1", {onclick: () => undoManager.redo(), disabled: !undoManager.hasRedo() }, "Redo >"),
                 ] : []
             )
-        },
+        }
         
-        viewEditorMode() {
+        function viewEditorMode() {
             function selectChanged(event) {
                 const newEditorMode = event.target.value
-                WorkspaceView.editorMode = newEditorMode
-                WorkspaceView.editor.getSession().setMode(WorkspaceView.editorMode)
-                WorkspaceView.currentItem.contentType = WorkspaceView.guessContentTypeForEditorMode(newEditorMode)
+                editorMode = newEditorMode
+                editor.getSession().setMode(editorMode)
+                currentItem.contentType = guessContentTypeForEditorMode(newEditorMode)
             }
-            return m("select.ma2", { value: WorkspaceView.editorMode, onchange: selectChanged }, 
+            return m("select.ma2", { value: editorMode, onchange: selectChanged }, 
                 modelist.modes.map(mode => m("option", { value: mode.mode }, mode.name))
             )
-        },
+        }
         
-        viewDirty() {
+        function viewDirty() {
             return m("span.dirty", 
-                WorkspaceView.isEditorDirty() ?
+                isEditorDirty() ?
                    "Modified" :
                    ""
             )
-        },
+        }
         
-        viewContext() {
+        function viewContext() {
             return [
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", { title: "Entity: the object, event, idea, or group being described or defined" }, "Entity"),
                     m("input.w-80", {
-                        value: WorkspaceView.currentItem.entity || "",
+                        value: currentItem.entity || "",
                         oninput: event => {
-                            WorkspaceView.currentItem.entity = event.target.value
-                            WorkspaceView.updateIsLastMatch()
+                            currentItem.entity = event.target.value
+                            updateIsLastMatch()
                         },
-                        onkeydown: WorkspaceView.interceptSaveKey
+                        onkeydown: interceptSaveKey
                     }),
                     m("button.ml1", {
-                        onclick: WorkspaceView.goToLatestForEntity,
+                        onclick: goToLatestForEntity,
                         title: "Latest triple for Entity",
-                        disabled: WorkspaceView.isLastEntityMatch
+                        disabled: isLastEntityMatch
                     }, " E >|")
                 ),
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", { title: "Attribute: the parameter, field, aspect, or subpart of what is being described or defined" }, "Attribute"),
                     m("input.w-80", {
-                        value: WorkspaceView.currentItem.attribute || "",
+                        value: currentItem.attribute || "",
                         oninput: event => {
-                            WorkspaceView.currentItem.attribute = event.target.value
-                            WorkspaceView.updateIsLastMatch()
+                            currentItem.attribute = event.target.value
+                            updateIsLastMatch()
                         },
-                        onkeydown: WorkspaceView.interceptSaveKey
+                        onkeydown: interceptSaveKey
                     }),
                     m("button.ml1", {
-                        onclick: WorkspaceView.goToLatestForEntityAttribute,
+                        onclick: goToLatestForEntityAttribute,
                         title: "Latest triple for Entity-Attribute pair",
-                        disabled: WorkspaceView.isLastEntityAttributeMatch 
+                        disabled: isLastEntityAttributeMatch 
                     }, " EA >|")
                 ),
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", { title: "Value: a note, observation, or specification about the state of the entity's attribute at some point in time" }, "Value")
                 ), 
             ]
-        },
+        }
         
-        viewAuthor() {
+        function viewAuthor() {
             return [
                 m("div.ma1",
                     m("span.dib.w4.tr.mr2", "Content type"),
                     m("input.w-40", {
-                        value: WorkspaceView.currentItem.contentType || "",
-                        oninput: event => WorkspaceView.currentItem.contentType = event.target.value,
-                        onkeydown: WorkspaceView.interceptSaveKey
+                        value: currentItem.contentType || "",
+                        oninput: event => currentItem.contentType = event.target.value,
+                        onkeydown: interceptSaveKey
                     }),
                     m("span.pa2"),
                     m("span.dib.w4.tr.mr2", {title: "content transfer encoding like \"base64\" for binary data"}, "Encoding"),
                     m("input.w-20", {
-                        value: WorkspaceView.currentItem.encoding || "",
-                        oninput: event => WorkspaceView.currentItem.encoding = event.target.value,
-                        onkeydown: WorkspaceView.interceptSaveKey
+                        value: currentItem.encoding || "",
+                        oninput: event => currentItem.encoding = event.target.value,
+                        onkeydown: interceptSaveKey
                     })
                 ),  
                 m("div.ma1",
-                    m("span.dib.w4.tr.mr2", WorkspaceView.viewContributor()),
+                    m("span.dib.w4.tr.mr2", viewContributor()),
                     m("input.w-40.bg-light-gray", {
                         readonly: true,
-                        value: WorkspaceView.currentItem.contributor || "",
-                        oninput: event => WorkspaceView.currentItem.contributor = event.target.value,
-                        onkeydown: WorkspaceView.interceptSaveKey
+                        value: currentItem.contributor || "",
+                        oninput: event => currentItem.contributor = event.target.value,
+                        onkeydown: interceptSaveKey
                     }),
                     m("span.pa2"),
                     m("span.dib.w4.tr.mr2", "Timestamp"),
                     m("input.w-20.bg-light-gray", {
                         readonly: true,
-                        value: WorkspaceView.currentItem.timestamp || "",
-                        oninput: event => WorkspaceView.currentItem.timestamp = event.target.value,
-                        onkeydown: WorkspaceView.interceptSaveKey
+                        value: currentItem.timestamp || "",
+                        oninput: event => currentItem.timestamp = event.target.value,
+                        onkeydown: interceptSaveKey
                     })
                 ),
                 m("div.ma1",
                     m("span.dib.w4.tr.mr2", {
                         title: "click to go to item",
-                        onclick: () => { if (WorkspaceView.currentItem.derivedFrom) WorkspaceView.goToKey(WorkspaceView.currentItem.derivedFrom) },
+                        onclick: () => { if (currentItem.derivedFrom) goToKey(currentItem.derivedFrom) },
                     }, "Derived from"),
                     m("input.w-40.bg-light-gray", {
                         readonly: true,
-                        value: WorkspaceView.currentItem.derivedFrom || "",
-                        oninput: event => WorkspaceView.currentItem.derivedFrom = event.target.value,
-                        onkeydown: WorkspaceView.interceptSaveKey
+                        value: currentItem.derivedFrom || "",
+                        oninput: event => currentItem.derivedFrom = event.target.value,
+                        onkeydown: interceptSaveKey
                     }),
                     m("span.pa2"),
                     m("span.dib.w4.tr.mr2", "License"),
                     m("input.w-20", {
-                        value: WorkspaceView.currentItem.license || "",
-                        oninput: event => WorkspaceView.currentItem.license = event.target.value,
-                        onkeydown: WorkspaceView.interceptSaveKey
+                        value: currentItem.license || "",
+                        oninput: event => currentItem.license = event.target.value,
+                        onkeydown: interceptSaveKey
                     })
                 )
             ]
-        },
+        }
         
-        viewContributor() {
+        function viewContributor() {
             return m("span", {
-                onclick: WorkspaceView.promptForContributor,
-                title: "Click to set current contributor for next contribution" + (WorkspaceView.currentContributor ? "\n" + WorkspaceView.currentContributor : ""),
+                onclick: promptForContributor,
+                title: "Click to set current contributor for next contribution" + (currentContributor ? "\n" + currentContributor : ""),
             }, "Contributor")
-        },
+        }
         
-        viewEditor() {
+        function viewEditor() {
             return m("div.w-100#editor", {
                 style: {
-                    height: WorkspaceView.aceEditorHeight + "rem"
+                    height: aceEditorHeight + "rem"
                 },
                 oncreate: function() {
-                    WorkspaceView.editor = ace.edit("editor")
-                    WorkspaceView.editor.getSession().setMode(WorkspaceView.editorMode)
-                    WorkspaceView.editor.getSession().setUseSoftTabs(true)
-                    WorkspaceView.editor.$blockScrolling = Infinity
-                    WorkspaceView.editor.getSession().on("change", function() {
-                        WorkspaceView.currentItem.value = WorkspaceView.getEditorContents()
+                    editor = ace.edit("editor")
+                    editor.getSession().setMode(editorMode)
+                    editor.getSession().setUseSoftTabs(true)
+                    editor.$blockScrolling = Infinity
+                    editor.getSession().on("change", function() {
+                        currentItem.value = getEditorContents()
                         // optimization with wasEditorDirty to prevent unneeded redraws
-                        const isEditorDirty = WorkspaceView.isEditorDirty()
-                        if (isEditorDirty !== WorkspaceView.wasEditorDirty) {
-                            WorkspaceView.wasEditorDirty = isEditorDirty
-                            WorkspaceView.updateIsLastMatch()
+                        const isDirty = isEditorDirty()
+                        if (isDirty !== wasEditorDirty) {
+                            wasEditorDirty = isDirty
+                            updateIsLastMatch()
                             // Use setTimeout to give undo manager some time to update itself
                             setTimeout(m.redraw, 0)
                         }
                     })
                     // Bind a key for saving
-                    WorkspaceView.editor.commands.addCommand({
+                    editor.commands.addCommand({
                         name: "save",
                         bindKey: {win: "Ctrl-S",  mac: "Command-S"},
                         exec: function() {
-                            WorkspaceView.save()
+                            save()
                             // Need to redraw here because this event handling is outside of Mithril
                             m.redraw()
                         },
                         readOnly: false
                     })
+                    if (startupGoToKey) {
+                        setTimeout(() => {
+                            goToKey(startupGoToKey.key, startupGoToKey.options)
+                            startupGoToKey = null
+                        }, 0)
+                    }
                 },
                 onupdate: function() {
-                    WorkspaceView.editor.resize()
+                    editor.resize()
                 }
             })
-        },
+        }
         
-        viewSplitter() {
+        function viewSplitter() {
             return m("div.bg-light-gray", {
                 // splitter for resizing the editor's height
                 style: { cursor: "ns-resize", height: "0.33rem" },
                 draggable: true,
                 ondragstart: (event) => {
-                    WorkspaceView.dragOriginY = event.screenY
+                    dragOriginY = event.screenY
                     event.dataTransfer.setData("Text", event.target.id)
                     event.dataTransfer.effectAllowed = "none"
                 },
                 ondragend: (event) => {
-                    const yDifference = event.screenY - WorkspaceView.dragOriginY
-                    const lineDifference = Math.floor(yDifference / WorkspaceView.editor.renderer.lineHeight)
-                    WorkspaceView.aceEditorHeight = parseInt(WorkspaceView.aceEditorHeight) + lineDifference
-                    if (WorkspaceView.aceEditorHeight < 5) { WorkspaceView.aceEditorHeight = 5 }
-                    if (WorkspaceView.aceEditorHeight > 100) { WorkspaceView.aceEditorHeight = 100 }
+                    const yDifference = event.screenY - dragOriginY
+                    const lineDifference = Math.floor(yDifference / editor.renderer.lineHeight)
+                    aceEditorHeight = parseInt(aceEditorHeight) + lineDifference
+                    if (aceEditorHeight < 5) { aceEditorHeight = 5 }
+                    if (aceEditorHeight > 100) { aceEditorHeight = 100 }
                 },
             })
-        },
+        }
         
-        viewStartupItem()  {
+        function viewStartupItem()  {
             const helpText = "Whether to run this snippet when the editor starts up -- snippets run in the order they were added"
-            const startupInfo = WorkspaceView.getStartupInfo()
-            const isStartupItem = startupInfo.startupItemIds.indexOf(WorkspaceView.currentItemId) !== -1
+            const startupInfo = getStartupInfo()
+            const isStartupItem = startupInfo.startupItemIds.indexOf(currentItemId) !== -1
             function toggleUseAtStartup(isStartupItem, itemId) {
-                const startupInfo = WorkspaceView.getStartupInfo()
+                const startupInfo = getStartupInfo()
                 if (isStartupItem) {
                     const index = startupInfo.startupItemIds.indexOf(itemId)
                     if (index > -1) {
                         startupInfo.startupItemIds.splice(index, 1)
-                        WorkspaceView.setStartupInfo(startupInfo)
+                        setStartupInfo(startupInfo)
                     }
                 } else {
                     startupInfo.startupItemIds.push(itemId)
-                    WorkspaceView.setStartupInfo(startupInfo)
+                    setStartupInfo(startupInfo)
                 }
                 
             }
             return [
                 m("input[type=checkbox].ma1", {
                     checked: isStartupItem,
-                    disabled: WorkspaceView.currentJournal !== JournalUsingLocalStorage,
-                    onclick: toggleUseAtStartup.bind(null, isStartupItem, WorkspaceView.currentItemId),
+                    disabled: currentJournal !== JournalUsingLocalStorage,
+                    onclick: toggleUseAtStartup.bind(null, isStartupItem, currentItemId),
                     title: helpText
                 }),
                 m("span", {title: helpText}, "Bootstrap it"),
             ]
-        },
+        }
         
-        viewEvaluateButtons() {
+        function viewEvaluateButtons() {
             return [
-                m("button.ma1", { onclick: WorkspaceView.doIt, title: "Evaluate selected code" }, "Do it"),
-                m("button.ma1", { onclick: WorkspaceView.printIt, title: "Evaluate code and insert result in editor" }, "Print it"),
-                m("button.ma1", { onclick: WorkspaceView.inspectIt, title: "Evaluate code and log result to console"  }, "Inspect it"),
-                m("button.ma1", { onclick: WorkspaceView.openIt, title: "Open current saved snippet in a new window" }, "Open it"),
-                WorkspaceView.viewStartupItem()
+                m("button.ma1", { onclick: doIt, title: "Evaluate selected code" }, "Do it"),
+                m("button.ma1", { onclick: printIt, title: "Evaluate code and insert result in editor" }, "Print it"),
+                m("button.ma1", { onclick: inspectIt, title: "Evaluate code and log result to console"  }, "Inspect it"),
+                m("button.ma1", { onclick: openIt, title: "Open current saved snippet in a new window" }, "Open it"),
+                viewStartupItem()
             ]
-        },
+        }
                 
-        viewSpacer() {
+        function viewSpacer() {
             return m("span.pa1")
-        },
+        }
         
-        viewEditorButtons() {
+        function viewEditorButtons() {
             return [
-                m("button.ma1", { onclick: WorkspaceView.save, title: "Save current snippet into the journal"  }, "Save"),
-                m("button.ma1", { onclick: WorkspaceView.clear, title: "Clear out text in editor and the derivedFrom link\nPress a second time to clear other fields too" }, "Clear"),
-                m("button.ma1", { onclick: WorkspaceView.importTextPlain, title: "Load a file into editor" }, "Import"),
-                m("button.ma1", { onclick: WorkspaceView.importTextAsBase64, title: "Load a file into editor as base64" }, "Import as Base64"),
-                m("button.ma1", { onclick: WorkspaceView.exportText, title: "Save current editor text to a file" }, "Export"),
-                m("button.ma1", { onclick: WorkspaceView.displayCurrentTriple, title: "Print the current triple in the editor as a data URL (to copy)", disabled: !WorkspaceView.currentItemId }, "P*"),
-                m("button.ma1", { onclick: WorkspaceView.displayCurrentTripleAndHistory, title: "Print the current triple and its entire derived-from histroy in the editor as data URLs (to copy)", disabled: !WorkspaceView.currentItemId }, "E*"),
-                m("button.ma1", { onclick: WorkspaceView.readTriplesFromDataURLs, title: "Read one or more triples from data URLs in the editor (like from a paste) and save them into the current journal" }, "C*"),
+                m("button.ma1", { onclick: save, title: "Save current snippet into the journal"  }, "Save"),
+                m("button.ma1", { onclick: clear, title: "Clear out text in editor and the derivedFrom link\nPress a second time to clear other fields too" }, "Clear"),
+                m("button.ma1", { onclick: importTextPlain, title: "Load a file into editor" }, "Import"),
+                m("button.ma1", { onclick: importTextAsBase64, title: "Load a file into editor as base64" }, "Import as Base64"),
+                m("button.ma1", { onclick: exportText, title: "Save current editor text to a file" }, "Export"),
+                m("button.ma1", { onclick: displayCurrentTriple, title: "Print the current triple in the editor as a data URL (to copy)", disabled: !currentItemId }, "P*"),
+                m("button.ma1", { onclick: displayCurrentTripleAndHistory, title: "Print the current triple and its entire derived-from histroy in the editor as data URLs (to copy)", disabled: !currentItemId }, "E*"),
+                m("button.ma1", { onclick: readTriplesFromDataURLs, title: "Read one or more triples from data URLs in the editor (like from a paste) and save them into the current journal" }, "C*"),
             ]
-        },
+        }
         
-        viewBreak() {
+        function viewBreak() {
             return m("br")
-        },
+        }
         
-        viewJournalButtons() {
-            const journalsAvailable = WorkspaceView.journalsAvailable()
+        function viewJournalButtons() {
+            const journals = journalsAvailable()
             function journalChanged(event) {
-                if (!WorkspaceView.confirmClear()) {
+                if (!confirmClear()) {
                     return
                 }
-                WorkspaceView.changeJournal(event.target.value)
+                changeJournal(event.target.value)
             }
-            const isCurrentJournalLoading = WorkspaceView.journalChoice === "server" && !JournalUsingServer.isLoaded
+            const isCurrentJournalLoading = journalChoice === "server" && !JournalUsingServer.isLoaded
             return [
                 "Journal",
                 m("select.ma2", {
                     onchange: journalChanged,
                     title: "Change storage location of snippets",
                     // The value is required here in addition to settign the options: https://gitter.im/mithriljs/mithril.js?at=59492498cf9c13503ca57fdd
-                    value: WorkspaceView.journalChoice
+                    value: journalChoice
                 },
-                    Object.keys(journalsAvailable).sort().map((journalKey) => {
+                    Object.keys(journals).sort().map((journalKey) => {
                         let name = journalKey
-                        if (journalKey === "server" && journalsAvailable[journalKey] && !JournalUsingServer.isLoaded) {
+                        if (journalKey === "server" && journals[journalKey] && !JournalUsingServer.isLoaded) {
                             name += " <-->"
                         }
-                        return m("option", { value: journalKey, disabled: !journalsAvailable[journalKey]}, name)
+                        return m("option", { value: journalKey, disabled: !journals[journalKey]}, name)
                     })
                 ),
-                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: WorkspaceView.showCurrentJournal, title: "Put JSON for current journal contents into editor" }, "Show current journal"),
-                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: WorkspaceView.showExampleJournal, title: "Put a journal of sample snippets as JSON into editor (for loading afterwards)" }, "Show example journal"),
-                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: WorkspaceView.mergeJournal, title: "Load JSON journal from editor -- merging with the previous snippets" }, "Merge journal"),
-                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: WorkspaceView.replaceJournal, title: "Load JSON journal from editor -- replacing all previous snippets!" }, "Replace journal"),
+                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: showCurrentJournal, title: "Put JSON for current journal contents into editor" }, "Show current journal"),
+                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: showExampleJournal, title: "Put a journal of sample snippets as JSON into editor (for loading afterwards)" }, "Show example journal"),
+                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: mergeJournal, title: "Load JSON journal from editor -- merging with the previous snippets" }, "Merge journal"),
+                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: replaceJournal, title: "Load JSON journal from editor -- replacing all previous snippets!" }, "Replace journal"),
             ]
-        },
+        }
         
-        viewExtensionsHeader() {
-            return m("#extensionsHeader", WorkspaceView.extensionsCallForTag("header", "view"))
-        },
+        function viewExtensionsHeader() {
+            return m("#extensionsHeader", extensionsCallForTag("header", "view"))
+        }
         
-        viewExtensionsMiddle() {
-            return m("#extensionsMiddle", WorkspaceView.extensionsCallForTag("middle", "view"))
-        },
+        function viewExtensionsMiddle() {
+            return m("#extensionsMiddle", extensionsCallForTag("middle", "view"))
+        }
         
-        viewExtensionsFooter() {
-            return m("#extensionsFooter", WorkspaceView.extensionsCallForTag("footer", "view"))
-        },
+        function viewExtensionsFooter() {
+            return m("#extensionsFooter", extensionsCallForTag("footer", "view"))
+        }
         
-        viewMain() {
-            const focusMode = WorkspaceView.focusMode
+        function viewMain() {
             return [
-                WorkspaceView.viewProgress(),
-                WorkspaceView.viewToast(),
-                WorkspaceView.viewAbout(),
-                focusMode ? [] : WorkspaceView.viewExtensionsHeader(),
-                focusMode ? [] : WorkspaceView.viewJournalButtons(),
-                focusMode ? [] : WorkspaceView.viewNavigate(),
-                focusMode ? [] : WorkspaceView.viewContext(),
-                WorkspaceView.viewEditor(),
-                focusMode ? [] : WorkspaceView.viewAuthor(),
-                WorkspaceView.viewSplitter(),
-                focusMode ? [] : WorkspaceView.viewExtensionsMiddle(),
-                WorkspaceView.viewEvaluateButtons(),
-                WorkspaceView.viewSpacer(),
-                WorkspaceView.viewEditorButtons(),
-                WorkspaceView.viewBreak(),
-                focusMode ? [] : WorkspaceView.viewExtensionsFooter(),
+                viewProgress(),
+                viewToast(),
+                viewAbout(),
+                focusMode ? [] : viewExtensionsHeader(),
+                focusMode ? [] : viewJournalButtons(),
+                focusMode ? [] : viewNavigate(),
+                focusMode ? [] : viewContext(),
+                viewEditor(),
+                focusMode ? [] : viewAuthor(),
+                viewSplitter(),
+                focusMode ? [] : viewExtensionsMiddle(),
+                viewEvaluateButtons(),
+                viewSpacer(),
+                viewEditorButtons(),
+                viewBreak(),
+                focusMode ? [] : viewExtensionsFooter(),
             ]
-        },
+        }
 
-        view() {
+        function view() {
             return m("#main.ma2", [
                 m("div.bg-lightest-blue.pa1.w-100", {
-                    style: "padding-bottom: 0.5rem; display:" + (WorkspaceView.collapseWorkspace ? "block" : "none"),
-                    onclick: () => WorkspaceView.collapseWorkspace = false,
+                    style: "padding-bottom: 0.5rem; display:" + (collapseWorkspace ? "block" : "none"),
+                    onclick: () => collapseWorkspace = false,
                     title: "click here to show the editor",
                 }, m("span.ml2", "Twirlip7 Editor"), m("button.fr", { style: "min-width: 1.5rem", title: "Click here to expand the editor" }, "+")),
                 m("div", {
-                    style: "display: " + (WorkspaceView.collapseWorkspace ? "none" : "initial")
-                }, WorkspaceView.viewMain())
+                    style: "display: " + (collapseWorkspace ? "none" : "initial")
+                }, viewMain())
             ])
-        },
+        }
+        
+        return {
+            oninit,
+            view,
+            show,
+            
+            newItem,
+            goToKey,
+            getStartupInfo,
+            setStartupInfo,
+            restoreJournalChoice,
+            setEditorContents,
+            fetchStoredItemId,
+            
+            // Extra accessors for extensions
+                       
+            extensionsInstall,
+            extensionsUninstall,
+            
+            toast,
+            confirmClear,
+            getEditorContents,
+            isEditorDirty,
+    
+            getSelectedEditorText,
+            getSelection,
+            doIt,
+            printIt,
+            inspectIt,
+            openIt,
+            
+            // Extra accessors for other users
+            
+            getCurrentItem() {
+                return currentItem
+            },
+            getCurrentItemId() {
+                return currentItemId
+            },
+            getCurrentJournal() {
+                return currentJournal
+            },
+            getJournalChoice() {
+                return journalChoice
+            },
+            getCurrentContributor() {
+                return currentContributor
+            },
+            setCurrentContributor(contributor) {
+                currentContributor = contributor
+            },
+            getEditorMode() {
+                return editorMode
+            }
+        }
     }
     
     return WorkspaceView

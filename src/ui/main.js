@@ -11,6 +11,8 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
     /* global location */
     
     let initialKeyToGoTo = null
+    
+    let workspaceView = WorkspaceView()
 
     function getItemForJSON(itemJSON) {
         if (itemJSON === null) return null
@@ -21,7 +23,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
                 // fall through
             }
         }
-        const newItem = WorkspaceView.newItem()
+        const newItem = workspaceView.newItem()
         newItem.value = itemJSON
         return newItem
     }
@@ -34,23 +36,25 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
             return
         }
         window.Twirlip7 = {
-            show: WorkspaceView.show,
-            WorkspaceView,
+            show: workspaceView.show,
+            workspaceView,
+            // TODO: Remove legacy support for older extensions using "WorkspaceView"
+            WorkspaceView: workspaceView,
             FileUtils,
             CanonicalJSON,
             JournalUsingLocalStorage,
             JournalUsingMemory,
             JournalUsingServer,
             getCurrentJournal: () => {
-                return WorkspaceView.currentJournal
+                return workspaceView.getCurrentJournal()
             },
             getItemForJSON: getItemForJSON,
-            newItem: WorkspaceView.newItem,
+            newItem: workspaceView.newItem,
             saveItem: (item) => {
                 if (!item.timestamp) item.timestamp = new Date().toISOString()
-                if (!item.contributor) item.contributor = WorkspaceView.currentContributor
+                if (!item.contributor) item.contributor = workspaceView.getCurrentContributor()
                 const itemJSON = CanonicalJSON.stringify(item)
-                return WorkspaceView.currentJournal.addItem(itemJSON)
+                return workspaceView.getCurrentJournal().addItem(itemJSON)
             },
             findItem(match, configuration) {
                 // configuration: { includeMetadata: false, sortBy: "timestamp" (default) | "location" }
@@ -59,7 +63,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
                 // TODO: This should not have to iterate over all stored objects
                 if (!configuration) configuration = {}
                 const result = []
-                const journal = WorkspaceView.currentJournal
+                const journal = workspaceView.getCurrentJournal()
                 const count = journal.itemCount()
                 for (let i = 0; i < count; i++) {
                     const itemJSON = journal.getItemForLocation(i)
@@ -107,7 +111,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
             JournalUsingServer.onLoadedCallback = function() {
                 console.log("done reading data from server")
                 // assuming callback will always be done before get here to go to initialKeyToGoTo
-                if (initialKeyToGoTo && WorkspaceView.journalChoice === "server") WorkspaceView.goToKey(initialKeyToGoTo)
+                if (initialKeyToGoTo && workspaceView.getJournalChoice() === "server") workspaceView.goToKey(initialKeyToGoTo)
                 m.redraw()
             }
             JournalUsingServer.setup(io)
@@ -139,7 +143,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
     }
     
     function runAllStartupItems() {
-        const startupInfo = WorkspaceView.getStartupInfo()
+        const startupInfo = workspaceView.getStartupInfo()
         if (startupInfo.startupItemIds.length) {
             setTimeout(() => {
                 const invalidStartupItems = []
@@ -156,7 +160,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
                         const index = startupInfo.startupItemIds.indexOf(invalidStartupItemId)
                         if (index > -1) startupInfo.startupItemIds.splice(index, 1)
                     }
-                    WorkspaceView.setStartupInfo(startupInfo)
+                    workspaceView.setStartupInfo(startupInfo)
                 }
                 m.redraw()
             })
@@ -166,7 +170,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
     function startEditor(postMountCallback, preMountCallback) {
         if (preMountCallback) preMountCallback()
         const root = document.body
-        m.mount(root, WorkspaceView) 
+        m.mount(root, workspaceView) 
         setTimeout(() => {
             if (postMountCallback) {
                 postMountCallback()
@@ -182,8 +186,8 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
         // do our own routing and ignore things that don't match in case other evaluated code is using Mithril's router
         if (hash && hash.startsWith("#item=")) {
             const itemId = hash.substring("#item=".length)
-            if (WorkspaceView.currentItemId !== itemId) {
-                WorkspaceView.goToKey(itemId)
+            if (workspaceView.getCurrentItemId() !== itemId) {
+                workspaceView.goToKey(itemId)
             }
         }        
     }
@@ -193,7 +197,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
     function startup() {
         setupTwirlip7Global(() => {
         
-            WorkspaceView.currentContributor = localStorage.getItem("_contributor") || ""
+            workspaceView.setCurrentContributor(localStorage.getItem("_contributor") || "")
             
             const hash = location.hash
             if (hash && hash.startsWith("#open=")) {
@@ -203,9 +207,9 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
                 const itemId = hash.substring("#item=".length)
                 initialKeyToGoTo = itemId
                 startEditor(() => {
-                    if (initialKeyToGoTo && WorkspaceView.journalChoice == "local storage") WorkspaceView.goToKey(initialKeyToGoTo)
+                    if (initialKeyToGoTo && workspaceView.getJournalChoice() == "local storage") workspaceView.goToKey(initialKeyToGoTo)
                 }, () => {
-                    WorkspaceView.restoreJournalChoice()
+                    workspaceView.restoreJournalChoice()
                 })
             } else if (hash && hash.startsWith("#eval=")) {
                 // TODO: Not sure whether to restore journal choice here
@@ -221,17 +225,18 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
                 const startupSelection = hash.substring("#edit=".length)
                 requirejs(["vendor/text!" + startupSelection], function (startupFileContents) {
                     startEditor(() => {
-                        WorkspaceView.currentItem.entity = startupSelection
-                        WorkspaceView.currentItem.attribute = "contents"
-                        WorkspaceView.setEditorContents(startupFileContents)
+                        const currentItem = workspaceView.getCurrentItem()
+                        currentItem.entity = startupSelection
+                        currentItem.attribute = "contents"
+                        workspaceView.setEditorContents(startupFileContents)
                     })
                 })
             } else {
                 startEditor(() => {
-                    initialKeyToGoTo = WorkspaceView.fetchStoredItemId()
-                    if (WorkspaceView.journalChoice !== "server") WorkspaceView.goToKey(initialKeyToGoTo)
+                    initialKeyToGoTo = workspaceView.fetchStoredItemId()
+                    if (workspaceView.getJournalChoice() !== "server") workspaceView.goToKey(initialKeyToGoTo)
                 },() => {
-                    WorkspaceView.restoreJournalChoice()
+                    workspaceView.restoreJournalChoice()
                 })
             }
         })

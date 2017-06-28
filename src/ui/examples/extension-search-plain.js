@@ -17,7 +17,7 @@ function search() {
     }
 }
 
-Twirlip7.WorkspaceView.extensionsInstall({
+Twirlip7.workspaceView.extensionsInstall({
     id: "search-plain",
     // For tags, try header, middle, and footer
     tags: "header",
@@ -26,7 +26,7 @@ Twirlip7.WorkspaceView.extensionsInstall({
             searchResults.map((result) => {
                 return m("div", {
                     title: result.item, 
-                    onclick: Twirlip7.WorkspaceView.goToKey.bind(null, result.key)
+                    onclick: Twirlip7.workspaceView.goToKey.bind(null, result.key)
                 }, "" + (result.i + 1) + ") " + result.item.substring(0, 120) + "...")
             }),
             "Find items matching:",
@@ -38,4 +38,4 @@ Twirlip7.WorkspaceView.extensionsInstall({
     }
 })
 
-// Twirlip7.WorkspaceView.extensionsUninstall({id: "search-plain"})
+// Twirlip7.workspaceView.extensionsUninstall({id: "search-plain"})

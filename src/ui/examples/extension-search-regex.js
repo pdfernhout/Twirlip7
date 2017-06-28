@@ -50,7 +50,7 @@ function latest() {
         if (searchResults.length) {
             const latestResult = searchResults[0]
             searchResults.splice(0)
-            Twirlip7.WorkspaceView.goToKey(latestResult.key)
+            Twirlip7.workspaceView.goToKey(latestResult.key)
         }
     }
 }
@@ -60,7 +60,7 @@ function clearResults() {
     noMatches = false
 }
 
-Twirlip7.WorkspaceView.extensionsInstall({
+Twirlip7.workspaceView.extensionsInstall({
     id: "search-regex",
     // For tags, try header, middle, and footer
     tags: "footer",
@@ -99,7 +99,7 @@ Twirlip7.WorkspaceView.extensionsInstall({
             searchResults.map((result) => {
                 return m("div.bg-washed-yellow", {
                     title: result.item, 
-                    onclick: Twirlip7.WorkspaceView.goToKey.bind(null, result.key)
+                    onclick: Twirlip7.workspaceView.goToKey.bind(null, result.key)
                 }, "" + (result.i + 1) + ") " + result.item.substring(0, 120) + "...")
             }),
             noMatches ? m("div", "No matches") : [],
@@ -108,4 +108,4 @@ Twirlip7.WorkspaceView.extensionsInstall({
     }
 })
 
-// Twirlip7.WorkspaceView.extensionsUninstall({id: "search-regex"})
+// Twirlip7.workspaceView.extensionsUninstall({id: "search-regex"})

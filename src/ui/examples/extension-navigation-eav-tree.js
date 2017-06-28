@@ -54,11 +54,11 @@ function updateCacheIfNeeded() {
 }
 
 function load(key) {
-    if (!Twirlip7.WorkspaceView.confirmClear()) return
-    Twirlip7.WorkspaceView.goToKey(key)
+    if (!Twirlip7.workspaceView.confirmClear()) return
+    Twirlip7.workspaceView.goToKey(key)
 }
 
-Twirlip7.WorkspaceView.extensionsInstall({
+Twirlip7.workspaceView.extensionsInstall({
     id: "navigation-eav-tree",
     tags: "footer",
     code: (context) => {
@@ -103,4 +103,4 @@ Twirlip7.WorkspaceView.extensionsInstall({
     }
 })
 
-// Twirlip7.WorkspaceView.extensionsUninstall({id: "navigation"})
+// Twirlip7.workspaceView.extensionsUninstall({id: "navigation"})
