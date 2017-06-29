@@ -109,14 +109,12 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
         // Try to load socket.io, which may fail
         requirejs(["/socket.io/socket.io.js"], function(io) {
             JournalUsingServer.onLoadedCallback = function() {
-                console.log("done reading data from server", new Date().toISOString(), JournalUsingServer.messagesReceivedCount)
                 // assuming callback will always be done before get here to go to initialKeyToGoTo
                 if (initialKeyToGoTo && workspaceView.getJournalChoice() === "server") workspaceView.goToKey(initialKeyToGoTo)
                 m.redraw()
             }
             JournalUsingServer.setup(io)
             callback()
-            console.log("started reading data from server", new Date().toISOString())
         }, function(err) {
             console.log("No socket.io available -- server function disabled")
             callback()

@@ -148,6 +148,7 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
                 JournalUsingServer.clearItems()
             } else if (message.command === "loaded") {
                 JournalUsingServer.isLoaded = true
+                console.log("all server data loaded", new Date().toISOString(), JournalUsingServer.messagesReceivedCount)
                 if (JournalUsingServer.onLoadedCallback) JournalUsingServer.onLoadedCallback()
             }
             m.redraw()
@@ -164,8 +165,7 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             })
             
             JournalUsingServer.socket.on("connect", function(client) {
-                console.log("connect", JournalUsingServer.socket.id)
-                
+                console.log("connect", JournalUsingServer.socket.id, new Date().toISOString())
                 JournalUsingServer.requestAllMessages()
             })
         }
