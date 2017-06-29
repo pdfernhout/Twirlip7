@@ -721,8 +721,12 @@
   function clearGutter(acediff) {
     //gutter.innerHTML = '';
 
-    var gutterEl  = document.getElementById(acediff.options.classes.gutterID);
-    gutterEl.removeChild(acediff.gutterSVG);
+    // Twirlip7 added guard if check to avoid error message in console
+    // Error message was: ace-diff.js:725 Uncaught DOMException: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    if (acediff.gutterSVG.parentNode) {
+        var gutterEl  = document.getElementById(acediff.options.classes.gutterID);
+        gutterEl.removeChild(acediff.gutterSVG);
+    }
 
     createGutter(acediff);
   }
