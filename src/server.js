@@ -63,8 +63,8 @@ io.on("connection", function(socket) {
     })
 })
 
-function sendMessage(message) {
-    // console.log("sendMessage", JSON.stringify(message));
+function sendMessageToAllClients(message) {
+    // console.log("sendMessageToAllClients", JSON.stringify(message));
     // io.emit("twirlip", message); // This would send to all clients -- even ones not listening on stream
     var streams = streamToListenerMap[message.streamId]
     if (streams) {
@@ -136,8 +136,11 @@ function processMessage(clientId, message) {
 function listen(clientId, message) {
     // TODO Handle only sending some recent messages or no previous messages
     var streamId = message.streamId
+    var fromIndex = message.fromIndex || 0
+    var messageCount = 0
+    var messagesSent = 0
     
-    console.log("\nlisten", clientId, streamId)
+    console.log("\nlisten", clientId, streamId, fromIndex, new Date().toISOString())
     
     setListenerState(clientId, streamId, "listening")
     
@@ -146,10 +149,13 @@ function listen(clientId, message) {
     // TODO: Make this asynchronous
     // TODO: Also  if asynchronous, maybe queue new messages for a client for sending later until this is done to preserve order
     function sendMessage(messageString) {
+        if (messageCount < fromIndex) return
+        messageCount++
         // TODO: Handle errors
         var message = JSON.parse(messageString)
         // console.log("listen sendMessage", clientId, message)
         sendMessageToClient(clientId, message)
+        messagesSent++
     }
     var fdMessages = null
     try {
@@ -165,7 +171,8 @@ function listen(clientId, message) {
             fs.closeSync(fdMessages)
         }
     }
-    sendMessage(JSON.stringify({command: "loaded", streamId: streamId}))
+    console.log("sending loaded", messagesSent, new Date().toISOString())
+    sendMessageToClient(clientId, {command: "loaded", streamId: streamId})
 }
 
 function unlisten(clientId, message) {
@@ -178,14 +185,14 @@ function insert(clientId, message) {
     var streamId = message.streamId
     console.log("\ninsert", clientId, streamId, calculateSha256(message.item))
     storeMessage(message)
-    sendMessage(message)
+    sendMessageToAllClients(message)
 }
 
 function remove(clientId, message) {
     var streamId = message.streamId
     console.log("\nremove (unfinished)", streamId)
     storeMessage(message)
-    sendMessage(message)
+    sendMessageToAllClients(message)
 }
 
 function reset(clientId, message) {
@@ -193,7 +200,7 @@ function reset(clientId, message) {
     console.log("\nresed", streamId)
     // TODO: Perhaps should clear out file?
     storeMessage(message)
-    sendMessage(message)
+    sendMessageToAllClients(message)
 }
    
 // File reading and writing

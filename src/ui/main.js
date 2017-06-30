@@ -109,6 +109,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
         // Try to load socket.io, which may fail
         requirejs(["/socket.io/socket.io.js"], function(io) {
             JournalUsingServer.onLoadedCallback = function() {
+                JournalUsingServer.onLoadedCallback = null
                 // assuming callback will always be done before get here to go to initialKeyToGoTo
                 if (initialKeyToGoTo && workspaceView.getJournalChoice() === "server") workspaceView.goToKey(initialKeyToGoTo)
                 m.redraw()

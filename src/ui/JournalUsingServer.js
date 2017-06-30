@@ -133,22 +133,26 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
         },
         
         requestAllMessages() {
-            JournalUsingServer.sendMessage({command: "listen", streamId: JournalUsingServer.streamId})
+            console.log("requestAllMessages", JournalUsingServer.messagesReceivedCount)
+            JournalUsingServer.sendMessage({command: "listen", streamId: JournalUsingServer.streamId, fromIndex: JournalUsingServer.messagesReceivedCount})
         },
         
         messageReceived(message) {
-            JournalUsingServer.messagesReceivedCount++
             // console.log("messageReceived", message)
             if (message.command === "insert") {
+                JournalUsingServer.messagesReceivedCount++
                 JournalUsingServer.addItem(message.item, "isFromServer")
             } else if (message.command === "remove") {
+                JournalUsingServer.messagesReceivedCount++
                 console.log("TODO: Remove message not handled")
             } else if (message.command === "reset") {
+                JournalUsingServer.messagesReceivedCount++
                 // TODO: Should handle timestamps somehow, so earlier messages before last reset are rejected
                 JournalUsingServer.clearItems()
             } else if (message.command === "loaded") {
+                // Don't increment messagesReceivedCount as "loaded" is an advisory meta message from server
                 JournalUsingServer.isLoaded = true
-                console.log("all server data loaded", new Date().toISOString(), JournalUsingServer.messagesReceivedCount)
+                console.log("all server data loaded", JournalUsingServer.messagesReceivedCount, new Date().toISOString())
                 if (JournalUsingServer.onLoadedCallback) JournalUsingServer.onLoadedCallback()
             }
             m.redraw()
@@ -159,13 +163,14 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             JournalUsingServer.socket = io()
             
             JournalUsingServer.socket.on("twirlip", function(message) {
+                // console.log("twirlip", message)
                 if (message.streamId === JournalUsingServer.streamId) {
                     JournalUsingServer.messageReceived(message)
                 }
             })
             
             JournalUsingServer.socket.on("connect", function(client) {
-                console.log("connect", JournalUsingServer.socket.id, new Date().toISOString())
+                console.log("connect", JournalUsingServer.socket.id, JournalUsingServer.messagesReceivedCount, new Date().toISOString())
                 JournalUsingServer.requestAllMessages()
             })
         }
