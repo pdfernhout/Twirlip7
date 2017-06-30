@@ -1104,10 +1104,19 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 },
                 oncreate: function() {
                     editor = ace.edit("editor")
-                    editor.getSession().setMode(editorMode)
-                    editor.getSession().setUseSoftTabs(true)
+                    
+                    // Suppress warning about deprecated feature
                     editor.$blockScrolling = Infinity
-                    editor.getSession().on("change", function() {
+                    
+                    const session = editor.getSession()
+                    session.setMode(editorMode)
+                    session.setUseSoftTabs(true)
+                    
+                    // wrapping
+                    session.setUseWrapMode(true)
+                    session.setOption("wrapMethod", "text")
+
+                    session.on("change", function() {
                         currentItem.value = getEditorContents()
                         // optimization with wasEditorDirty to prevent unneeded redraws
                         const isDirty = isEditorDirty()
@@ -1118,6 +1127,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                             setTimeout(m.redraw, 0)
                         }
                     })
+                    
                     // Bind a key for saving
                     editor.commands.addCommand({
                         name: "save",
@@ -1129,6 +1139,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         },
                         readOnly: false
                     })
+                    
                     if (startupGoToKey) {
                         setTimeout(() => {
                             goToKey(startupGoToKey.key, startupGoToKey.options)
