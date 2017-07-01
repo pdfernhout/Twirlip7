@@ -1252,7 +1252,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         
         function viewEditorButtons() {
             return [
-                m("button.ma1", { onclick: clear, title: "Clear out text in editor and the derivedFrom link\nPress a second time to clear other fields too" }, "Clear"),
+                m("button.ma1", { onclick: clear, title: "Clear out text in editor and the derivedFrom link\nPress a second time to clear other fields too" }, "New note"),
                 m("button.ma1", { onclick: importTextPlain, title: "Load a file into editor" }, "Import"),
                 m("button.ma1", { onclick: importTextAsBase64, title: "Load a file into editor as base64" }, "Import as Base64"),
                 m("button.ma1", { onclick: exportText, title: "Save current editor text to a file" }, "Export"),
