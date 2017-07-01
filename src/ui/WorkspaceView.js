@@ -946,7 +946,6 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 }
             }
             
-            const undoManager = editor && editor.getSession().getUndoManager()
             const itemIdentifier = (currentItemId === null) ? 
                 "???" : 
                 ("" + currentItemId).substring(0, 12) + ((("" + currentItemId).length > 12) ? "..." : "")
@@ -965,12 +964,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         (itemIndex + 1))
                     ),
                 " of ",
-                itemCount,
-                viewEditorMode(),
-                undoManager ? [
-                    m("button.ma1", {onclick: () => undoManager.undo(), disabled: !undoManager.hasUndo() }, "< Undo"),
-                    m("button.ma1", {onclick: () => undoManager.redo(), disabled: !undoManager.hasRedo() }, "Redo >"),
-                ] : []
+                itemCount
             )
         }
         
@@ -981,7 +975,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 editor.getSession().setMode(editorMode)
                 currentItem.contentType = guessContentTypeForEditorMode(newEditorMode)
             }
-            return m("select.ma2", { value: editorMode, onchange: selectChanged }, 
+            return m("select.ml1", { value: editorMode, onchange: selectChanged }, 
                 modelist.modes.map(mode => m("option", { value: mode.mode }, mode.name))
             )
         }
@@ -995,6 +989,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         }
         
         function viewContext() {
+            const undoManager = editor && editor.getSession().getUndoManager()
             return [
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", { title: "Entity: the object, event, idea, group, or document being described or defined" }, "Entity"),
@@ -1028,8 +1023,13 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         disabled: isLastEntityAttributeMatch 
                     }, " EA >|")
                 ),
-                m("div.ma1",
-                    m("span.dib.w3.tr.mr2", { title: "Value: a note, observation, or specification about the state of the entity's attribute at some point in time" }, "Value")
+                m("div.mb1",
+                    m("span.dib.w3.tr.mr2", { title: "Value: a note, observation, or specification about the state of the entity's attribute at some point in time" }, "Value"),
+                    viewEditorMode(),
+                    undoManager ? [
+                        m("button.ml1", {onclick: () => undoManager.undo(), disabled: !undoManager.hasUndo() }, "< Undo"),
+                        m("button.ml1", {onclick: () => undoManager.redo(), disabled: !undoManager.hasRedo() }, "Redo >"),
+                    ] : []
                 ), 
             ]
         }
