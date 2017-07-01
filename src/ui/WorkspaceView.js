@@ -997,7 +997,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         function viewContext() {
             return [
                 m("div.ma1",
-                    m("span.dib.w3.tr.mr2", { title: "Entity: the object, event, idea, or group being described or defined" }, "Entity"),
+                    m("span.dib.w3.tr.mr2", { title: "Entity: the object, event, idea, group, or document being described or defined" }, "Entity"),
                     m("input.w-80", {
                         value: currentItem.entity || "",
                         oninput: event => {
