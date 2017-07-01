@@ -1052,10 +1052,11 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     m("span.dib.w3.tr.mr2", { title: "Value: a note, observation, definition, or specification about the state of the entity's attribute at some point in time" }, "Value"),
                     viewEditorMode(),
                     undoManager ? [
-                        m("button.ml1", {onclick: () => undoManager.undo(), disabled: !undoManager.hasUndo() }, "< Undo"),
-                        m("button.ml1", {onclick: () => undoManager.redo(), disabled: !undoManager.hasRedo() }, "Redo >"),
+                        m("button.ml2", {onclick: () => undoManager.undo(), disabled: !undoManager.hasUndo() }, "< Undo"),
+                        m("button.ml1.mr2", {onclick: () => undoManager.redo(), disabled: !undoManager.hasRedo() }, "Redo >"),
                     ] : [],
-                    focusMode ? [] : viewSaveButton()
+                    focusMode ? [] : viewSaveButton(),
+                    m("button", { onclick: clear, title: "Clear out text in editor and the derivedFrom link\nPress a second time to clear other fields too" }, "New note")
                 ), 
             ]
         }
@@ -1252,7 +1253,6 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         
         function viewEditorButtons() {
             return [
-                m("button.ma1", { onclick: clear, title: "Clear out text in editor and the derivedFrom link\nPress a second time to clear other fields too" }, "New note"),
                 m("button.ma1", { onclick: importTextPlain, title: "Load a file into editor" }, "Import"),
                 m("button.ma1", { onclick: importTextAsBase64, title: "Load a file into editor as base64" }, "Import as Base64"),
                 m("button.ma1", { onclick: exportText, title: "Save current editor text to a file" }, "Export"),
