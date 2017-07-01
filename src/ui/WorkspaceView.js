@@ -68,7 +68,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 show(function () { 
                     return [
                         m("div", "Thanks for trying Twirlip7, a programmable notebook and experimental Mithril.js playground -- with aspirations towards becoming a distributed social semantic desktop."),
-                        m("div", "To get started with some example code snippets, click \"Show example journal\", then \"Merge journal\", then \"Next\", and then \"Do it\"."),
+                        m("div", "To get started with some example code snippets, click \"Show example notebook\", then \"Merge notebook\", then \"Next\", and then \"Do it\"."),
                         m("div", "Use \"Previous\" and \"Next\" to scroll through more example snippets. \"Inspect it\" puts evaluation results for selected text into the console log.")
                     ]
                 })
@@ -202,7 +202,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     journalChoice = newChoice
                     currentJournal = newJournal
                 } else{
-                    alert("Journal not available for: " + newChoice)
+                    alert("Notebook not available for: " + newChoice)
                 }
             }
         }
@@ -222,7 +222,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             
             const newJournal = journalsAvailable()[newChoice]
             if (!newJournal) {
-                alert("Journal not available for: " + newChoice)
+                alert("Nodebook not available for: " + newChoice)
                 return
             }
             
@@ -274,7 +274,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
         function save() {
             if (!isEditorDirty()) {
-                if (!confirm("There are no changes.\nSave a new item anyway with a later timestamp?")) return
+                if (!confirm("There are no changes.\nSave a new note anyway with a later timestamp?")) return
             }
             if (!currentContributor) {
                 if (!promptForContributor()) return
@@ -287,9 +287,9 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 return
             }
             if (addResult.existed) {
-                toast("Item already saved", 1000)
+                toast("Note already saved", 1000)
             } else {
-                toast("Saved item as:\n" + addResult.id, 2000)
+                toast("Saved note as:\n" + addResult.id, 2000)
             }
             updateLastLoadedItemFromCurrentItem()
             wasEditorDirty = false
@@ -383,11 +383,11 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
         function openIt() {
             if (currentJournal !== JournalUsingLocalStorage) {
-                alert("Snippets need to be in the local storage journal (not memory or server)\nto be opened in a new window.")
+                alert("Notes need to be in the \"local storage\" notebook (not memory or server)\nto be opened in a new window.")
                 return
             }
             if (currentItemId === null) {
-                alert("To open a snippet in its own window, you need to\nnavigate to a snippet from local storage first or save a new one.")
+                alert("To open (and run) a note in its own window, you need to\nnavigate to a note from local storage first or save a new one.")
                 return
             }
             window.open("#open=" + currentItemId)
@@ -463,7 +463,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         function makeTripleForDataURL(dataURL) {
             if (dataURL) {
                 if (!dataURL.startsWith(twirlip7DataUrlPrefix)) {
-                    alert("item should start with: " + twirlip7DataUrlPrefix)
+                    alert("Twirlip7 data URL should start with: " + twirlip7DataUrlPrefix)
                     return null
                 }
                 
@@ -525,7 +525,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
 
         function skip(delta, wrap) {
             if (!currentJournal.itemCount()) {
-                toast("No journal items to display. Try saving one first -- or show the example journal in the editor and then load it.")
+                toast("No notes to display. Try saving one first -- or show the example notebook in the editor and then load it.")
                 return
             }
             const key = currentJournal.skip(currentItemId, delta, wrap)
@@ -546,7 +546,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             let itemText = currentJournal.getItem(key)
             let item
             if (itemText === undefined || itemText === null) {
-                if (key) toast("item not found for:\n\"" + key + "\"")
+                if (key) toast("note not found for:\n\"" + key + "\"")
                 item = newItem()
             } else if (itemText[0] !== "{") {
                 // TODO: remove legacy development support
@@ -730,21 +730,21 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         }
 
         function replaceJournal() {
-            if (currentJournal.itemCount() && !confirm("Replace all items with entered text for the " + journalChoice + " journal?")) return
+            if (currentJournal.itemCount() && !confirm("Replace all notes in the " + journalChoice + " notebook with notes from JSON in editor?")) return
             try {
                 currentJournal.loadFromJournalText(getEditorContents())
             } catch (error) {
-                toast("Problem replacing journal from editor:\n" + error)
+                toast("Problem replacing notebook from editor:\n" + error)
                 return
             }
             // Update lastLoadedItem.value in case pasted in contents to avoid warning later since data was processed as intended
             lastLoadedItem.value = getEditorContents()
             wasEditorDirty = false
-            toast("Replaced journal from editor")
+            toast("Replaced notebook from editor")
         }
         
         function mergeJournal() {
-            if (currentJournal.itemCount() && !confirm("Merge existing journal items with entered text for a journal?")) return
+            if (currentJournal.itemCount() && !confirm("Merge notes from JSON in editor into the current notebook?")) return
             try {
                 let addedItemCount = 0
                 const newJournalItems = JSON.parse(getEditorContents())
@@ -752,9 +752,9 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     const addResult = currentJournal.addItem(itemJSON)
                     if (!addResult.existed) addedItemCount++
                 }
-                toast("Added " + addedItemCount + " item" + ((addedItemCount === 1 ? "" : "s")) + " to existing journal")
+                toast("Added " + addedItemCount + " note" + ((addedItemCount === 1 ? "" : "s")) + " to current notebook")
             } catch (error) {
-                toast("Problem merging journal from editor:\n" + error)
+                toast("Problem merging notebook from editor:\n" + error)
                 return
             }
             // Update lastLoadedItem.value in case pasted in contents to avoid warning later since data was processed as intended
@@ -874,7 +874,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         checked: focusMode,
                         onchange: (event) => focusMode = event.target.checked
                     }),
-                    "focus"
+                    "hide details"
                 ),
                 m("button.fr", { style: "min-width: 1.5rem", onclick: () => collapseWorkspace = true, title: "click here to hide the editor" }, "-"),
             ])
@@ -933,23 +933,23 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             }
             
             function itemIdentifierClicked() {
-                const newItemId = prompt("Go to item id", currentItemId)
+                const newItemId = prompt("Go to note id", currentItemId)
                 if (!newItemId) return
                 // TODO: Should have a check for "exists"
                 if (currentJournal.getItem(newItemId) === null) {
-                    alert("Could not find item for id:\n" + newItemId)
+                    alert("Could not find note for id:\n" + newItemId)
                 } else {
                     goToKey(newItemId, {reload: true})
                 }
             }
             
             function itemPositionClicked() {
-                const newItemIndex = prompt("Go to item index", itemIndex === null ? "" : itemIndex + 1)
+                const newItemIndex = prompt("Go to note index", itemIndex === null ? "" : itemIndex + 1)
                 if (!newItemIndex || newItemIndex === itemIndex) return
                 const newItemId = currentJournal.keyForLocation(parseInt(newItemIndex) - 1)
                 // TODO: Should have a check for "exists"
                 if (currentJournal.getItem(newItemId) === null) {
-                    alert("Could not find item for index:\n" + newItemIndex)
+                    alert("Could not find note for index:\n" + newItemIndex)
                 } else {
                     goToKey(newItemId, {reload: true})
                 }
@@ -960,10 +960,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 ("" + currentItemId).substring(0, 12) + ((("" + currentItemId).length > 12) ? "..." : "")
             
             return m("div.ba.ma1",
-                m("span.ml1", "Journal"),
+                m("span.ml1", "Notebook"),
                 m("select.ma2", {
                     onchange: journalChanged,
-                    title: "Change storage location of snippets",
+                    title: "Change storage location of notes",
                     // The value is required here in addition to settign the options: https://gitter.im/mithriljs/mithril.js?at=59492498cf9c13503ca57fdd
                     value: journalChoice
                 },
@@ -975,15 +975,15 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         return m("option", { value: journalKey, disabled: !journals[journalKey]}, name)
                     })
                 ),
-                m("button.ma1", { onclick: goFirst, title: "Go to first snippet", disabled: isPreviousDisabled() }, "|<"),
-                m("button.ma1", { onclick: goPrevious, title: "Go to earlier snippet", disabled: isPreviousDisabled() }, "< Previous"),
-                m("button.ma1", { onclick: goNext, title: "Go to later snippet", disabled: isNextDisabled() }, "Next >"),
-                m("button.ma1", { onclick: goLast, title: "Go to last snippet", disabled: isNextDisabled() }, ">|"),
-               "Item ",
-                m("span", { title: "Click to jump to different item by identifier", onclick: itemIdentifierClicked }, itemIdentifier),
+                m("button.ma1", { onclick: goFirst, title: "Go to first note", disabled: isPreviousDisabled() }, "|<"),
+                m("button.ma1", { onclick: goPrevious, title: "Go to earlier note", disabled: isPreviousDisabled() }, "< Previous"),
+                m("button.ma1", { onclick: goNext, title: "Go to later note", disabled: isNextDisabled() }, "Next >"),
+                m("button.ma1", { onclick: goLast, title: "Go to last note", disabled: isNextDisabled() }, ">|"),
+               "Note ",
+                m("span", { title: "Click to jump to different note by identifier", onclick: itemIdentifierClicked }, itemIdentifier),
                 currentJournal.getCapabilities().idIsPosition ? 
                     "" : 
-                    m("span", { onclick: itemPositionClicked, title: "Click to jump to different item by index" },
+                    m("span", { onclick: itemPositionClicked, title: "Click to jump to different note by index" },
                         " : " + (itemIndex === null ?
                         "???" : 
                         (itemIndex + 1))
@@ -1017,7 +1017,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             const undoManager = editor && editor.getSession().getUndoManager()
             return [
                 m("div.ma1",
-                    m("span.dib.w3.tr.mr2", { title: "Entity: the object, event, idea, group, or document being described or defined" }, "Entity"),
+                    m("span.dib.w3.tr.mr2", { title: "Entity: the object, event, idea, instance, examplar, element, record, activity, row, dependent variable, group, topic, category, or document being described or defined. Entities can also recursively include parts or sections of larger entities when they are thought of as individual things with their own specific details." }, "Entity"),
                     m("input.w-80", {
                         value: currentItem.entity || "",
                         oninput: event => {
@@ -1033,7 +1033,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     }, " E >|")
                 ),
                 m("div.ma1",
-                    m("span.dib.w3.tr.mr2", { title: "Attribute: the parameter, field, aspect, section, or subpart of what is being described or defined" }, "Attribute"),
+                    m("span.dib.w3.tr.mr2", { title: "Attribute: the property, feature, parameter, detail, dimension, field, aspect, characteristic, predicate, outcome, header, column, independent variable, subtopic, subcategory, subpart, or subsection of the entity being described or defined" }, "Attribute"),
                     m("input.w-80", {
                         value: currentItem.attribute || "",
                         oninput: event => {
@@ -1049,12 +1049,13 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     }, " EA >|")
                 ),
                 m("div.mb1",
-                    m("span.dib.w3.tr.mr2", { title: "Value: a note, observation, or specification about the state of the entity's attribute at some point in time" }, "Value"),
+                    m("span.dib.w3.tr.mr2", { title: "Value: a note, observation, definition, or specification about the state of the entity's attribute at some point in time" }, "Value"),
                     viewEditorMode(),
                     undoManager ? [
                         m("button.ml1", {onclick: () => undoManager.undo(), disabled: !undoManager.hasUndo() }, "< Undo"),
                         m("button.ml1", {onclick: () => undoManager.redo(), disabled: !undoManager.hasRedo() }, "Redo >"),
-                    ] : []
+                    ] : [],
+                    focusMode ? [] : viewSaveButton()
                 ), 
             ]
         }
@@ -1095,7 +1096,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 ),
                 m("div.ma1",
                     m("span.dib.w4.tr.mr2", {
-                        title: "click to go to item",
+                        title: "click to go to note",
                         onclick: () => { if (currentItem.derivedFrom) goToKey(currentItem.derivedFrom) },
                     }, "Derived from"),
                     m("input.w-40.bg-light-gray", {
@@ -1241,20 +1242,23 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return m("span.pa1")
         }
         
+        function viewSaveButton() {
+            return m("button.ma1.ml2.mr3", {
+                style: (isEditorDirty() ? "text-shadow: 1px 0px 0px black" : ""),
+                onclick: save,
+                title: "Save this change to the current notebook"
+            }, "Save note version to " + journalChoice)
+        }
+        
         function viewEditorButtons() {
             return [
-                m("button.ma1.ml2.mr3", {
-                    style: (isEditorDirty() ? "text-shadow: 1px 0px 0px black" : ""),
-                    onclick: save,
-                    title: "Save current snippet into the journal"
-                }, "Save"),
                 m("button.ma1", { onclick: clear, title: "Clear out text in editor and the derivedFrom link\nPress a second time to clear other fields too" }, "Clear"),
                 m("button.ma1", { onclick: importTextPlain, title: "Load a file into editor" }, "Import"),
                 m("button.ma1", { onclick: importTextAsBase64, title: "Load a file into editor as base64" }, "Import as Base64"),
                 m("button.ma1", { onclick: exportText, title: "Save current editor text to a file" }, "Export"),
                 m("button.ma1", { onclick: displayCurrentTriple, title: "Print the current triple in the editor as a data URL (to copy)", disabled: !currentItemId }, "P*"),
                 m("button.ma1", { onclick: displayCurrentTripleAndHistory, title: "Print the current triple and its entire derived-from histroy in the editor as data URLs (to copy)", disabled: !currentItemId }, "E*"),
-                m("button.ma1", { onclick: readTriplesFromDataURLs, title: "Read one or more triples from data URLs in the editor (like from a paste) and save them into the current journal" }, "C*"),
+                m("button.ma1", { onclick: readTriplesFromDataURLs, title: "Read one or more notes from data URLs in the editor (like from a paste) and save them into the current notebook" }, "C*"),
             ]
         }
         
@@ -1265,10 +1269,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         function viewJournalButtons() {
             const isCurrentJournalLoading = journalChoice === "server" && !JournalUsingServer.isLoaded
             return [
-                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: showCurrentJournal, title: "Put JSON for current journal contents into editor" }, "Show current journal"),
-                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: showExampleJournal, title: "Put a journal of sample snippets as JSON into editor (for loading afterwards)" }, "Show example journal"),
-                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: mergeJournal, title: "Load JSON journal from editor -- merging with the previous snippets" }, "Merge journal"),
-                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: replaceJournal, title: "Load JSON journal from editor -- replacing all previous snippets!" }, "Replace journal"),
+                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: showCurrentJournal, title: "Put JSON for current notebook contents into editor" }, "Show current notebook"),
+                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: showExampleJournal, title: "Put JSON for a notebook of example snippets into editor (for loading afterwards)" }, "Show example notebook"),
+                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: mergeJournal, title: "Load notebook from JSON in editor -- merging with the previous notes" }, "Merge notebook"),
+                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: replaceJournal, title: "Load notebook from JSON from editor -- replacing all previous notes!" }, "Replace notebook"),
             ]
         }
         
@@ -1297,8 +1301,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 viewSplitter(),
                 focusMode ? [] : viewExtensionsMiddle(),
                 viewEvaluateButtons(),
-                viewSpacer(),
-                viewEditorButtons(),
+                focusMode ? viewSpacer() : [],
+                focusMode ? viewSaveButton() : [],
+                focusMode ? [] : m("br"),
+                focusMode ? [] : viewEditorButtons(),
                 viewBreak(),
                 focusMode ? [] : viewJournalButtons(),
                 focusMode ? [] : viewExtensionsFooter(),
