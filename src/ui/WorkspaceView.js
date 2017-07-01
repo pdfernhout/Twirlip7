@@ -1013,7 +1013,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     }, " E >|")
                 ),
                 m("div.ma1",
-                    m("span.dib.w3.tr.mr2", { title: "Attribute: the parameter, field, aspect, or subpart of what is being described or defined" }, "Attribute"),
+                    m("span.dib.w3.tr.mr2", { title: "Attribute: the parameter, field, aspect, section, or subpart of what is being described or defined" }, "Attribute"),
                     m("input.w-80", {
                         value: currentItem.attribute || "",
                         oninput: event => {
