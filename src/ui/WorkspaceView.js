@@ -907,6 +907,15 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             const itemCount = currentJournal.itemCount()
             const itemIndex = currentJournal.locationForKey(currentItemId)
             
+            const journals = journalsAvailable()
+            
+            function journalChanged(event) {
+                if (!confirmClear()) {
+                    return
+                }
+                changeJournal(event.target.value)
+            }
+            
             function isPreviousDisabled() {
                 if (itemCount === 0) return true
                 // Allow null item index to go to first or last
@@ -949,7 +958,23 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             const itemIdentifier = (currentItemId === null) ? 
                 "???" : 
                 ("" + currentItemId).substring(0, 12) + ((("" + currentItemId).length > 12) ? "..." : "")
+            
             return m("div.ba.ma1",
+                m("span.ml1", "Journal"),
+                m("select.ma2", {
+                    onchange: journalChanged,
+                    title: "Change storage location of snippets",
+                    // The value is required here in addition to settign the options: https://gitter.im/mithriljs/mithril.js?at=59492498cf9c13503ca57fdd
+                    value: journalChoice
+                },
+                    Object.keys(journals).sort().map((journalKey) => {
+                        let name = journalKey
+                        if (journalKey === "server" && journals[journalKey] && !JournalUsingServer.isLoaded) {
+                            name += " <-->"
+                        }
+                        return m("option", { value: journalKey, disabled: !journals[journalKey]}, name)
+                    })
+                ),
                 m("button.ma1", { onclick: goFirst, title: "Go to first snippet", disabled: isPreviousDisabled() }, "|<"),
                 m("button.ma1", { onclick: goPrevious, title: "Go to earlier snippet", disabled: isPreviousDisabled() }, "< Previous"),
                 m("button.ma1", { onclick: goNext, title: "Go to later snippet", disabled: isNextDisabled() }, "Next >"),
@@ -1234,30 +1259,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         }
         
         function viewJournalButtons() {
-            const journals = journalsAvailable()
-            function journalChanged(event) {
-                if (!confirmClear()) {
-                    return
-                }
-                changeJournal(event.target.value)
-            }
             const isCurrentJournalLoading = journalChoice === "server" && !JournalUsingServer.isLoaded
             return [
-                "Journal",
-                m("select.ma2", {
-                    onchange: journalChanged,
-                    title: "Change storage location of snippets",
-                    // The value is required here in addition to settign the options: https://gitter.im/mithriljs/mithril.js?at=59492498cf9c13503ca57fdd
-                    value: journalChoice
-                },
-                    Object.keys(journals).sort().map((journalKey) => {
-                        let name = journalKey
-                        if (journalKey === "server" && journals[journalKey] && !JournalUsingServer.isLoaded) {
-                            name += " <-->"
-                        }
-                        return m("option", { value: journalKey, disabled: !journals[journalKey]}, name)
-                    })
-                ),
                 m("button.ma1", { disabled: isCurrentJournalLoading, onclick: showCurrentJournal, title: "Put JSON for current journal contents into editor" }, "Show current journal"),
                 m("button.ma1", { disabled: isCurrentJournalLoading, onclick: showExampleJournal, title: "Put a journal of sample snippets as JSON into editor (for loading afterwards)" }, "Show example journal"),
                 m("button.ma1", { disabled: isCurrentJournalLoading, onclick: mergeJournal, title: "Load JSON journal from editor -- merging with the previous snippets" }, "Merge journal"),
@@ -1283,7 +1286,6 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 viewToast(),
                 viewAbout(),
                 focusMode ? [] : viewExtensionsHeader(),
-                focusMode ? [] : viewJournalButtons(),
                 focusMode ? [] : viewNavigate(),
                 focusMode ? [] : viewContext(),
                 viewEditor(),
@@ -1294,6 +1296,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 viewSpacer(),
                 viewEditorButtons(),
                 viewBreak(),
+                focusMode ? [] : viewJournalButtons(),
                 focusMode ? [] : viewExtensionsFooter(),
             ]
         }
