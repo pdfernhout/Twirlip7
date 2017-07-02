@@ -428,7 +428,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return { itemId, itemText, dataURL }
         }
                
-        function displayCurrentTriple() {
+        function displayCurrentNote() {
             if (currentItemId) {
                 if (!confirmClear()) return
                 const dataURL = makeDataURLForItemId(currentItemId).dataURL
@@ -440,7 +440,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             }
         }
         
-        function displayCurrentTripleAndHistory() {
+        function displayCurrentNoteAndHistory() {
             if (currentItemId) {
                 if (!confirmClear()) return
                 let dataURLs = []
@@ -460,7 +460,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             }
         }
         
-        function makeTripleForDataURL(dataURL) {
+        function makeNoteForDataURL(dataURL) {
             if (dataURL) {
                 if (!dataURL.startsWith(twirlip7DataUrlPrefix)) {
                     alert("Twirlip7 data URL should start with: " + twirlip7DataUrlPrefix)
@@ -509,12 +509,12 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             }
         }
         
-        function readTriplesFromDataURLs() {
+        function readNotesFromDataURLs() {
             const textForAllItems = getSelectedEditorText().text.trim()
             const dataURLs = textForAllItems.split("\n")
             const keys = []
             for (let dataURL of dataURLs) {
-                const key = makeTripleForDataURL(dataURL)
+                const key = makeNoteForDataURL(dataURL)
                 if (!key) break
                 keys.push(key)
             }
@@ -1049,7 +1049,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     }, " EA >|")
                 ),
                 m("div.mb1",
-                    m("span.dib.w3.tr.mr2", { title: "Value: a note, observation, definition, or specification about the state of the entity's attribute at some point in time" }, "Value"),
+                    m("span.dib.w3.tr.mr2", { title: "Value: a note, observation, description, definition, or specification about the state of the entity's attribute at some point in time" }, "Value"),
                     viewEditorMode(),
                     undoManager ? [
                         m("button.ml2", {onclick: () => undoManager.undo(), disabled: !undoManager.hasUndo() }, "< Undo"),
@@ -1247,8 +1247,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return m("button.ma1.ml2.mr3", {
                 style: (isEditorDirty() ? "text-shadow: 1px 0px 0px black" : ""),
                 onclick: save,
-                title: "Save this change to the current notebook"
-            }, "Save note version to " + journalChoice)
+                title: "Add a new version of the value of the entity's attribute to the current notebook"
+            }, "Save note to " + journalChoice)
         }
         
         const importExportMenu = {
@@ -1259,9 +1259,9 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 { onclick: importTextPlain, title: "Load a file into editor", name: "Import" },
                 { onclick: importTextAsBase64, title: "Load a file into editor as base64", name: "Import as Base64" },
                 { onclick: exportText, title: "Save current editor text to a file", name: "Export" },
-                { onclick: displayCurrentTriple, title: "Print the current note in the editor as a data URL (to copy)", disabled: () => !currentItemId, name: "Print data URL for current note" },
-                { onclick: displayCurrentTripleAndHistory, title: "Print the current note and its entire derived-from history in the editor as data URLs (to copy)", disabled: () => !currentItemId, name: "Print entire history for note as data URLs" },
-                { onclick: readTriplesFromDataURLs, title: "Read one or more notes from data URLs in the editor (like from a paste) and save them into the current notebook", name: "Create note from data URL (one or more)" },
+                { onclick: displayCurrentNote, title: "Print the current note in the editor as a data URL (to copy)", disabled: () => !currentItemId, name: "Print data URL for current note" },
+                { onclick: displayCurrentNoteAndHistory, title: "Print the current note and its entire derived-from history in the editor as data URLs (to copy)", disabled: () => !currentItemId, name: "Print entire history for note as data URLs" },
+                { onclick: readNotesFromDataURLs, title: "Read one or more notes from data URLs in the editor (like from a paste) and save them into the current notebook", name: "Create note from data URL (one or more)" },
             ]
         }
         
@@ -1321,8 +1321,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 focusMode ? viewSaveButton() : [],
                 focusMode ? [] : viewSpacer(),
                 focusMode ? [] : viewImportExportButtons(),
-                focusMode ? [] : viewSpacer(),      
-          focusMode ? [] : viewJournalButtons(),
+                focusMode ? [] : viewSpacer(),
+                focusMode ? [] : viewJournalButtons(),
                 viewSplitter(),
                 focusMode ? [] : viewExtensionsFooter(),
             ]
