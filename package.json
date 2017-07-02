@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "eslint": "3.19.0",
+    "font-awesome": "4.7.0",
     "marked": "0.3.6",
     "ospec": "1.2.3",
     "tachyons": "4.7.0",
