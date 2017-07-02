@@ -39,6 +39,7 @@ currency-converter-three.js
 currency-converter-many.js
 
 // More features
+popups-and-menus.js
 modal-dialog.js
 three-3D.js
 
