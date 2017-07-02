@@ -1,6 +1,8 @@
 // Example of using Font Awesome Icons included with the Twirlip7 application
 // Click on the "Font Awesome" link in the help header to lookup names for icons.
 
+const someIcons = ["fa-glass", "fa-music", "fa-search", "fa-envelope-o", "fa-heart", "fa-star", "fa-star-o", "fa-user", "fa-film", "fa-th-large", "fa-th", "fa-th-list", "fa-check", "fa-times", "fa-search-plus", "fa-search-minus", "fa-power-off", "fa-signal", "fa-cog", "fa-trash-o", "fa-home", "fa-file-o"]
+
 Twirlip7.show(() => {
     return m("div", [
         // Using an icon directly and with a Twirlip7 convenience function
@@ -18,36 +20,9 @@ Twirlip7.show(() => {
         m("br"),
         
         // Display a bunch of icons
-        someIcons.split("\n").map((iconName) => {
-            iconName = iconName.trim()
+        someIcons.map((iconName) => {
             // Extra styling can also be applied as a second paraamter to the icon function
-            if (iconName) return Twirlip7.icon(iconName, ".ml2")
-            return []
+            return Twirlip7.icon(iconName, ".ml2")
         })
     ])
 })
-
-const someIcons = `
-    fa-glass
-    fa-music
-    fa-search
-    fa-envelope-o
-    fa-heart
-    fa-star
-    fa-star-o
-    fa-user
-    fa-film
-    fa-th-large
-    fa-th
-    fa-th-list
-    fa-check
-    fa-times
-    fa-search-plus
-    fa-search-minus
-    fa-power-off
-    fa-signal
-    fa-cog
-    fa-trash-o
-    fa-home
-    fa-file-o
-`
