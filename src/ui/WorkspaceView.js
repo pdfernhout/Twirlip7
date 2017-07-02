@@ -68,7 +68,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 show(function () { 
                     return [
                         m("div", "Thanks for trying Twirlip7, a programmable notebook and experimental Mithril.js playground -- with aspirations towards becoming a distributed social semantic desktop."),
-                        m("div", "To get started with some example code snippets, click \"Show example notebook\", then \"Merge notebook\", then \"Next\", and then \"Do it\"."),
+                        m("div", "To get started with some example code snippets, click \"Show example notebook\" under \"Notebook operations\", then \"Merge notebook\" under \"Notebook operations\", then \"Next\", and then \"Do it\"."),
                         m("div", "Use \"Previous\" and \"Next\" to scroll through more example snippets. \"Inspect it\" puts evaluation results for selected text into the console log.")
                     ]
                 })
@@ -436,7 +436,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 editor.selection.selectAll()
                 editor.focus()
             } else {
-                alert("Please select a saved triple first")
+                alert("Please select a saved note first")
             }
         }
         
@@ -456,7 +456,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 editor.selection.selectAll()
                 editor.focus()
             } else {
-                alert("Please select a saved triple first")
+                alert("Please select a saved note first")
             }
         }
         
@@ -1028,7 +1028,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     }),
                     m("button.ml1", {
                         onclick: goToLatestForEntity,
-                        title: "Latest triple for Entity",
+                        title: "Latest note for Entity",
                         disabled: isLastEntityMatch
                     }, " E >|")
                 ),
@@ -1044,7 +1044,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     }),
                     m("button.ml1", {
                         onclick: goToLatestForEntityAttribute,
-                        title: "Latest triple for Entity-Attribute pair",
+                        title: "Latest note for Entity-Attribute pair",
                         disabled: isLastEntityAttributeMatch 
                     }, " EA >|")
                 ),
@@ -1251,29 +1251,46 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             }, "Save note version to " + journalChoice)
         }
         
-        function viewEditorButtons() {
-            return [
-                m("button.ma1", { onclick: importTextPlain, title: "Load a file into editor" }, "Import"),
-                m("button.ma1", { onclick: importTextAsBase64, title: "Load a file into editor as base64" }, "Import as Base64"),
-                m("button.ma1", { onclick: exportText, title: "Save current editor text to a file" }, "Export"),
-                m("button.ma1", { onclick: displayCurrentTriple, title: "Print the current triple in the editor as a data URL (to copy)", disabled: !currentItemId }, "P*"),
-                m("button.ma1", { onclick: displayCurrentTripleAndHistory, title: "Print the current triple and its entire derived-from history in the editor as data URLs (to copy)", disabled: !currentItemId }, "E*"),
-                m("button.ma1", { onclick: readTriplesFromDataURLs, title: "Read one or more notes from data URLs in the editor (like from a paste) and save them into the current notebook" }, "C*"),
+        const importExportMenu = {
+            view: () => Twirlip7.menu("Import/Export", importExportMenu),
+            minWidth: "20rem",
+            isOpen: false,
+            items: [
+                { onclick: importTextPlain, title: "Load a file into editor", name: "Import" },
+                { onclick: importTextAsBase64, title: "Load a file into editor as base64", name: "Import as Base64" },
+                { onclick: exportText, title: "Save current editor text to a file", name: "Export" },
+                { onclick: displayCurrentTriple, title: "Print the current note in the editor as a data URL (to copy)", disabled: () => !currentItemId, name: "Print data URL for current note" },
+                { onclick: displayCurrentTripleAndHistory, title: "Print the current note and its entire derived-from history in the editor as data URLs (to copy)", disabled: () => !currentItemId, name: "Print entire history for note as data URLs" },
+                { onclick: readTriplesFromDataURLs, title: "Read one or more notes from data URLs in the editor (like from a paste) and save them into the current notebook", name: "Create note from data URL (one or more)" },
             ]
+        }
+        
+        function viewImportExportButtons() {
+            return m(importExportMenu)
         }
         
         function viewBreak() {
             return m("br")
         }
         
-        function viewJournalButtons() {
-            const isCurrentJournalLoading = journalChoice === "server" && !JournalUsingServer.isLoaded
-            return [
-                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: showCurrentJournal, title: "Put JSON for current notebook contents into editor" }, "Show current notebook"),
-                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: showExampleJournal, title: "Put JSON for a notebook of example snippets into editor (for loading afterwards)" }, "Show example notebook"),
-                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: mergeJournal, title: "Load notebook from JSON in editor -- merging with the previous notes" }, "Merge notebook"),
-                m("button.ma1", { disabled: isCurrentJournalLoading, onclick: replaceJournal, title: "Load notebook from JSON from editor -- replacing all previous notes!" }, "Replace notebook"),
+        function isCurrentJournalLoading() {
+            return journalChoice === "server" && !JournalUsingServer.isLoaded
+        }
+        
+        const journalMenu = {
+            view: () => Twirlip7.menu("Notebook operations", journalMenu),
+            minWidth: "20rem",
+            isOpen: false,
+            items: [
+                { disabled: isCurrentJournalLoading, onclick: showCurrentJournal, title: "Put JSON for current notebook contents into editor", name: "Show current notebook" },
+                { disabled: isCurrentJournalLoading, onclick: showExampleJournal, title: "Put JSON for a notebook of example snippets into editor (for loading afterwards)", name: "Show example notebook" },
+                { disabled: isCurrentJournalLoading, onclick: mergeJournal, title: "Load notebook from JSON in editor -- merging with the previous notes", name: "Merge notebook" },
+                { disabled: isCurrentJournalLoading, onclick: replaceJournal, title: "Load notebook from JSON from editor -- replacing all previous notes!", name: "Replace notebook" },
             ]
+        }
+        
+        function viewJournalButtons() {
+            return m(journalMenu)
         }
         
         function viewExtensionsHeader() {
@@ -1298,15 +1315,15 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 focusMode ? [] : viewContext(),
                 viewEditor(),
                 focusMode ? [] : viewAuthor(),
-                viewSplitter(),
                 focusMode ? [] : viewExtensionsMiddle(),
                 viewEvaluateButtons(),
                 focusMode ? viewSpacer() : [],
                 focusMode ? viewSaveButton() : [],
-                focusMode ? [] : m("br"),
-                focusMode ? [] : viewEditorButtons(),
-                viewBreak(),
-                focusMode ? [] : viewJournalButtons(),
+                focusMode ? [] : viewSpacer(),
+                focusMode ? [] : viewImportExportButtons(),
+                focusMode ? [] : viewSpacer(),      
+          focusMode ? [] : viewJournalButtons(),
+                viewSplitter(),
                 focusMode ? [] : viewExtensionsFooter(),
             ]
         }
