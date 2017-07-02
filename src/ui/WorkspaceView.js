@@ -27,6 +27,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         }
     }
     
+    function icon(iconName, extraClasses) {
+        return m("i.fa." + iconName + "[aria-hidden=true]" + (extraClasses ? extraClasses : ""))
+    }
+    
     const twirlip7DataUrlPrefix = "twirlip7://v1/"
     
     function WorkspaceView() {
@@ -976,10 +980,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         return m("option", { value: journalKey, disabled: !journals[journalKey]}, name)
                     })
                 ),
-                m("button.ma1", { onclick: goFirst, title: "Go to first note", disabled: isPreviousDisabled() }, m("i.fa.fa-fast-backward[aria-hidden=true].mr1"), "First"),
-                m("button.ma1", { onclick: goPrevious, title: "Go to earlier note", disabled: isPreviousDisabled() }, m("i.fa.fa-step-backward[aria-hidden=true].mr1"), "Previous"),
-                m("button.ma1", { onclick: goNext, title: "Go to later note", disabled: isNextDisabled() }, "Next", m("i.fa.fa-step-forward[aria-hidden=true].ml1")),
-                m("button.ma1", { onclick: goLast, title: "Go to last note", disabled: isNextDisabled() }, "Last", m("i.fa.fa-fast-forward[aria-hidden=true].ml1")),
+                m("button.ma1", { onclick: goFirst, title: "Go to first note", disabled: isPreviousDisabled() }, icon("fa-fast-backward.mr1"), "First"),
+                m("button.ma1", { onclick: goPrevious, title: "Go to earlier note", disabled: isPreviousDisabled() }, icon("fa-step-backward.mr1"), "Previous"),
+                m("button.ma1", { onclick: goNext, title: "Go to later note", disabled: isNextDisabled() }, "Next", icon("fa-step-forward.ml1")),
+                m("button.ma1", { onclick: goLast, title: "Go to last note", disabled: isNextDisabled() }, "Last", icon("fa-fast-forward.ml1")),
                "Note ",
                 m("span", { title: "Click to jump to different note by identifier", onclick: itemIdentifierClicked }, itemIdentifier),
                 currentJournal.getCapabilities().idIsPosition ? 
@@ -1031,7 +1035,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         onclick: goToLatestForEntity,
                         title: "Latest note for Entity",
                         disabled: isLastEntityMatch
-                    }, " E >|")
+                    }, " E", icon("fa-fast-forward.ml1"))
                 ),
                 m("div.ma1",
                     m("span.dib.w3.tr.mr2", { title: "Attribute: the property, feature, parameter, detail, dimension, field, aspect, characteristic, predicate, outcome, header, column, independent variable, subtopic, subcategory, subpart, or subsection of the entity being described or defined" }, "Attribute"),
@@ -1047,14 +1051,14 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         onclick: goToLatestForEntityAttribute,
                         title: "Latest note for Entity-Attribute pair",
                         disabled: isLastEntityAttributeMatch 
-                    }, " EA >|")
+                    }, " EA", icon("fa-fast-forward.ml1"))
                 ),
                 m("div.mb1",
                     m("span.dib.w3.tr.mr2", { title: "Value: a note, observation, description, definition, or specification about the state of the entity's attribute at some point in time" }, "Value"),
                     viewEditorMode(),
                     undoManager ? [
-                        m("button.ml2", {onclick: () => undoManager.undo(), disabled: !undoManager.hasUndo() }, m("i.fa.fa-undo[aria-hidden=true].mr1"), "Undo"),
-                        m("button.ml1.mr2", {onclick: () => undoManager.redo(), disabled: !undoManager.hasRedo() }, "Redo", m("i.fa.fa-repeat[aria-hidden=true].ml1")),
+                        m("button.ml2", {onclick: () => undoManager.undo(), disabled: !undoManager.hasUndo() }, icon("fa-undo.mr1"), "Undo"),
+                        m("button.ml1.mr2", {onclick: () => undoManager.redo(), disabled: !undoManager.hasRedo() }, "Redo", icon("fa-repeat.ml1")),
                     ] : [],
                     focusMode ? [] : viewSaveButton(),
                     m("button", { onclick: clear, title: "Clear out text in editor and the derivedFrom link\nPress a second time to clear other fields too" }, "New note")
@@ -1371,6 +1375,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             printIt,
             inspectIt,
             openIt,
+            
+            icon,
             
             // Extra accessors for other users
             

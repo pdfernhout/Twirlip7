@@ -71,25 +71,34 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
         }
         window.Twirlip7 = {
             show: workspaceView.show,
+            icon: workspaceView.icon,
+            popup,
+            menu,
+            
             workspaceView,
             // TODO: Remove legacy support for older extensions using "WorkspaceView"
             WorkspaceView: workspaceView,
+            
             FileUtils,
             CanonicalJSON,
             JournalUsingLocalStorage,
             JournalUsingMemory,
             JournalUsingServer,
+            
             getCurrentJournal: () => {
                 return workspaceView.getCurrentJournal()
             },
+            
             getItemForJSON: getItemForJSON,
             newItem: workspaceView.newItem,
+            
             saveItem: (item) => {
                 if (!item.timestamp) item.timestamp = new Date().toISOString()
                 if (!item.contributor) item.contributor = workspaceView.getCurrentContributor()
                 const itemJSON = CanonicalJSON.stringify(item)
                 return workspaceView.getCurrentJournal().addItem(itemJSON)
             },
+            
             findItem(match, configuration) {
                 // configuration: { includeMetadata: false, sortBy: "timestamp" (default) | "location" }
                 // returns either array of items -- or if includeMetadata is truthy, {location, item, key}
@@ -137,9 +146,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
                 })
                 if (configuration.includeMetadata) return result
                 return result.map(match => match.item)
-            },
-            popup,
-            menu
+            }
         }
         
         // Try to load socket.io, which may fail
