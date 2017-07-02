@@ -889,15 +889,16 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     m("span.ml2", { title: "Attribute" }, currentItem.attribute || m("span.i", "<No Attribute>"))
                 ]),
                 m("div.help-header", { style: "display: " + (!focusMode ? "inline" : "none") }, [
-                    m("span.ml1", "uses"),
-                    m("a.ml1", { target: "_blank", href: "https://mithril.js.org/" }, "Mithril"),
-                    m("a", { target: "_blank", href: "https://github.com/MithrilJS/mithril.js" }, ".js"),
-                    m("a.ml2", { target: "_blank", href: "http://tachyons.io/" }, "Tachyons"),
-                    m("a", { target: "_blank", href: "https://github.com/tachyons-css/tachyons/blob/master/css/tachyons.css" }, ".css"),
-                    m("a.ml2", { target: "_blank", href: "https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts" }, "Ace"),
-                    m("a.ml2", { target: "_blank", href: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" }, "JavaScript"),
-                    m("span.ml2", "|"),
-                    m("a.ml2", { target: "_blank", href: "https://arthurclemens.github.io/mithril-template-converter" }, "HTML->Mithril")
+                    m("span.ml1.f7", "uses"),
+                    m("a.ml1.f7", { target: "_blank", href: "https://mithril.js.org/" }, "Mithril"),
+                    m("a.f7", { target: "_blank", href: "https://github.com/MithrilJS/mithril.js" }, ".js"),
+                    m("a.ml2.f7", { target: "_blank", href: "http://tachyons.io/" }, "Tachyons"),
+                    m("a.f7", { target: "_blank", href: "https://github.com/tachyons-css/tachyons/blob/master/css/tachyons.css" }, ".css"),
+                    m("a.ml2.f7", { target: "_blank", href: "http://fontawesome.io/icons/" }, "Font Awesome"),
+                    m("a.ml2.f7", { target: "_blank", href: "https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts" }, "Ace"),
+                    m("a.ml2.f7", { target: "_blank", href: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" }, "JavaScript"),
+                    m("span.ml2.f7", "|"),
+                    m("a.ml2.f7", { target: "_blank", href: "https://arthurclemens.github.io/mithril-template-converter" }, "HTML->Mithril")
                 ]),
                 viewFocusAndCollapse(),
             ])
