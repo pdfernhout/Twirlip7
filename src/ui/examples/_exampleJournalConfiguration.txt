@@ -1,4 +1,4 @@
-// Example files in order to build exampleJournal.js
+// Example files in order to build exampleNotebook.js
 
 // Metadata for triples -- can be overridden for each file
 {"entity": "Twirlip7 examples"}
@@ -103,9 +103,9 @@ image-definition-earth-from-space.txt
 // Image reading
 image-reading.js
 
-// Adding to the journal
+// Adding to the notebook
 {"entity": "Twirlip7 examples"}
-journal-adding.js
+notebook-adding.js
 
 // IBIS application
 ibis_icons.js

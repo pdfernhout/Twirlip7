@@ -85,7 +85,12 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
             JournalUsingMemory,
             JournalUsingServer,
             
+            // TODO: Remove legacy support for previous development notes
             getCurrentJournal: () => {
+                return workspaceView.getCurrentJournal()
+            },
+            
+            getCurrentNotebook: () => {
                 return workspaceView.getCurrentJournal()
             },
             

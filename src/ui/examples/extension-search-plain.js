@@ -6,12 +6,12 @@ let searchText = ""
 
 function search() {
     searchResults.splice(0)
-    const journal = Twirlip7.getCurrentJournal()
+    const notebook = Twirlip7.getCurrentNotebook()
     if (!searchText) return
-    for (let i = 0; i < journal.itemCount(); i++) {
-        const item = journal.getItemForLocation(i)
+    for (let i = 0; i < notebook.itemCount(); i++) {
+        const item = notebook.getItemForLocation(i)
         if (item && item.indexOf(searchText) !== -1) {
-            const key = journal.keyForLocation(i)
+            const key = notebook.keyForLocation(i)
             searchResults.push({i, key, item})
         }
     }

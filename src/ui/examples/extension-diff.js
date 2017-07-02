@@ -143,18 +143,18 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
         
         if (Twirlip7.workspaceView.isEditorDirty()) {
             earlierItemKey = Twirlip7.workspaceView.getCurrentItemId()
-            const earlierItemText = Twirlip7.getCurrentJournal().getItem(earlierItemKey)
+            const earlierItemText = Twirlip7.getCurrentNotebook().getItem(earlierItemKey)
             earlierItem = Twirlip7.getItemForJSON(earlierItemText)
             
             laterItemKey = "<editor>"
             laterItem = { value: Twirlip7.workspaceView.getEditorContents() }
         } else {
             laterItemKey = Twirlip7.workspaceView.getCurrentItemId()
-            const laterItemText = Twirlip7.getCurrentJournal().getItem(laterItemKey)
+            const laterItemText = Twirlip7.getCurrentNotebook().getItem(laterItemKey)
             laterItem = Twirlip7.getItemForJSON(laterItemText)
             
             earlierItemKey = laterItem.derivedFrom || ""
-            const earlierItemText = Twirlip7.getCurrentJournal().getItem(earlierItemKey)
+            const earlierItemText = Twirlip7.getCurrentNotebook().getItem(earlierItemKey)
             earlierItem = Twirlip7.getItemForJSON(earlierItemText)
         }
         

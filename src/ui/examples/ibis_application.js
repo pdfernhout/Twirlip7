@@ -114,14 +114,14 @@ After pasting, load it using "Update Diagram from JSON" button.
 /* global CompendiumIcons, Twirlip7, m, window, prompt, confirm, requirejs */
 
 // You need to have run the snippet which defines the CompendiumIcons global with the IBIS icons first
-// This next section does that for you if you are using a local storage journal with the examples loaded
+// This next section does that for you if you are using a local storage notebook with the examples loaded
 if (!window.CompendiumIcons) {
     const iconLoaderResource = {
         name: "Compendium Icons Loader",
         id: "e82b2713edf72692e6546436b0e4ac1a777e8a6269b2df17459f293e8f66fbd9"
     }
     
-    const iconLoaderItemJSON = Twirlip7.getCurrentJournal().getItem(iconLoaderResource.id)
+    const iconLoaderItemJSON = Twirlip7.getCurrentNotebook().getItem(iconLoaderResource.id)
     if (iconLoaderItemJSON) {
         /* eslint no-eval: 0 */
         /* jslint evil: true */

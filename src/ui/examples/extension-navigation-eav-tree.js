@@ -2,15 +2,15 @@
 
 let showNavigation = false
 let cacheItemCount = 0
-let cachedJournal = null
+let cachedNotebook = null
 let cache = {}
 
-function processNewJournalItems(callback, startIndex) {
+function processNewNotebookItems(callback, startIndex) {
     if (!startIndex) startIndex = 0
-    for (let i = startIndex; i < cachedJournal.itemCount(); i++) {
-        const item = cachedJournal.getItemForLocation(i)
+    for (let i = startIndex; i < cachedNotebook.itemCount(); i++) {
+        const item = cachedNotebook.getItemForLocation(i)
         if (item) {
-            const key = cachedJournal.keyForLocation(i)
+            const key = cachedNotebook.keyForLocation(i)
             callback({i, key, item:  Twirlip7.getItemForJSON(item) })
         }
     }
@@ -41,15 +41,15 @@ function addToMap(itemContext) {
 }
 
 function updateCacheIfNeeded() {
-    const currentJournal = Twirlip7.getCurrentJournal()
-    if (cachedJournal !== currentJournal) {
-        cachedJournal = currentJournal
+    const currentNotebook = Twirlip7.getCurrentNotebook()
+    if (cachedNotebook !== currentNotebook) {
+        cachedNotebook = currentNotebook
         cache = {}
         cacheItemCount = 0
     }
-    const currentItemCount = cachedJournal.itemCount()
+    const currentItemCount = cachedNotebook.itemCount()
     if (cacheItemCount < currentItemCount) {
-        processNewJournalItems(addToMap, cacheItemCount)
+        processNewNotebookItems(addToMap, cacheItemCount)
     }
 }
 
