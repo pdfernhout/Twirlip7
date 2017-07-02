@@ -1005,7 +1005,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 editor.getSession().setMode(editorMode)
                 currentItem.contentType = guessContentTypeForEditorMode(newEditorMode)
             }
-            return m("select.ml1", { value: editorMode, onchange: selectChanged }, 
+            return m("select", { value: editorMode, onchange: selectChanged }, 
                 modelist.modes.map(mode => m("option", { value: mode.mode }, mode.name))
             )
         }
@@ -1022,8 +1022,11 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             const undoManager = editor && editor.getSession().getUndoManager()
             return [
                 m("div.ma1",
-                    m("span.dib.w3.tr.mr2", { title: "Entity: the object, event, idea, instance, examplar, element, record, activity, row, dependent variable, group, topic, category, or document being described or defined. Entities can also recursively include parts or sections of larger entities when they are thought of as individual things with their own specific details." }, "Entity"),
-                    m("input.w-80", {
+                    m("span.dib.w4.tr.mr1", { 
+                        title: "Entity: the object, event, idea, instance, examplar, element, record, activity, row, dependent variable, group, topic, category, or document" +
+                        " being described or defined. Entities can also recursively include parts or sections of larger entities when they are thought of as individual things with their own specific details."
+                    }, "Entity", icon("fa-snowflake-o.ml1")),
+                    m("input.w-60", {
                         value: currentItem.entity || "",
                         oninput: event => {
                             currentItem.entity = event.target.value
@@ -1038,8 +1041,11 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     }, " E", icon("fa-fast-forward.ml1"))
                 ),
                 m("div.ma1",
-                    m("span.dib.w3.tr.mr2", { title: "Attribute: the property, feature, parameter, detail, dimension, field, aspect, characteristic, predicate, outcome, header, column, independent variable, subtopic, subcategory, subpart, or subsection of the entity being described or defined" }, "Attribute"),
-                    m("input.w-80", {
+                    m("span.dib.w4.tr.mr1", {
+                        title: "Attribute: the property, feature, parameter, detail, dimension, field, aspect, characteristic, predicate, outcome, header, column," +
+                        " independent variable, subtopic, subcategory, subpart, or subsection of the entity being described or defined"
+                    }, "Attribute", icon("fa-pie-chart.ml1")), // fa-arrow-circle-o-down fa-pie-chart fa-puzzle-piece
+                    m("input.w-60", {
                         value: currentItem.attribute || "",
                         oninput: event => {
                             currentItem.attribute = event.target.value
@@ -1053,30 +1059,34 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         disabled: isLastEntityAttributeMatch 
                     }, " EA", icon("fa-fast-forward.ml1"))
                 ),
-                m("div.mb1",
-                    m("span.dib.w3.tr.mr2", { title: "Value: a note, observation, description, definition, or specification about the state of the entity's attribute at some point in time" }, "Value"),
-                    viewEditorMode(),
-                    undoManager ? [
-                        m("button.ml2", {onclick: () => undoManager.undo(), disabled: !undoManager.hasUndo() }, icon("fa-undo.mr1"), "Undo"),
-                        m("button.ml1.mr2", {onclick: () => undoManager.redo(), disabled: !undoManager.hasRedo() }, "Redo", icon("fa-repeat.ml1")),
-                    ] : [],
-                    focusMode ? [] : viewSaveButton(),
-                    m("button", { onclick: clear, title: "Clear out text in editor and the derivedFrom link\nPress a second time to clear other fields too" }, "New note")
-                ), 
+                m("div.ma1",
+                    m("div.mb1",
+                        m("span.dib.w4.tr.mr1", {
+                            title: "Value: a note, observation, description, definition, or specification about the state of the entity's attribute at some point in time"
+                        }, "Value", icon("fa-file-text-o.ml1")),
+                        viewEditorMode(),
+                        undoManager ? [
+                            m("button.ml2", {onclick: () => undoManager.undo(), disabled: !undoManager.hasUndo() }, icon("fa-undo.mr1"), "Undo"),
+                            m("button.ml1.mr2", {onclick: () => undoManager.redo(), disabled: !undoManager.hasRedo() }, "Redo", icon("fa-repeat.ml1")),
+                        ] : [],
+                        focusMode ? [] : viewSaveButton(),
+                        m("button", { onclick: clear, title: "Clear out text in editor and the derivedFrom link\nPress a second time to clear other fields too" }, icon("fa-file-o.mr1"), "New note")
+                    )
+                )
             ]
         }
         
         function viewAuthor() {
             return [
                 m("div.ma1",
-                    m("span.dib.w4.tr.mr2", "Content type"),
+                    m("span.dib.w4.tr.mr2", "Content type", icon("fa-code.ml1")),
                     m("input.w-40", {
                         value: currentItem.contentType || "",
                         oninput: event => currentItem.contentType = event.target.value,
                         onkeydown: interceptSaveKey
                     }),
                     m("span.pa2"),
-                    m("span.dib.w4.tr.mr2", {title: "content transfer encoding like \"base64\" for binary data"}, "Encoding"),
+                    m("span.dib.w4.tr.mr2", {title: "content transfer encoding like \"base64\" for binary data"}, "Encoding", icon("fa-envelope-open-o.ml1")),
                     m("input.w-20", {
                         value: currentItem.encoding || "",
                         oninput: event => currentItem.encoding = event.target.value,
@@ -1092,7 +1102,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         onkeydown: interceptSaveKey
                     }),
                     m("span.pa2"),
-                    m("span.dib.w4.tr.mr2", "Timestamp"),
+                    m("span.dib.w4.tr.mr2", "Timestamp", icon("fa-clock-o.ml1")),
                     m("input.w-20.bg-light-gray", {
                         readonly: true,
                         value: currentItem.timestamp || "",
@@ -1104,7 +1114,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     m("span.dib.w4.tr.mr2", {
                         title: "click to go to note",
                         onclick: () => { if (currentItem.derivedFrom) goToKey(currentItem.derivedFrom) },
-                    }, "Derived from"),
+                    }, "Derived from", icon("fa-arrow-circle-o-left.ml1")),
                     m("input.w-40.bg-light-gray", {
                         readonly: true,
                         value: currentItem.derivedFrom || "",
@@ -1112,7 +1122,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         onkeydown: interceptSaveKey
                     }),
                     m("span.pa2"),
-                    m("span.dib.w4.tr.mr2", "License"),
+                    m("span.dib.w4.tr.mr2", "License", icon("fa-id-card-o.ml1")),
                     m("input.w-20", {
                         value: currentItem.license || "",
                         oninput: event => currentItem.license = event.target.value,
@@ -1126,7 +1136,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return m("span", {
                 onclick: promptForContributor,
                 title: "Click to set current contributor for next contribution" + (currentContributor ? "\n" + currentContributor : ""),
-            }, "Contributor")
+            }, "Contributor", icon("fa-user.ml1"))
         }
         
         function viewEditor() {
@@ -1236,10 +1246,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         
         function viewEvaluateButtons() {
             return [
-                m("button.ma1", { onclick: doIt, title: "Evaluate selected code" }, "Do it"),
-                m("button.ma1", { onclick: printIt, title: "Evaluate code and insert result in editor" }, "Print it"),
-                m("button.ma1", { onclick: inspectIt, title: "Evaluate code and log result to console"  }, "Inspect it"),
-                m("button.ma1", { onclick: openIt, title: "Open current saved snippet in a new window" }, "Open it"),
+                m("button.ma1", { onclick: doIt, title: "Evaluate selected code" }, icon("fa-play.mr1"), "Do it"),
+                m("button.ma1", { onclick: printIt, title: "Evaluate code and insert result in editor" }, icon("fa-print.mr1"), "Print it"),
+                m("button.ma1", { onclick: inspectIt, title: "Evaluate code and log result to console"  }, icon("fa-eye.mr1"), "Inspect it"),
+                m("button.ma1", { onclick: openIt, title: "Open current saved snippet in a new window" }, icon("fa-external-link.mr1"), "Open it"),
                 viewStartupItem()
             ]
         }
@@ -1253,7 +1263,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 style: (isEditorDirty() ? "text-shadow: 1px 0px 0px black" : ""),
                 onclick: save,
                 title: "Add a new version of the value of the entity's attribute to the current notebook"
-            }, "Save note to " + journalChoice)
+            }, icon("fa-share-square-o.mr1"), "Save note to " + journalChoice)
         }
         
         const importExportMenu = {
@@ -1261,12 +1271,13 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             minWidth: "20rem",
             isOpen: false,
             items: [
-                { onclick: importTextPlain, title: "Load a file into editor", name: "Import" },
-                { onclick: importTextAsBase64, title: "Load a file into editor as base64", name: "Import as Base64" },
-                { onclick: exportText, title: "Save current editor text to a file", name: "Export" },
-                { onclick: displayCurrentNote, title: "Print the current note in the editor as a data URL (to copy)", disabled: () => !currentItemId, name: "Print data URL for current note" },
-                { onclick: displayCurrentNoteAndHistory, title: "Print the current note and its entire derived-from history in the editor as data URLs (to copy)", disabled: () => !currentItemId, name: "Print entire history for note as data URLs" },
-                { onclick: readNotesFromDataURLs, title: "Read one or more notes from data URLs in the editor (like from a paste) and save them into the current notebook", name: "Create note from data URL (one or more)" },
+                // This use of m outisde a view function creates vnodes which are not diffed every view -- should be OK for static icons
+                { onclick: importTextPlain, title: "Load a file into editor", name: [icon("fa-upload.mr1"), "Import"]},
+                { onclick: importTextAsBase64, title: "Load a file into editor as base64", name: [icon("fa-file-image-o.mr1"), "Import image as Base64" ]},
+                { onclick: exportText, title: "Save current editor text to a file", name: [icon("fa-download.mr1"), "Export"] },
+                { onclick: displayCurrentNote, title: "Print the current note in the editor as a data URL (to copy)", disabled: () => !currentItemId, name: [icon("fa-print.mr1"), "Print data URL for current note"] },
+                { onclick: displayCurrentNoteAndHistory, title: "Print the current note and its entire derived-from history in the editor as data URLs (to copy)", disabled: () => !currentItemId, name: [icon("fa-history.mr1"), "Print entire history for note as data URLs"] },
+                { onclick: readNotesFromDataURLs, title: "Read one or more notes from data URLs in the editor (like from a paste) and save them into the current notebook", name: [icon("fa-plus-square-o.mr1"), "Create notes from data URLs in editor"] },
             ]
         }
         
