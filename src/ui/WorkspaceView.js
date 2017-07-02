@@ -975,10 +975,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                         return m("option", { value: journalKey, disabled: !journals[journalKey]}, name)
                     })
                 ),
-                m("button.ma1", { onclick: goFirst, title: "Go to first note", disabled: isPreviousDisabled() }, "|<"),
-                m("button.ma1", { onclick: goPrevious, title: "Go to earlier note", disabled: isPreviousDisabled() }, "< Previous"),
-                m("button.ma1", { onclick: goNext, title: "Go to later note", disabled: isNextDisabled() }, "Next >"),
-                m("button.ma1", { onclick: goLast, title: "Go to last note", disabled: isNextDisabled() }, ">|"),
+                m("button.ma1", { onclick: goFirst, title: "Go to first note", disabled: isPreviousDisabled() }, m("i.fa.fa-fast-backward[aria-hidden=true].mr1"), "First"),
+                m("button.ma1", { onclick: goPrevious, title: "Go to earlier note", disabled: isPreviousDisabled() }, m("i.fa.fa-step-backward[aria-hidden=true].mr1"), "Previous"),
+                m("button.ma1", { onclick: goNext, title: "Go to later note", disabled: isNextDisabled() }, "Next", m("i.fa.fa-step-forward[aria-hidden=true].ml1")),
+                m("button.ma1", { onclick: goLast, title: "Go to last note", disabled: isNextDisabled() }, "Last", m("i.fa.fa-fast-forward[aria-hidden=true].ml1")),
                "Note ",
                 m("span", { title: "Click to jump to different note by identifier", onclick: itemIdentifierClicked }, itemIdentifier),
                 currentJournal.getCapabilities().idIsPosition ? 
