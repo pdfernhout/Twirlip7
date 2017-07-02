@@ -2,7 +2,7 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
     "use strict"
 
     // returns position + 1 for item reference to avoid first item being "0"
-    const JournalUsingServer = {
+    const NotebookUsingServer = {
         itemForLocation: [],
         itemForHash: {},
         streamId: "common",
@@ -18,82 +18,82 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
                 addItem: true,
                 getItem: true,
                 itemCount: true,
-                textForJournal: true,
-                loadFromJournalText: true,
+                textForNotebook: true,
+                loadFromNotebookText: true,
                 skip: true,
             }
         },
 
         addItem(item, isFromServer) {
             const reference = "" + sha256.sha256(item)
-            const storedItem = JournalUsingServer.itemForHash[reference]
+            const storedItem = NotebookUsingServer.itemForHash[reference]
             if (storedItem) {
                 return { id: reference, location: storedItem.location, existed: true }
             }
-            const newLocation = JournalUsingServer.itemForLocation.length
+            const newLocation = NotebookUsingServer.itemForLocation.length
             const newStoredItem = { id: reference, location: newLocation, item: item }
-            JournalUsingServer.itemForLocation.push(newStoredItem)
-            JournalUsingServer.itemForHash[reference] = newStoredItem
+            NotebookUsingServer.itemForLocation.push(newStoredItem)
+            NotebookUsingServer.itemForHash[reference] = newStoredItem
             // The insertion order may not be the same on other clients; applications need to not depend on it
-            if (!isFromServer) JournalUsingServer.sendInsertItemMessage(item)
+            if (!isFromServer) NotebookUsingServer.sendInsertItemMessage(item)
             return { id: reference, location: newLocation, existed: false }
         },
 
         getItem(reference) {
             if (reference === null) return null
-            const storedItem = JournalUsingServer.itemForHash[reference]
+            const storedItem = NotebookUsingServer.itemForHash[reference]
             return storedItem ? storedItem.item : null
         },
         
         getItemForLocation(location) {
-            const storedItem = JournalUsingServer.itemForLocation[location]
+            const storedItem = NotebookUsingServer.itemForLocation[location]
             return storedItem ? storedItem.item : null
         },
 
         itemCount() {
-            return JournalUsingServer.itemForLocation.length
+            return NotebookUsingServer.itemForLocation.length
         },
 
-        textForJournal() {
+        textForNotebook() {
             const result = []
-            for (let i = 0; i < JournalUsingServer.itemForLocation.length; i++) {
-                const storedItem = JournalUsingServer.itemForLocation[i]
+            for (let i = 0; i < NotebookUsingServer.itemForLocation.length; i++) {
+                const storedItem = NotebookUsingServer.itemForLocation[i]
                 result.push(storedItem.item)
             }
             return JSON.stringify(result, null, 4)
         },
 
         clearItems() {
-            JournalUsingServer.itemForLocation = []
-            JournalUsingServer.itemForHash = {}
+            NotebookUsingServer.itemForLocation = []
+            NotebookUsingServer.itemForHash = {}
         },
         
-        loadFromJournalText(journalText) {
+        loadFromNotebookText(notebookText) {
             // TODO: Need to think abotu what this means ont he server...
-            alert("Replacing Journal not yet supported on server")
+            alert("Replacing Notebook not yet supported on server")
             return
             /*
-            JournalUsingServer.clearItems()
-            const items = JSON.parse(journalText)
-            for (let item of items) { JournalUsingServer.addItem(item) }
+            NotebookUsingServer.clearItems()
+            const items = JSON.parse(notebookText)
+            for (let item of items) { NotebookUsingServer.addItem(item) }
             */
         },
         
         locationForKey(key) {
             if (key === null || key === "") return null
-            const storedItem = JournalUsingServer.itemForHash[key]
+            const storedItem = NotebookUsingServer.itemForHash[key]
             return storedItem ? storedItem.location : null
         },
         
         keyForLocation(location) {
-            const storedItem = JournalUsingServer.itemForLocation[location]
+            const storedItem = NotebookUsingServer.itemForLocation[location]
             return storedItem ? storedItem.id : null
         },
         
         skip(reference, delta, wrap) {
-            const itemCount = JournalUsingServer.itemCount()
+            const itemCount = NotebookUsingServer.itemCount()
             if (itemCount === 0) return null
-            let start = (!reference) ? null : JournalUsingServer.locationForKey(reference)
+            let start = (!reference) ? null : NotebookUsingServer.locationForKey(reference)
             if (start === null) {
                 if (wrap) {
                     // when wrapping, want +1 to go to 0 or -1 to go to end
@@ -119,62 +119,62 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
                 if (location < 0) location = 0
                 if (location >= itemCount) location = itemCount - 1
             }
-            return JournalUsingServer.keyForLocation(location)
+            return NotebookUsingServer.keyForLocation(location)
         },
         
         // =============== socket.io communications
         
         sendMessage(message) {
-            JournalUsingServer.socket.emit("twirlip", message)
+            NotebookUsingServer.socket.emit("twirlip", message)
         },
         
         sendInsertItemMessage(item) {
-            JournalUsingServer.sendMessage({command: "insert", streamId: JournalUsingServer.streamId, item: item, userId: JournalUsingServer.userId, timestamp: new Date().toISOString()})
+            NotebookUsingServer.sendMessage({command: "insert", streamId: NotebookUsingServer.streamId, item: item, userId: NotebookUsingServer.userId, timestamp: new Date().toISOString()})
         },
         
         requestAllMessages() {
-            console.log("requestAllMessages", JournalUsingServer.messagesReceivedCount)
-            JournalUsingServer.sendMessage({command: "listen", streamId: JournalUsingServer.streamId, fromIndex: JournalUsingServer.messagesReceivedCount})
+            console.log("requestAllMessages", NotebookUsingServer.messagesReceivedCount)
+            NotebookUsingServer.sendMessage({command: "listen", streamId: NotebookUsingServer.streamId, fromIndex: NotebookUsingServer.messagesReceivedCount})
         },
         
         messageReceived(message) {
             // console.log("messageReceived", message)
             if (message.command === "insert") {
-                JournalUsingServer.messagesReceivedCount++
-                JournalUsingServer.addItem(message.item, "isFromServer")
+                NotebookUsingServer.messagesReceivedCount++
+                NotebookUsingServer.addItem(message.item, "isFromServer")
             } else if (message.command === "remove") {
-                JournalUsingServer.messagesReceivedCount++
+                NotebookUsingServer.messagesReceivedCount++
                 console.log("TODO: Remove message not handled")
             } else if (message.command === "reset") {
-                JournalUsingServer.messagesReceivedCount++
+                NotebookUsingServer.messagesReceivedCount++
                 // TODO: Should handle timestamps somehow, so earlier messages before last reset are rejected
-                JournalUsingServer.clearItems()
+                NotebookUsingServer.clearItems()
             } else if (message.command === "loaded") {
                 // Don't increment messagesReceivedCount as "loaded" is an advisory meta message from server
-                JournalUsingServer.isLoaded = true
-                console.log("all server data loaded", JournalUsingServer.messagesReceivedCount, new Date().toISOString())
-                if (JournalUsingServer.onLoadedCallback) JournalUsingServer.onLoadedCallback()
+                NotebookUsingServer.isLoaded = true
+                console.log("all server data loaded", NotebookUsingServer.messagesReceivedCount, new Date().toISOString())
+                if (NotebookUsingServer.onLoadedCallback) NotebookUsingServer.onLoadedCallback()
             }
             m.redraw()
         },
         
         setup(io) {
             // TODO: Concern: Want to get all messages, but new messages may be added while waiting
-            JournalUsingServer.socket = io()
+            NotebookUsingServer.socket = io()
             
-            JournalUsingServer.socket.on("twirlip", function(message) {
+            NotebookUsingServer.socket.on("twirlip", function(message) {
                 // console.log("twirlip", message)
-                if (message.streamId === JournalUsingServer.streamId) {
-                    JournalUsingServer.messageReceived(message)
+                if (message.streamId === NotebookUsingServer.streamId) {
+                    NotebookUsingServer.messageReceived(message)
                 }
             })
             
-            JournalUsingServer.socket.on("connect", function(client) {
-                console.log("connect", JournalUsingServer.socket.id, JournalUsingServer.messagesReceivedCount, new Date().toISOString())
-                JournalUsingServer.requestAllMessages()
+            NotebookUsingServer.socket.on("connect", function(client) {
+                console.log("connect", NotebookUsingServer.socket.id, NotebookUsingServer.messagesReceivedCount, new Date().toISOString())
+                NotebookUsingServer.requestAllMessages()
             })
         }
     }
 
-    return JournalUsingServer
+    return NotebookUsingServer
 })

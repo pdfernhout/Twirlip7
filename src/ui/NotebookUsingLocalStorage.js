@@ -7,7 +7,7 @@ define(["vendor/sha256"], function(sha256) {
     const locationToHashPrefix = "_l2h_"
     const itemCountKey = "_itemCounter"
     
-    const JournalUsingLocalStorage = {
+    const NotebookUsingLocalStorage = {
 
         getCapabilities() {
             return {
@@ -15,16 +15,16 @@ define(["vendor/sha256"], function(sha256) {
                 addItem: true,
                 getItem: true,
                 itemCount: true,
-                textForJournal: true,
-                loadFromJournalText: true,
+                textForNotebook: true,
+                loadFromNotebookText: true,
                 skip: true,
             }
         },
 
         addItem(item) {
             const hash = "" + sha256.sha256(item)
-            if (JournalUsingLocalStorage.getItem(hash)) return { id: hash, existed: true }
-            const itemCount = JournalUsingLocalStorage.itemCount()
+            if (NotebookUsingLocalStorage.getItem(hash)) return { id: hash, existed: true }
+            const itemCount = NotebookUsingLocalStorage.itemCount()
             const location = itemCount
             try {
                 localStorage.setItem(hashToItemPrefix + hash, item)
@@ -44,7 +44,7 @@ define(["vendor/sha256"], function(sha256) {
         },
         
         getItemForLocation(location) {
-            return JournalUsingLocalStorage.getItem(localStorage.getItem(locationToHashPrefix + location))
+            return NotebookUsingLocalStorage.getItem(localStorage.getItem(locationToHashPrefix + location))
         },
         
         itemCount() {
@@ -52,11 +52,11 @@ define(["vendor/sha256"], function(sha256) {
             return parseInt(itemCountString)
         },
 
-        textForJournal() {
-            const itemCount = JournalUsingLocalStorage.itemCount()
+        textForNotebook() {
+            const itemCount = NotebookUsingLocalStorage.itemCount()
             const items = []
             for (let i = 0; i < itemCount; i++) {
-                const item = JournalUsingLocalStorage.getItemForLocation(i)
+                const item = NotebookUsingLocalStorage.getItemForLocation(i)
                 items.push(item)
             }
             return JSON.stringify(items, null, 4)
@@ -81,10 +81,10 @@ define(["vendor/sha256"], function(sha256) {
             }
         },
         
-        loadFromJournalText(journalText) {
-            JournalUsingLocalStorage.clearItems()
-            const items = JSON.parse(journalText)
-            for (let item of items) { JournalUsingLocalStorage.addItem(item) }
+        loadFromNotebookText(notebookText) {
+            NotebookUsingLocalStorage.clearItems()
+            const items = JSON.parse(notebookText)
+            for (let item of items) { NotebookUsingLocalStorage.addItem(item) }
         },
         
         locationForKey(key) {
@@ -99,9 +99,9 @@ define(["vendor/sha256"], function(sha256) {
         },
         
         skip(reference, delta, wrap) {
-            const itemCount = JournalUsingLocalStorage.itemCount()
+            const itemCount = NotebookUsingLocalStorage.itemCount()
             if (itemCount === 0) return null
-            let start = (!reference) ? null : JournalUsingLocalStorage.locationForKey(reference)
+            let start = (!reference) ? null : NotebookUsingLocalStorage.locationForKey(reference)
             if (start === null) {
                 if (wrap) {
                     // when wrapping, want +1 to go to 0 or -1 to go to end
@@ -127,9 +127,9 @@ define(["vendor/sha256"], function(sha256) {
                 if (location < 0) location = 0
                 if (location >= itemCount) location = itemCount - 1
             }
-            return JournalUsingLocalStorage.keyForLocation(location)
+            return NotebookUsingLocalStorage.keyForLocation(location)
         }
     }
 
-    return JournalUsingLocalStorage
+    return NotebookUsingLocalStorage
 })

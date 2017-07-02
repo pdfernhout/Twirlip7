@@ -5,7 +5,7 @@ requirejs.config({
     }
 })
 
-requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "JournalUsingMemory", "JournalUsingServer", "FileUtils", "CanonicalJSON"], function(mDiscardAsMadeGlobal, WorkspaceView, JournalUsingLocalStorage, JournalUsingMemory, JournalUsingServer, FileUtils, CanonicalJSON) {
+requirejs(["vendor/mithril", "WorkspaceView", "NotebookUsingLocalStorage", "NotebookUsingMemory", "NotebookUsingServer", "FileUtils", "CanonicalJSON"], function(mDiscardAsMadeGlobal, WorkspaceView, NotebookUsingLocalStorage, NotebookUsingMemory, NotebookUsingServer, FileUtils, CanonicalJSON) {
     "use strict"
     
     /* global location */
@@ -81,17 +81,17 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
             
             FileUtils,
             CanonicalJSON,
-            JournalUsingLocalStorage,
-            JournalUsingMemory,
-            JournalUsingServer,
+            NotebookUsingLocalStorage,
+            NotebookUsingMemory,
+            NotebookUsingServer,
             
             // TODO: Remove legacy support for previous development notes
             getCurrentJournal: () => {
-                return workspaceView.getCurrentJournal()
+                return workspaceView.getCurrentNotebook()
             },
             
             getCurrentNotebook: () => {
-                return workspaceView.getCurrentJournal()
+                return workspaceView.getCurrentNotebook()
             },
             
             getItemForJSON: getItemForJSON,
@@ -101,7 +101,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
                 if (!item.timestamp) item.timestamp = new Date().toISOString()
                 if (!item.contributor) item.contributor = workspaceView.getCurrentContributor()
                 const itemJSON = CanonicalJSON.stringify(item)
-                return workspaceView.getCurrentJournal().addItem(itemJSON)
+                return workspaceView.getCurrentNotebook().addItem(itemJSON)
             },
             
             findItem(match, configuration) {
@@ -111,10 +111,10 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
                 // TODO: This should not have to iterate over all stored objects
                 if (!configuration) configuration = {}
                 const result = []
-                const journal = workspaceView.getCurrentJournal()
-                const count = journal.itemCount()
+                const notebook = workspaceView.getCurrentNotebook()
+                const count = notebook.itemCount()
                 for (let i = 0; i < count; i++) {
-                    const itemJSON = journal.getItemForLocation(i)
+                    const itemJSON = notebook.getItemForLocation(i)
                     const item = getItemForJSON(itemJSON)
                     if (!item) continue
                     let isMatch = true
@@ -125,7 +125,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
                         }
                     }
                     if (isMatch) {
-                        const key = journal.keyForLocation(i)
+                        const key = notebook.keyForLocation(i)
                         result.push({location: i, item, key})
                     }
                 }
@@ -156,13 +156,13 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
         
         // Try to load socket.io, which may fail
         requirejs(["/socket.io/socket.io.js"], function(io) {
-            JournalUsingServer.onLoadedCallback = function() {
-                JournalUsingServer.onLoadedCallback = null
+            NotebookUsingServer.onLoadedCallback = function() {
+                NotebookUsingServer.onLoadedCallback = null
                 // assuming callback will always be done before get here to go to initialKeyToGoTo
-                if (initialKeyToGoTo && workspaceView.getJournalChoice() === "server") workspaceView.goToKey(initialKeyToGoTo)
+                if (initialKeyToGoTo && workspaceView.getNotebookChoice() === "server") workspaceView.goToKey(initialKeyToGoTo)
                 m.redraw()
             }
-            JournalUsingServer.setup(io)
+            NotebookUsingServer.setup(io)
             callback()
         }, function(err) {
             console.log("No socket.io available -- server function disabled")
@@ -171,7 +171,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
     }
 
     function runStartupItem(itemId) {
-        const item = JournalUsingLocalStorage.getItem(itemId)
+        const item = NotebookUsingLocalStorage.getItem(itemId)
         if (item) {
             try {
                 const code = (item.startsWith("{")) ? JSON.parse(item).value : item
@@ -254,12 +254,12 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
                 const itemId = hash.substring("#item=".length)
                 initialKeyToGoTo = itemId
                 startEditor(() => {
-                    if (initialKeyToGoTo && workspaceView.getJournalChoice() == "local storage") workspaceView.goToKey(initialKeyToGoTo)
+                    if (initialKeyToGoTo && workspaceView.getNotebookChoice() == "local storage") workspaceView.goToKey(initialKeyToGoTo)
                 }, () => {
-                    workspaceView.restoreJournalChoice()
+                    workspaceView.restoreNotebookChoice()
                 })
             } else if (hash && hash.startsWith("#eval=")) {
-                // TODO: Not sure whether to restore journal choice here
+                // TODO: Not sure whether to restore notebook choice here
                 const startupSelection = hash.substring("#eval=".length)
                 const startupFileNames = startupSelection.split(";")
                 for (let startupFileName of startupFileNames) {
@@ -268,7 +268,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
                     })
                 }
             } else if (hash && hash.startsWith("#edit=")) {
-                // TODO: Not sure whether to restore journal choice here
+                // TODO: Not sure whether to restore notebook choice here
                 const startupSelection = hash.substring("#edit=".length)
                 requirejs(["vendor/text!" + startupSelection], function (startupFileContents) {
                     startEditor(() => {
@@ -281,9 +281,9 @@ requirejs(["vendor/mithril", "WorkspaceView", "JournalUsingLocalStorage", "Journ
             } else {
                 startEditor(() => {
                     initialKeyToGoTo = workspaceView.fetchStoredItemId()
-                    if (workspaceView.getJournalChoice() !== "server") workspaceView.goToKey(initialKeyToGoTo)
+                    if (workspaceView.getNotebookChoice() !== "server") workspaceView.goToKey(initialKeyToGoTo)
                 },() => {
-                    workspaceView.restoreJournalChoice()
+                    workspaceView.restoreNotebookChoice()
                 })
             }
         })

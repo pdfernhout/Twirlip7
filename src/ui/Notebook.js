@@ -8,7 +8,7 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
     // (especially compared to megabytes of items in each notebook).
     // See also: https://stackoverflow.com/questions/387707/what-techniques-can-be-used-to-define-a-class-in-javascript-and-what-are-their/1169656#1169656
     
-    // TODO: This is just all derived from JournalUsingMemory.js -- improve
+    // TODO: This is just all derived from NotebookUsingMemory.js -- improve
     
     function Notebook() {
         
@@ -21,8 +21,8 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
                 addItem: true,
                 getItem: true,
                 itemCount: true,
-                textForJournal: true,
-                loadFromJournalText: true,
+                textForNotebook: true,
+                loadFromNotebookText: true,
                 skip: true,
             }
         }
@@ -55,7 +55,7 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             return itemForLocation.length
         }
 
-        function textForJournal() {
+        function textForNotebook() {
             const result = []
             for (let i = 0; i < itemForLocation.length; i++) {
                 const storedItem = itemForLocation[i]
@@ -69,9 +69,9 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             itemForHash = {}
         }
         
-        function loadFromJournalText(journalText) {
+        function loadFromNotebookText(notebookText) {
             clearItems()
-            const items = JSON.parse(journalText)
+            const items = JSON.parse(notebookText)
             for (let item of items) { addItem(item) }
         }
         
@@ -124,9 +124,9 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             getItem,
             getItemForLocation,
             itemCount,
-            textForJournal,
+            textForNotebook,
             clearItems,
-            loadFromJournalText,
+            loadFromNotebookText,
             locationForKey,
             keyForLocation,
             skip

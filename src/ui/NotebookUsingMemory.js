@@ -2,7 +2,7 @@ define(["vendor/sha256"], function(sha256) {
     "use strict"
 
     // returns position + 1 for item reference to avoid first item being "0"
-    const JournalUsingMemory = {
+    const NotebookUsingMemory = {
         itemForLocation: [],
         itemForHash: {},
 
@@ -12,75 +12,75 @@ define(["vendor/sha256"], function(sha256) {
                 addItem: true,
                 getItem: true,
                 itemCount: true,
-                textForJournal: true,
-                loadFromJournalText: true,
+                textForNotebook: true,
+                loadFromNotebookText: true,
                 skip: true,
             }
         },
 
         addItem(item) {
             const reference = "" + sha256.sha256(item)
-            const storedItem = JournalUsingMemory.itemForHash[reference]
+            const storedItem = NotebookUsingMemory.itemForHash[reference]
             if (storedItem) {
                 return { id: reference, location: storedItem.location, existed: true }
             }
-            const newLocation = JournalUsingMemory.itemForLocation.length
+            const newLocation = NotebookUsingMemory.itemForLocation.length
             const newStoredItem = { id: reference, location: newLocation, item: item }
-            JournalUsingMemory.itemForLocation.push(newStoredItem)
-            JournalUsingMemory.itemForHash[reference] = newStoredItem
+            NotebookUsingMemory.itemForLocation.push(newStoredItem)
+            NotebookUsingMemory.itemForHash[reference] = newStoredItem
             return { id: reference, location: newLocation, existed: false }
         },
 
         getItem(reference) {
             if (reference === null) return null
-            const storedItem = JournalUsingMemory.itemForHash[reference]
+            const storedItem = NotebookUsingMemory.itemForHash[reference]
             return storedItem ? storedItem.item : null
         },
         
         getItemForLocation(location) {
-            const storedItem = JournalUsingMemory.itemForLocation[location]
+            const storedItem = NotebookUsingMemory.itemForLocation[location]
             return storedItem ? storedItem.item : null
         },
 
         itemCount() {
-            return JournalUsingMemory.itemForLocation.length
+            return NotebookUsingMemory.itemForLocation.length
         },
 
-        textForJournal() {
+        textForNotebook() {
             const result = []
-            for (let i = 0; i < JournalUsingMemory.itemForLocation.length; i++) {
-                const storedItem = JournalUsingMemory.itemForLocation[i]
+            for (let i = 0; i < NotebookUsingMemory.itemForLocation.length; i++) {
+                const storedItem = NotebookUsingMemory.itemForLocation[i]
                 result.push(storedItem.item)
             }
             return JSON.stringify(result, null, 4)
         },
 
         clearItems() {
-            JournalUsingMemory.itemForLocation = []
-            JournalUsingMemory.itemForHash = {}
+            NotebookUsingMemory.itemForLocation = []
+            NotebookUsingMemory.itemForHash = {}
         },
         
-        loadFromJournalText(journalText) {
-            JournalUsingMemory.clearItems()
-            const items = JSON.parse(journalText)
-            for (let item of items) { JournalUsingMemory.addItem(item) }
+        loadFromNotebookText(notebookText) {
+            NotebookUsingMemory.clearItems()
+            const items = JSON.parse(notebookText)
+            for (let item of items) { NotebookUsingMemory.addItem(item) }
         },
         
         locationForKey(key) {
             if (key === null || key === "") return null
-            const storedItem = JournalUsingMemory.itemForHash[key]
+            const storedItem = NotebookUsingMemory.itemForHash[key]
             return storedItem ? storedItem.location : null
         },
         
         keyForLocation(location) {
-            const storedItem = JournalUsingMemory.itemForLocation[location]
+            const storedItem = NotebookUsingMemory.itemForLocation[location]
             return storedItem ? storedItem.id : null
         },
         
         skip(reference, delta, wrap) {
-            const itemCount = JournalUsingMemory.itemCount()
+            const itemCount = NotebookUsingMemory.itemCount()
             if (itemCount === 0) return null
-            let start = (!reference) ? null : JournalUsingMemory.locationForKey(reference)
+            let start = (!reference) ? null : NotebookUsingMemory.locationForKey(reference)
             if (start === null) {
                 if (wrap) {
                     // when wrapping, want +1 to go to 0 or -1 to go to end
@@ -106,9 +106,9 @@ define(["vendor/sha256"], function(sha256) {
                 if (location < 0) location = 0
                 if (location >= itemCount) location = itemCount - 1
             }
-            return JournalUsingMemory.keyForLocation(location)
+            return NotebookUsingMemory.keyForLocation(location)
         }
     }
 
-    return JournalUsingMemory
+    return NotebookUsingMemory
 })

@@ -1,24 +1,24 @@
 define(["CanonicalJSON"], function(CanonicalJSON) {
     "use strict"
 
-    const exampleJournalConfigurationFileName = "_exampleJournalConfiguration.txt"
+    const exampleNotebookConfigurationFileName = "_exampleNotebookConfiguration.txt"
 
-    const ExampleJournalLoader = {
+    const ExampleNotebookLoader = {
         
         it: null,
 
         loadFile(fileName) {
             const fullFileName = "vendor/text!examples/" + fileName
             requirejs([fullFileName], function (fileContents) {
-                ExampleJournalLoader.it.next(fileContents)
+                ExampleNotebookLoader.it.next(fileContents)
             })
         },
         
         loadAllFiles(progressCallback, doneCallback) {
-            requirejs(["vendor/text!examples/" + exampleJournalConfigurationFileName], function (configFileContents) {
+            requirejs(["vendor/text!examples/" + exampleNotebookConfigurationFileName], function (configFileContents) {
                 // console.log("configFileContents", configFileContents)
-                ExampleJournalLoader.it = ExampleJournalLoader.loader(configFileContents, progressCallback, doneCallback)
-                ExampleJournalLoader.it.next()
+                ExampleNotebookLoader.it = ExampleNotebookLoader.loader(configFileContents, progressCallback, doneCallback)
+                ExampleNotebookLoader.it.next()
             }) 
         },
         
@@ -62,7 +62,7 @@ define(["CanonicalJSON"], function(CanonicalJSON) {
                 const fileName = inputLine.trim()
                 
                 // An interator for a generator makes this file load operation look synchronous even though it is asynchronous
-                const fileContents = yield ExampleJournalLoader.loadFile(fileName)
+                const fileContents = yield ExampleNotebookLoader.loadFile(fileName)
                 
                 item.attribute = savedAttribute || fileName
                 item.value = fileContents
@@ -73,5 +73,5 @@ define(["CanonicalJSON"], function(CanonicalJSON) {
         }
     }
 
-    return ExampleJournalLoader
+    return ExampleNotebookLoader
 })

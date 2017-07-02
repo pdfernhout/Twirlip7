@@ -1,12 +1,12 @@
-define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorage", "JournalUsingServer", "ace/ace", "ace/ext/modelist", "ExampleJournalLoader", "CanonicalJSON", "vendor/sha256"], function(
+define(["FileUtils", "EvalUtils", "NotebookUsingMemory", "NotebookUsingLocalStorage", "NotebookUsingServer", "ace/ace", "ace/ext/modelist", "ExampleNotebookLoader", "CanonicalJSON", "vendor/sha256"], function(
     FileUtils,
     EvalUtils,
-    JournalUsingMemory,
-    JournalUsingLocalStorage,
-    JournalUsingServer,
+    NotebookUsingMemory,
+    NotebookUsingLocalStorage,
+    NotebookUsingServer,
     ace,
     modelist,
-    ExampleJournalLoader,
+    ExampleNotebookLoader,
     CanonicalJSON,
     sha256
 ) {
@@ -43,8 +43,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         
         let currentContributor = ""
         
-        let currentJournal = JournalUsingLocalStorage
-        let journalChoice = "local storage"
+        let currentNotebook = NotebookUsingLocalStorage
+        let notebookChoice = "local storage"
         
         let isLastEntityMatch = false
         let isLastEntityAttributeMatch = false
@@ -68,7 +68,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         let startupGoToKey = null
         
         function oninit() {
-            if (JournalUsingLocalStorage.itemCount() === 0) {
+            if (NotebookUsingLocalStorage.itemCount() === 0) {
                 show(function () { 
                     return [
                         m("div", "Thanks for trying Twirlip7, a programmable notebook and experimental Mithril.js playground -- with aspirations towards becoming a distributed social semantic desktop."),
@@ -174,58 +174,58 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         
         function saveCurrentItemId() {
             if (currentItemId !== null) {
-                localStorage.setItem("_current_" + journalChoice, currentItemId)
+                localStorage.setItem("_current_" + notebookChoice, currentItemId)
                 location.hash = "#item=" + currentItemId
             } else {
-                localStorage.setItem("_current_" + journalChoice, "")
+                localStorage.setItem("_current_" + notebookChoice, "")
                 location.hash = "#"
             }
         }
         
         function fetchStoredItemId() {
-            const storedItemId = localStorage.getItem("_current_" + journalChoice)
+            const storedItemId = localStorage.getItem("_current_" + notebookChoice)
             return storedItemId
         }
         
         function restoreCurrentItemId() {
             let storedItemId = fetchStoredItemId()
             // Memory is transient on reload, so don't try to go to missing keys to avoid a warning
-            if (journalChoice === "memory" && currentJournal.getItem(storedItemId) === null) storedItemId = null
+            if (notebookChoice === "memory" && currentNotebook.getItem(storedItemId) === null) storedItemId = null
             goToKey(storedItemId, {ignoreDirty: true})
         }
         
-        function saveJournalChoice() {
-            localStorage.setItem("_currentJournalChoice", journalChoice)
+        function saveNotebookChoice() {
+            localStorage.setItem("_currentNotebookChoice", notebookChoice)
         }
         
-        function restoreJournalChoice() {
-            const newChoice = localStorage.getItem("_currentJournalChoice")
+        function restoreNotebookChoice() {
+            const newChoice = localStorage.getItem("_currentNotebookChoice")
             if (newChoice) {
-                const newJournal = journalsAvailable()[newChoice]
-                if (newJournal) {
-                    journalChoice = newChoice
-                    currentJournal = newJournal
+                const newNotebook = notebooksAvailable()[newChoice]
+                if (newNotebook) {
+                    notebookChoice = newChoice
+                    currentNotebook = newNotebook
                 } else{
                     alert("Notebook not available for: " + newChoice)
                 }
             }
         }
         
-        function journalsAvailable() {
-            const journals = {
-                "local storage": JournalUsingLocalStorage,
-                "memory": JournalUsingMemory,
-                "server": JournalUsingServer.socket ? JournalUsingServer : null
+        function notebooksAvailable() {
+            const notebooks = {
+                "local storage": NotebookUsingLocalStorage,
+                "memory": NotebookUsingMemory,
+                "server": NotebookUsingServer.socket ? NotebookUsingServer : null
             }
-            return journals
+            return notebooks
         }
 
-        function changeJournal(newChoice) {
-            const oldChoice = journalChoice
+        function changeNotebook(newChoice) {
+            const oldChoice = notebookChoice
             if (newChoice === oldChoice) return
             
-            const newJournal = journalsAvailable()[newChoice]
-            if (!newJournal) {
+            const newNotebook = notebooksAvailable()[newChoice]
+            if (!newNotebook) {
                 alert("Notebook not available for: " + newChoice)
                 return
             }
@@ -233,10 +233,10 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             if (!confirmClear()) return
 
             saveCurrentItemId()
-            journalChoice = newChoice
-            currentJournal = newJournal
+            notebookChoice = newChoice
+            currentNotebook = newNotebook
             restoreCurrentItemId()
-            saveJournalChoice()
+            saveNotebookChoice()
         }
 
         function setEditorContents(newContents, keepUndo) {
@@ -285,7 +285,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             }
             const newContents = getEditorContents()
             const itemJSON = prepareCurrentItemForSaving(newContents)
-            const addResult = currentJournal.addItem(itemJSON)
+            const addResult = currentNotebook.addItem(itemJSON)
             if (addResult.error) {
                 alert("save failed -- maybe too many localStorage items?\n" + addResult.error)
                 return
@@ -386,7 +386,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         }
 
         function openIt() {
-            if (currentJournal !== JournalUsingLocalStorage) {
+            if (currentNotebook !== NotebookUsingLocalStorage) {
                 alert("Notes need to be in the \"local storage\" notebook (not memory or server)\nto be opened in a new window.")
                 return
             }
@@ -426,7 +426,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         }
         
         function makeDataURLForItemId(itemId) {
-            const itemText = currentJournal.getItem(itemId)
+            const itemText = currentNotebook.getItem(itemId)
             const encodedText = encodeURIComponent(itemText)
             const dataURL = twirlip7DataUrlPrefix + itemId + "/" + itemText.length + "/" + encodedText.length + "/" + encodedText
             return { itemId, itemText, dataURL }
@@ -500,7 +500,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 }
                 
                 // TODO: Consolidate the copy/paste adding of item with where this is copied from
-                const addResult = currentJournal.addItem(itemText)
+                const addResult = currentNotebook.addItem(itemText)
                 if (addResult.error) {
                     alert("save failed -- maybe too many localStorage items?\n" + addResult.error)
                     return null
@@ -528,11 +528,11 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         }
 
         function skip(delta, wrap) {
-            if (!currentJournal.itemCount()) {
+            if (!currentNotebook.itemCount()) {
                 toast("No notes to display. Try saving one first -- or show the example notebook in the editor and then load it.")
                 return
             }
-            const key = currentJournal.skip(currentItemId, delta, wrap)
+            const key = currentNotebook.skip(currentItemId, delta, wrap)
             goToKey(key)
         }
 
@@ -547,7 +547,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             // First check is to prevent losing redo stack and cursor position if not moving
             if (!options.reload && key === currentItemId) return
             if (!options.ignoreDirty && !confirmClear()) return
-            let itemText = currentJournal.getItem(key)
+            let itemText = currentNotebook.getItem(key)
             let item
             if (itemText === undefined || itemText === null) {
                 if (key) toast("note not found for:\n\"" + key + "\"")
@@ -708,35 +708,35 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             updateIsLastMatch(true)
         }
         
-        function showJournal(journalText) {
-            showText(journalText, "application/json")
+        function showNotebook(notebookText) {
+            showText(notebookText, "application/json")
         }
 
-        function showCurrentJournal() {
+        function showCurrentNotebook() {
             if (!confirmClear()) return
-            showJournal(currentJournal.textForJournal())
+            showNotebook(currentNotebook.textForNotebook())
         }
 
-        function showExampleJournal() {
+        function showExampleNotebook() {
             if (!confirmClear()) return
             progress("Loading examples; please wait...")
-            ExampleJournalLoader.loadAllFiles(
+            ExampleNotebookLoader.loadAllFiles(
                 (progressMessage) => {
                     progress(progressMessage)
                     m.redraw()
                 },
-                (exampleJournal) => {
-                    showJournal(JSON.stringify(exampleJournal, null, 4))
+                (exampleNotebook) => {
+                    showNotebook(JSON.stringify(exampleNotebook, null, 4))
                     progress(null)
                     m.redraw()
                 }
             )
         }
 
-        function replaceJournal() {
-            if (currentJournal.itemCount() && !confirm("Replace all notes in the " + journalChoice + " notebook with notes from JSON in editor?")) return
+        function replaceNotebook() {
+            if (currentNotebook.itemCount() && !confirm("Replace all notes in the " + notebookChoice + " notebook with notes from JSON in editor?")) return
             try {
-                currentJournal.loadFromJournalText(getEditorContents())
+                currentNotebook.loadFromNotebookText(getEditorContents())
             } catch (error) {
                 toast("Problem replacing notebook from editor:\n" + error)
                 return
@@ -747,13 +747,13 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             toast("Replaced notebook from editor")
         }
         
-        function mergeJournal() {
-            if (currentJournal.itemCount() && !confirm("Merge notes from JSON in editor into the current notebook?")) return
+        function mergeNotebook() {
+            if (currentNotebook.itemCount() && !confirm("Merge notes from JSON in editor into the current notebook?")) return
             try {
                 let addedItemCount = 0
-                const newJournalItems = JSON.parse(getEditorContents())
-                for (let itemJSON of newJournalItems) {
-                    const addResult = currentJournal.addItem(itemJSON)
+                const newNotebookItems = JSON.parse(getEditorContents())
+                for (let itemJSON of newNotebookItems) {
+                    const addResult = currentNotebook.addItem(itemJSON)
                     if (!addResult.existed) addedItemCount++
                 }
                 toast("Added " + addedItemCount + " note" + ((addedItemCount === 1 ? "" : "s")) + " to current notebook")
@@ -909,16 +909,16 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
         }
         
         function viewNavigate() {
-            const itemCount = currentJournal.itemCount()
-            const itemIndex = currentJournal.locationForKey(currentItemId)
+            const itemCount = currentNotebook.itemCount()
+            const itemIndex = currentNotebook.locationForKey(currentItemId)
             
-            const journals = journalsAvailable()
+            const notebooks = notebooksAvailable()
             
-            function journalChanged(event) {
+            function notebookChanged(event) {
                 if (!confirmClear()) {
                     return
                 }
-                changeJournal(event.target.value)
+                changeNotebook(event.target.value)
             }
             
             function isPreviousDisabled() {
@@ -941,7 +941,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 const newItemId = prompt("Go to note id", currentItemId)
                 if (!newItemId) return
                 // TODO: Should have a check for "exists"
-                if (currentJournal.getItem(newItemId) === null) {
+                if (currentNotebook.getItem(newItemId) === null) {
                     alert("Could not find note for id:\n" + newItemId)
                 } else {
                     goToKey(newItemId, {reload: true})
@@ -951,9 +951,9 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             function itemPositionClicked() {
                 const newItemIndex = prompt("Go to note index", itemIndex === null ? "" : itemIndex + 1)
                 if (!newItemIndex || newItemIndex === itemIndex) return
-                const newItemId = currentJournal.keyForLocation(parseInt(newItemIndex) - 1)
+                const newItemId = currentNotebook.keyForLocation(parseInt(newItemIndex) - 1)
                 // TODO: Should have a check for "exists"
-                if (currentJournal.getItem(newItemId) === null) {
+                if (currentNotebook.getItem(newItemId) === null) {
                     alert("Could not find note for index:\n" + newItemIndex)
                 } else {
                     goToKey(newItemId, {reload: true})
@@ -967,17 +967,17 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return m("div.ba.ma1",
                 m("span.ml1", "Notebook"),
                 m("select.ma2", {
-                    onchange: journalChanged,
+                    onchange: notebookChanged,
                     title: "Change storage location of notes",
                     // The value is required here in addition to settign the options: https://gitter.im/mithriljs/mithril.js?at=59492498cf9c13503ca57fdd
-                    value: journalChoice
+                    value: notebookChoice
                 },
-                    Object.keys(journals).sort().map((journalKey) => {
-                        let name = journalKey
-                        if (journalKey === "server" && journals[journalKey] && !JournalUsingServer.isLoaded) {
+                    Object.keys(notebooks).sort().map((notebookKey) => {
+                        let name = notebookKey
+                        if (notebookKey === "server" && notebooks[notebookKey] && !NotebookUsingServer.isLoaded) {
                             name += " <-->"
                         }
-                        return m("option", { value: journalKey, disabled: !journals[journalKey]}, name)
+                        return m("option", { value: notebookKey, disabled: !notebooks[notebookKey]}, name)
                     })
                 ),
                 m("button.ma1", { onclick: goFirst, title: "Go to first note", disabled: isPreviousDisabled() }, icon("fa-fast-backward.mr1"), "First"),
@@ -986,7 +986,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("button.ma1", { onclick: goLast, title: "Go to last note", disabled: isNextDisabled() }, "Last", icon("fa-fast-forward.ml1")),
                "Note ",
                 m("span", { title: "Click to jump to different note by identifier", onclick: itemIdentifierClicked }, itemIdentifier),
-                currentJournal.getCapabilities().idIsPosition ? 
+                currentNotebook.getCapabilities().idIsPosition ? 
                     "" : 
                     m("span", { onclick: itemPositionClicked, title: "Click to jump to different note by index" },
                         " : " + (itemIndex === null ?
@@ -1236,7 +1236,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return [
                 m("input[type=checkbox].ma1", {
                     checked: isStartupItem,
-                    disabled: currentJournal !== JournalUsingLocalStorage,
+                    disabled: currentNotebook !== NotebookUsingLocalStorage,
                     onclick: toggleUseAtStartup.bind(null, isStartupItem, currentItemId),
                     title: helpText
                 }),
@@ -1263,7 +1263,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 style: (isEditorDirty() ? "text-shadow: 1px 0px 0px black" : ""),
                 onclick: save,
                 title: "Add a new version of the value of the entity's attribute to the current notebook"
-            }, icon("fa-share-square-o.mr1"), "Save note to " + journalChoice)
+            }, icon("fa-share-square-o.mr1"), "Save note to " + notebookChoice)
         }
         
         const importExportMenu = {
@@ -1289,24 +1289,24 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             return m("br")
         }
         
-        function isCurrentJournalLoading() {
-            return journalChoice === "server" && !JournalUsingServer.isLoaded
+        function isCurrentNotebookLoading() {
+            return notebookChoice === "server" && !NotebookUsingServer.isLoaded
         }
         
-        const journalMenu = {
-            view: () => Twirlip7.menu("Notebook operations", journalMenu),
+        const notebookMenu = {
+            view: () => Twirlip7.menu("Notebook operations", notebookMenu),
             minWidth: "20rem",
             isOpen: false,
             items: [
-                { disabled: isCurrentJournalLoading, onclick: showCurrentJournal, title: "Put JSON for current notebook contents into editor", name: "Show current notebook" },
-                { disabled: isCurrentJournalLoading, onclick: showExampleJournal, title: "Put JSON for a notebook of example snippets into editor (for loading afterwards)", name: "Show example notebook" },
-                { disabled: isCurrentJournalLoading, onclick: mergeJournal, title: "Load notebook from JSON in editor -- merging with the previous notes", name: "Merge notebook" },
-                { disabled: isCurrentJournalLoading, onclick: replaceJournal, title: "Load notebook from JSON from editor -- replacing all previous notes!", name: "Replace notebook" },
+                { disabled: isCurrentNotebookLoading, onclick: showCurrentNotebook, title: "Put JSON for current notebook contents into editor", name: "Show current notebook" },
+                { disabled: isCurrentNotebookLoading, onclick: showExampleNotebook, title: "Put JSON for a notebook of example snippets into editor (for loading afterwards)", name: "Show example notebook" },
+                { disabled: isCurrentNotebookLoading, onclick: mergeNotebook, title: "Load notebook from JSON in editor -- merging with the previous notes", name: "Merge notebook" },
+                { disabled: isCurrentNotebookLoading, onclick: replaceNotebook, title: "Load notebook from JSON from editor -- replacing all previous notes!", name: "Replace notebook" },
             ]
         }
         
-        function viewJournalButtons() {
-            return m(journalMenu)
+        function viewNotebookButtons() {
+            return m(notebookMenu)
         }
         
         function viewExtensionsHeader() {
@@ -1338,7 +1338,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 focusMode ? [] : viewSpacer(),
                 focusMode ? [] : viewImportExportButtons(),
                 focusMode ? [] : viewSpacer(),
-                focusMode ? [] : viewJournalButtons(),
+                focusMode ? [] : viewNotebookButtons(),
                 viewSplitter(),
                 focusMode ? [] : viewExtensionsFooter(),
             ]
@@ -1366,7 +1366,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             goToKey,
             getStartupInfo,
             setStartupInfo,
-            restoreJournalChoice,
+            restoreNotebookChoice,
             setEditorContents,
             fetchStoredItemId,
             
@@ -1397,11 +1397,11 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             getCurrentItemId() {
                 return currentItemId
             },
-            getCurrentJournal() {
-                return currentJournal
+            getCurrentNotebook() {
+                return currentNotebook
             },
-            getJournalChoice() {
-                return journalChoice
+            getNotebookChoice() {
+                return notebookChoice
             },
             getCurrentContributor() {
                 return currentContributor
