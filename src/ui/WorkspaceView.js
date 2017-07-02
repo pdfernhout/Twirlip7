@@ -222,7 +222,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
             
             const newJournal = journalsAvailable()[newChoice]
             if (!newJournal) {
-                alert("Nodebook not available for: " + newChoice)
+                alert("Notebook not available for: " + newChoice)
                 return
             }
             
@@ -1257,7 +1257,7 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                 m("button.ma1", { onclick: importTextAsBase64, title: "Load a file into editor as base64" }, "Import as Base64"),
                 m("button.ma1", { onclick: exportText, title: "Save current editor text to a file" }, "Export"),
                 m("button.ma1", { onclick: displayCurrentTriple, title: "Print the current triple in the editor as a data URL (to copy)", disabled: !currentItemId }, "P*"),
-                m("button.ma1", { onclick: displayCurrentTripleAndHistory, title: "Print the current triple and its entire derived-from histroy in the editor as data URLs (to copy)", disabled: !currentItemId }, "E*"),
+                m("button.ma1", { onclick: displayCurrentTripleAndHistory, title: "Print the current triple and its entire derived-from history in the editor as data URLs (to copy)", disabled: !currentItemId }, "E*"),
                 m("button.ma1", { onclick: readTriplesFromDataURLs, title: "Read one or more notes from data URLs in the editor (like from a paste) and save them into the current notebook" }, "C*"),
             ]
         }
