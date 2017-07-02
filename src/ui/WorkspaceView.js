@@ -1052,8 +1052,8 @@ define(["FileUtils", "EvalUtils", "JournalUsingMemory", "JournalUsingLocalStorag
                     m("span.dib.w3.tr.mr2", { title: "Value: a note, observation, description, definition, or specification about the state of the entity's attribute at some point in time" }, "Value"),
                     viewEditorMode(),
                     undoManager ? [
-                        m("button.ml2", {onclick: () => undoManager.undo(), disabled: !undoManager.hasUndo() }, "< Undo"),
-                        m("button.ml1.mr2", {onclick: () => undoManager.redo(), disabled: !undoManager.hasRedo() }, "Redo >"),
+                        m("button.ml2", {onclick: () => undoManager.undo(), disabled: !undoManager.hasUndo() }, m("i.fa.fa-undo[aria-hidden=true].mr1"), "Undo"),
+                        m("button.ml1.mr2", {onclick: () => undoManager.redo(), disabled: !undoManager.hasRedo() }, "Redo", m("i.fa.fa-repeat[aria-hidden=true].ml1")),
                     ] : [],
                     focusMode ? [] : viewSaveButton(),
                     m("button", { onclick: clear, title: "Clear out text in editor and the derivedFrom link\nPress a second time to clear other fields too" }, "New note")
