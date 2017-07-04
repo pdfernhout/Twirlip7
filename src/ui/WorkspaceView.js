@@ -565,7 +565,7 @@ define(["FileUtils", "EvalUtils", "NotebookUsingMemory", "NotebookUsingLocalStor
             }
             if (!options) options = {}
             // First check is to prevent losing redo stack and cursor position if not moving
-            if (!options.reload && key === currentItemId) return
+            if (!options.reload && key === currentItemId && !isEditorDirty()) return
             if (!options.ignoreDirty && !confirmClear()) return
             let itemText = currentNotebook.getItem(key)
             let item
