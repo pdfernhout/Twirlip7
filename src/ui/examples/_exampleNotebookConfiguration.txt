@@ -114,6 +114,7 @@ ibis_application.js
 // Extending the editor
 {"entity": "Twirlip7 extensions"}
 extension-simple.js
+extension-convert-text.js
 extension-search-plain.js
 extension-search-regex.js
 extension-navigation-eav-tree.js
