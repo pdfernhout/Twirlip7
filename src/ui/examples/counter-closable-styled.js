@@ -2,7 +2,11 @@
 // Tachyons predefines many classes which do common CSS tasks.
 // You can add these classes to your div using the Mithril ".cssClass" notation after the HTML tag name.
 // If there is no leading tag name before the CSS classes, Mithril assumes it is a "div".
-// You can click on the Tachyons.js link near the top of this page later to learn more about Tachyons.
+
+// You can click on the Tachyons.css link near the top of this page later to learn more about Tachyons.
+// The "Tachyons" part of the link goesto the Tachyons website to get an overview of what is possible.
+// The ".css" part of the link goes to the the CSS source file for Tachyons where you can look up class names.
+// Using Tachyons plus occasional inline styles makes it possible to do styled UIs with only JavaScript coding.
 
 var div = document.createElement("div")
 
