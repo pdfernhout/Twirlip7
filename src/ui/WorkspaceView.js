@@ -362,21 +362,41 @@ define(["FileUtils", "EvalUtils", "NotebookUsingMemory", "NotebookUsingLocalStor
                 toast("Eval error:\n" + error)
             }
         }
-
-        function printIt(event, callback) {
-            if (!callback) callback = EvalUtils.evalOrError
-            
+        
+        function replaceSelection(textToInsert) {
             const selection = getSelectedEditorText()
-            const evalResult = callback(selection.text)
-            const textToInsert = " " + evalResult
+            
+            // Assume want to replace everything if no selection
+            if (selection.isNoSelection) { editor.selection.selectAll() }
+            
+            const selectedRange = editor.selection.getRange()
+            const start = selectedRange.start
+            const end = editor.session.replace(selectedRange, textToInsert)
+            editor.selection.setRange({start, end})
+            
+            editor.focus()
+        }
+
+        
+        function insertText(textToInsert) {
+            const selection = getSelectedEditorText()
             
             if (selection.isNoSelection) { editor.selection.moveCursorFileEnd() }
+            
             const selectedRange = editor.selection.getRange()
             const start = selectedRange.end
             const end = editor.session.insert(start, textToInsert)
             editor.selection.setRange({start, end})
             
             editor.focus()
+        }
+
+        function printIt() {
+            const selection = getSelectedEditorText()
+            const evalResult = EvalUtils.evalOrError(selection.text)
+            const textToInsert = " " + evalResult
+            
+            insertText(textToInsert)
         }
 
         function inspectIt() {
@@ -1388,6 +1408,9 @@ define(["FileUtils", "EvalUtils", "NotebookUsingMemory", "NotebookUsingLocalStor
             openIt,
             
             icon,
+            
+            replaceSelection,
+            insertText,
             
             // Extra accessors for other users
             
