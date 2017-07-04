@@ -12,6 +12,7 @@
   "license": "MIT",
   "dependencies": {
     "express": "4.15.2",
+    "pem": "1.9.7",
     "socket.io": "2.0.2"
   },
   "devDependencies": {

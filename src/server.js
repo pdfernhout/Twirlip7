@@ -19,6 +19,9 @@ var crypto = require("crypto")
 var express = require("express")
 var SocketIOServer = require("socket.io")
 
+var https = require("https")
+var pem = require("pem")
+
 var dataDirectory = __dirname + "/../server-data/"
 var storageExtension = ".txt"
 
@@ -44,7 +47,18 @@ app.use(express.static(__dirname + "/ui"))
 var server = http.createServer(app).listen(process.env.PORT || 8080, process.env.IP || "0.0.0.0", function () {
     var host = server.address().address
     var port = server.address().port
-    console.log("Twirlip server listening at http://%s:%s", host, port, process.env.PORT, process.env.IP)
+    console.log("Twirlip server listening at http://%s:%s", host, port)
+})
+
+// Create an HTTPS service
+pem.createCertificate({ days: 120, selfSigned: true }, function(err, keys) {
+    var proposedPort = parseInt(process.env.PORT)
+    if (proposedPort) proposedPort++
+    var secureServer = https.createServer({ key: keys.serviceKey, cert: keys.certificate }, app).listen(proposedPort || 8081, process.env.IP || "0.0.0.0", function () {
+        var host = secureServer.address().address
+        var port = secureServer.address().port
+        console.log("Twirlip server listening at https://%s:%s", host, port)
+    })
 })
 
 var io = new SocketIOServer(server)
