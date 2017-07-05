@@ -7,26 +7,15 @@ define(["vendor/sha256"], function(sha256) {
     const locationToHashPrefix = "_l2h_"
     const itemCountKey = "_itemCounter"
     
-    const NotebookUsingLocalStorage = {
+    function NotebookBackendUsingLocalStorage() {
 
-        getCapabilities() {
-            return {
-                idIsPosition: false,
-                addItem: true,
-                getItem: true,
-                itemCount: true,
-                textForNotebook: true,
-                loadFromNotebookText: true,
-                skip: true,
-            }
-        },
-
-        addItem(item) {
+        function addItem(item) {
             const hash = "" + sha256.sha256(item)
-            if (NotebookUsingLocalStorage.getItem(hash)) return { id: hash, existed: true }
-            const itemCount = NotebookUsingLocalStorage.itemCount()
+            if (getItem(hash)) return { id: hash, existed: true }
+            const itemCount = itemCount()
             const location = itemCount
             try {
+                // TODO: Could simplify this now -- but want to still support legacy notebooks
                 localStorage.setItem(hashToItemPrefix + hash, item)
                 localStorage.setItem(hashToLocationPrefix + hash, "" + location)
                 localStorage.setItem(locationToHashPrefix + location, hash)
@@ -37,32 +26,23 @@ define(["vendor/sha256"], function(sha256) {
                 return { id: null, existed: false, error: e}
             }
             return { id: hash, existed: false }
-        },
+        }
 
-        getItem(hash) {
+        // TODO: No longer used
+        function getItem(hash) {
             return localStorage.getItem(hashToItemPrefix + hash)
-        },
+        }
         
-        getItemForLocation(location) {
-            return NotebookUsingLocalStorage.getItem(localStorage.getItem(locationToHashPrefix + location))
-        },
+        function getItemForLocation(location) {
+            return getItem(localStorage.getItem(locationToHashPrefix + location))
+        }
         
-        itemCount() {
+        function itemCount() {
             const itemCountString = localStorage.getItem(itemCountKey) || "0"
             return parseInt(itemCountString)
-        },
+        }
 
-        textForNotebook() {
-            const itemCount = NotebookUsingLocalStorage.itemCount()
-            const items = []
-            for (let i = 0; i < itemCount; i++) {
-                const item = NotebookUsingLocalStorage.getItemForLocation(i)
-                items.push(item)
-            }
-            return JSON.stringify(items, null, 4)
-        },
-
-        clearItems() {
+        function clearItems() {
             // record keys to delete first to avoid modifying localStorage when we traverse it
             const keysToDelete = []
             const length = localStorage.length
@@ -79,57 +59,42 @@ define(["vendor/sha256"], function(sha256) {
             for (let key of keysToDelete) {
                 localStorage.removeItem(key)
             }
-        },
+        }
         
-        loadFromNotebookText(notebookText) {
-            NotebookUsingLocalStorage.clearItems()
-            const items = JSON.parse(notebookText)
-            for (let item of items) { NotebookUsingLocalStorage.addItem(item) }
-        },
-        
-        locationForKey(key) {
+        // TODO: No longer used
+        function locationForKey(key) {
             const searchKey = hashToLocationPrefix + key
             const locationString = localStorage.getItem(searchKey)
             if (!locationString) return null
             return parseInt(locationString)
-        },
+        }
         
-        keyForLocation(location) {
+        // TODO: No longer used
+        function keyForLocation(location) {
             return localStorage.getItem(locationToHashPrefix + location)
-        },
+        }
         
-        skip(reference, delta, wrap) {
-            const itemCount = NotebookUsingLocalStorage.itemCount()
-            if (itemCount === 0) return null
-            let start = (!reference) ? null : NotebookUsingLocalStorage.locationForKey(reference)
-            if (start === null) {
-                if (wrap) {
-                    // when wrapping, want +1 to go to 0 or -1 to go to end
-                    if (delta === 0) {
-                        start = 0
-                    } else if (delta > 0) {
-                        start = -1
-                    } else {
-                        start = itemCount
-                    }
-                } else {
-                    // if not wrapping, negative deltas get us nowhere, and positive deltas go from start
-                    start = -1
+        function connect(notebook) {
+            const count = itemCount()
+            for (let i = 0; i < count; i++) {
+                notebook.addItem(getItemForLocation(i), "isAlreadyStored")
+            }
+            
+            window.addEventListener("storage", function(event) {  
+                const key = event.key
+                if (key.startsWith(hashToItemPrefix)) {
+                    const newValue = event.newValue
+                    notebook.addItem(newValue, "isAlreadyStored")
                 }
-            }
-
-            let location
-            if (wrap) {
-                delta = delta % itemCount
-                location = (start + delta + itemCount) % itemCount
-            } else {
-                location = start + delta
-                if (location < 0) location = 0
-                if (location >= itemCount) location = itemCount - 1
-            }
-            return NotebookUsingLocalStorage.keyForLocation(location)
+            })
+        }
+    
+        return {
+            addItem,
+            clearItems,
+            connect
         }
     }
 
-    return NotebookUsingLocalStorage
+    return NotebookBackendUsingLocalStorage
 })
