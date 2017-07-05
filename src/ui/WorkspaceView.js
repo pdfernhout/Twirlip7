@@ -75,7 +75,7 @@ define(["FileUtils", "EvalUtils", "NotebookUsingMemory", "NotebookUsingLocalStor
                         m("div", "To get started with some example code snippets, click \"Show example notebook\" under \"Notebook operations\", then \"Merge notebook\" under \"Notebook operations\", then \"Next\", and then \"Do it\"."),
                         m("div", "Use \"Previous\" and \"Next\" to scroll through more example snippets. \"Inspect it\" puts evaluation results for selected text into the console log.")
                     ]
-                })
+                }, { title: "Startup help" })
             }
         }
         
