@@ -47,10 +47,13 @@ app.use(logger)
 
 app.use(express.static(__dirname + "/ui"))
 
+var io = new SocketIOServer()
+
 // Create an HTTP service.
-var server = http.createServer(app).listen(process.env.PORT || 8080, process.env.IP || "0.0.0.0", function () {
-    var host = server.address().address
-    var port = server.address().port
+var httpServer = http.createServer(app).listen(process.env.PORT || 8080, process.env.IP || "0.0.0.0", function () {
+    io.attach(httpServer)
+    var host = httpServer.address().address
+    var port = httpServer.address().port
     log("Twirlip server listening at http://" + host + ":" + port)
 })
 
@@ -58,14 +61,13 @@ var server = http.createServer(app).listen(process.env.PORT || 8080, process.env
 pem.createCertificate({ days: 120, selfSigned: true }, function(err, keys) {
     var proposedPort = parseInt(process.env.PORT)
     if (proposedPort) proposedPort++
-    var secureServer = https.createServer({ key: keys.serviceKey, cert: keys.certificate }, app).listen(proposedPort || 8081, process.env.IP || "0.0.0.0", function () {
-        var host = secureServer.address().address
-        var port = secureServer.address().port
+    var httpsServer = https.createServer({ key: keys.serviceKey, cert: keys.certificate }, app).listen(proposedPort || 8081, process.env.IP || "0.0.0.0", function () {
+        io.attach(httpsServer)
+        var host = httpsServer.address().address
+        var port = httpsServer.address().port
         log("Twirlip server listening at https://" + host + ":" + port)
     })
 })
-
-var io = new SocketIOServer(server)
 
 io.on("connection", function(socket) {
     var clientId = socket.id
