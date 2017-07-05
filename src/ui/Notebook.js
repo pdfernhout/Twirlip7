@@ -8,26 +8,32 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
     // (especially compared to megabytes of items in each notebook).
     // See also: https://stackoverflow.com/questions/387707/what-techniques-can-be-used-to-define-a-class-in-javascript-and-what-are-their/1169656#1169656
     
-    // TODO: This is just all derived from NotebookUsingMemory.js -- improve
+    /* TODO: 
+
+    L Move similar "skip" code from NotebookUsingXYZ if possible
+    L Move similar code for getting a notebook definition in JSON and merging or replacing the notebook from JSON
     
-    function Notebook() {
+    M General API for searching a notebook
+    M Consolidate code for keeping memory index for notebooks from plugin examples into a helper class
+    M Optimize how latest match buttons are updated by having cache of previous/next/first/last status for all items in notebook -- updates as items are added
+    
+    M Helper code for notebook for following "derived from" links and seeing related trees of links and leaf nodes
+    L A function to determine when the latest value of an E-A by timestamp does not match the latest by order. 
+    
+    */
+
+    function Notebook(store) {
         
         const itemForLocation = []
         const itemForHash = {}
 
         function getCapabilities() {
             return {
-                idIsPosition: false,
-                addItem: true,
-                getItem: true,
-                itemCount: true,
-                textForNotebook: true,
-                loadFromNotebookText: true,
-                skip: true,
+                canClear: !!store.clearItems
             }
         }
 
-        function addItem(item) {
+        function addItem(item, isFromStore) {
             const reference = "" + sha256.sha256(item)
             const storedItem = itemForHash[reference]
             if (storedItem) {
@@ -118,7 +124,7 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             return keyForLocation(location)
         }
         
-        return {
+        const notebook = {
             getCapabilities,
             addItem,
             getItem,
@@ -131,6 +137,12 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             keyForLocation,
             skip
         }
+        
+        if (store) {
+            store.connect(notebook)
+        }
+        
+        return notebook
     }
     
     return Notebook
