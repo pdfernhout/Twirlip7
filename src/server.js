@@ -38,8 +38,15 @@ function log() {
 
 log("Twirlip7 server started")
 
-var logger = function(request, response, next) {
-    log("Request:", request.method, request.url)
+function ipForRequest(request) {
+    return request.headers["x-forwarded-for"] 
+        || request.connection.remoteAddress 
+        || request.socket.remoteAddress
+        || request.connection.socket.remoteAddress
+}
+
+function logger(request, response, next) {
+    log(ipForRequest(request), request.method, request.url)
     next()
 }
 
@@ -71,14 +78,16 @@ pem.createCertificate({ days: 120, selfSigned: true }, function(err, keys) {
 
 io.on("connection", function(socket) {
     var clientId = socket.id
-    log("a user connected", clientId)
     
+    var address = socket.request.connection.remoteAddress
+    log(address, "socket.io connection", clientId)
+  
     socket.on("disconnect", function() {
-        log("user disconnected", clientId)
+        log(address, "socket.io disconnect", clientId)
     })
     
     socket.on("twirlip", function (message) {
-        log("----- twirlip received message", clientId)
+        log(address, "socket.io message", clientId, message)
         processMessage(clientId, message)
     })
 })
@@ -160,7 +169,7 @@ function listen(clientId, message) {
     var messageCount = 0
     var messagesSent = 0
     
-    log("listen", clientId, streamId, fromIndex, new Date().toISOString())
+    log("listen", clientId, streamId, fromIndex)
     
     setListenerState(clientId, streamId, "listening")
     
@@ -191,7 +200,7 @@ function listen(clientId, message) {
             fs.closeSync(fdMessages)
         }
     }
-    log("sending loaded", messagesSent, new Date().toISOString())
+    log("sending loaded", messagesSent)
     sendMessageToClient(clientId, {command: "loaded", streamId: streamId})
 }
 
