@@ -7,8 +7,6 @@
 /* eslint-env node */
 /*jslint node: true */
 
-console.log("Twirlip7 server started: " + Date())
-
 "use strict"
 
 // Standard nodejs modules
@@ -34,8 +32,14 @@ var listenerToStreamsMap = {}
 
 var app = express()
 
+function log() {
+    console.log.apply(console, ["[" + new Date().toISOString() + "]"].concat(Array.prototype.slice.call(arguments)))
+}
+
+log("Twirlip7 server started")
+
 var logger = function(request, response, next) {
-    console.log("Request:", request.method, request.url)
+    log("Request:", request.method, request.url)
     next()
 }
 
@@ -47,7 +51,7 @@ app.use(express.static(__dirname + "/ui"))
 var server = http.createServer(app).listen(process.env.PORT || 8080, process.env.IP || "0.0.0.0", function () {
     var host = server.address().address
     var port = server.address().port
-    console.log("Twirlip server listening at http://%s:%s", host, port)
+    log("Twirlip server listening at http://" + host + ":" + port)
 })
 
 // Create an HTTPS service
@@ -57,7 +61,7 @@ pem.createCertificate({ days: 120, selfSigned: true }, function(err, keys) {
     var secureServer = https.createServer({ key: keys.serviceKey, cert: keys.certificate }, app).listen(proposedPort || 8081, process.env.IP || "0.0.0.0", function () {
         var host = secureServer.address().address
         var port = secureServer.address().port
-        console.log("Twirlip server listening at https://%s:%s", host, port)
+        log("Twirlip server listening at https://" + host + ":" + port)
     })
 })
 
@@ -65,20 +69,20 @@ var io = new SocketIOServer(server)
 
 io.on("connection", function(socket) {
     var clientId = socket.id
-    console.log("\na user connected", clientId)
+    log("a user connected", clientId)
     
     socket.on("disconnect", function() {
-        console.log("user disconnected", clientId)
+        log("user disconnected", clientId)
     })
     
     socket.on("twirlip", function (message) {
-        console.log("----- twirlip received message", clientId)
+        log("----- twirlip received message", clientId)
         processMessage(clientId, message)
     })
 })
 
 function sendMessageToAllClients(message) {
-    // console.log("sendMessageToAllClients", JSON.stringify(message));
+    // log("sendMessageToAllClients", JSON.stringify(message));
     // io.emit("twirlip", message); // This would send to all clients -- even ones not listening on stream
     var streams = streamToListenerMap[message.streamId]
     if (streams) {
@@ -143,7 +147,7 @@ function processMessage(clientId, message) {
     //} else if (command === "directory") {
     //    directory(clientId, message)
     } else {
-        console.log("unsupported command", command, message)
+        log("unsupported command", command, message)
     }
 }
 
@@ -154,7 +158,7 @@ function listen(clientId, message) {
     var messageCount = 0
     var messagesSent = 0
     
-    console.log("\nlisten", clientId, streamId, fromIndex, new Date().toISOString())
+    log("listen", clientId, streamId, fromIndex, new Date().toISOString())
     
     setListenerState(clientId, streamId, "listening")
     
@@ -167,7 +171,7 @@ function listen(clientId, message) {
         messageCount++
         // TODO: Handle errors
         var message = JSON.parse(messageString)
-        // console.log("listen sendMessage", clientId, message)
+        // log("listen sendMessage", clientId, message)
         sendMessageToClient(clientId, message)
         messagesSent++
     }
@@ -185,33 +189,33 @@ function listen(clientId, message) {
             fs.closeSync(fdMessages)
         }
     }
-    console.log("sending loaded", messagesSent, new Date().toISOString())
+    log("sending loaded", messagesSent, new Date().toISOString())
     sendMessageToClient(clientId, {command: "loaded", streamId: streamId})
 }
 
 function unlisten(clientId, message) {
     var streamId = message.streamId
-    console.log("\nunlisten (unfinished)", streamId)
+    log("unlisten (unfinished)", streamId)
     setListenerState(clientId, streamId, undefined)
 }
 
 function insert(clientId, message) {
     var streamId = message.streamId
-    console.log("\ninsert", clientId, streamId, calculateSha256(message.item))
+    log("insert", clientId, streamId, calculateSha256(message.item))
     storeMessage(message)
     sendMessageToAllClients(message)
 }
 
 function remove(clientId, message) {
     var streamId = message.streamId
-    console.log("\nremove (unfinished)", streamId)
+    log("remove (unfinished)", streamId)
     storeMessage(message)
     sendMessageToAllClients(message)
 }
 
 function reset(clientId, message) {
     var streamId = message.streamId
-    console.log("\nresed", streamId)
+    log("reset", streamId)
     // TODO: Perhaps should clear out file?
     storeMessage(message)
     sendMessageToAllClients(message)
@@ -241,7 +245,7 @@ function writeNextMessage() {
     // TODO: Do we need to datasync to be really sure data is written?
     fs.appendFile(fileName, lineToWrite, function (err) {
         if (err) {
-            console.log("Problem writing file", err)
+            log("Problem writing file", err)
             return
         }
         scheduleMessageWriting()
