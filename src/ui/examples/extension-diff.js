@@ -187,7 +187,7 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
         id: "diff",
         tags: "footer",
         code: (context) => {
-            return m("div",
+            return m("div.mt1",
                 m("button", { onclick: diffClicked }, "Diff from " + (Twirlip7.workspaceView.isEditorDirty() ? "saved" : "previous") + " version"),
                 m("button.ml2", { onclick: cleanupAceDiffer }, "Hide Diff"),
                 m("button.ml2", { onclick: makeAceDiffer }, "Show Diff"),
