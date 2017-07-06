@@ -10,8 +10,8 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
 
     function Notebook(store) {
         
-        const itemForLocation = []
-        const itemForHash = {}
+        let itemForLocation = []
+        let itemForHash = {}
         
         let isLoaded = false
         let onLoadedCallback = null
