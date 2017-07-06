@@ -167,9 +167,11 @@ requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingL
             })
             NotebookUsingServer.setup(io)
             callback()
+            m.redraw()
         }, function(err) {
             console.log("No socket.io available -- server function disabled")
             callback()
+            m.redraw()
         })
     }
 
@@ -239,7 +241,8 @@ requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingL
             if (workspaceView.getCurrentItemId() !== itemId) {
                 workspaceView.goToKey(itemId)
             }
-        }        
+        } 
+        m.redraw()
     }
     
     window.addEventListener("hashchange", hashChange, false)
