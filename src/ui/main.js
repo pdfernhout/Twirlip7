@@ -5,15 +5,19 @@ requirejs.config({
     }
 })
 
-requirejs(["vendor/mithril", "WorkspaceView", "NotebookUsingLocalStorage", "NotebookUsingMemory", "NotebookUsingServer", "FileUtils", "CanonicalJSON"], function(mDiscardAsMadeGlobal, WorkspaceView, NotebookUsingLocalStorage, NotebookUsingMemory, NotebookUsingServer, FileUtils, CanonicalJSON) {
+requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingLocalStorage", "NotebookBackendUsingServer", "FileUtils", "CanonicalJSON"], function(mDiscardAsMadeGlobal, WorkspaceView, Notebook, NotebookBackendUsingLocalStorage, NotebookBackendUsingServer, FileUtils, CanonicalJSON) {
     "use strict"
     
     /* global location */
     
     let initialKeyToGoTo = null
-    
-    let workspaceView = WorkspaceView()
 
+    const NotebookUsingMemory = Notebook()    
+    const NotebookUsingLocalStorage = Notebook(NotebookBackendUsingLocalStorage())
+    const NotebookUsingServer = Notebook(NotebookBackendUsingServer())
+    
+    let workspaceView = WorkspaceView(NotebookUsingLocalStorage)
+    
     function getItemForJSON(itemJSON) {
         if (itemJSON === null) return null
         if (itemJSON.startsWith("{")) {
@@ -156,12 +160,11 @@ requirejs(["vendor/mithril", "WorkspaceView", "NotebookUsingLocalStorage", "Note
         
         // Try to load socket.io, which may fail
         requirejs(["/socket.io/socket.io.js"], function(io) {
-            NotebookUsingServer.onLoadedCallback = function() {
-                NotebookUsingServer.onLoadedCallback = null
+            NotebookUsingServer.setOnLoadedCallback(function() {
                 // assuming callback will always be done before get here to go to initialKeyToGoTo
                 if (initialKeyToGoTo && workspaceView.getNotebookChoice() === "server") workspaceView.goToKey(initialKeyToGoTo)
                 m.redraw()
-            }
+            })
             NotebookUsingServer.setup(io)
             callback()
         }, function(err) {

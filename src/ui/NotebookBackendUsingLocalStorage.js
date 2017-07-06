@@ -87,12 +87,15 @@ define(["vendor/sha256"], function(sha256) {
                     notebook.addItem(newValue, "isAlreadyStored")
                 }
             })
+            
+            notebook.onLoaded()
         }
     
         return {
             addItem,
             clearItems,
-            connect
+            connect,
+            isSetup: function() { return true }
         }
     }
 

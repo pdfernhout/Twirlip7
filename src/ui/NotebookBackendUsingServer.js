@@ -6,8 +6,6 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
         let streamId = "common"
         let userId = "anonymous"
         let socket = null
-        let isLoaded = false
-        let onLoadedCallback = null
         let messagesReceivedCount = 0
         let notebook = null
 
@@ -45,14 +43,14 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
                 console.log("TODO: clear items not handled")
             } else if (message.command === "loaded") {
                 // Don't increment messagesReceivedCount as "loaded" is an advisory meta message from server
-                isLoaded = true
                 console.log("all server data loaded", messagesReceivedCount, new Date().toISOString())
-                if (onLoadedCallback) onLoadedCallback()
+                notebook.onLoaded()
             }
             m.redraw()
         }
         
         function setup(io) {
+            console.log("setup", io)
             // TODO: Concern: Want to get all messages, but new messages may be added while waiting
             socket = io()
             
@@ -76,7 +74,8 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
         return {
             addItem,
             connect,
-            setup
+            setup,
+            isSetup: function() { return !!socket }
         }
     }
 

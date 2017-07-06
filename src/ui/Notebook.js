@@ -12,10 +12,13 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
         
         const itemForLocation = []
         const itemForHash = {}
+        
+        let isLoaded = false
+        let onLoadedCallback = null
 
         function getCapabilities() {
             return {
-                canClear: !!store.clearItems
+                canClear: !store || !!store.clearItems
             }
         }
 
@@ -80,8 +83,8 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
         }
         
         function skip(reference, delta, wrap) {
-            const itemCount = itemCount()
-            if (itemCount === 0) return null
+            const numberOfItems = itemCount()
+            if (numberOfItems === 0) return null
             let start = (!reference) ? null : locationForKey(reference)
             if (start === null) {
                 if (wrap) {
@@ -91,7 +94,7 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
                     } else if (delta > 0) {
                         start = -1
                     } else {
-                        start = itemCount
+                        start = numberOfItems
                     }
                 } else {
                     // if not wrapping, negative deltas get us nowhere, and positive deltas go from start
@@ -101,18 +104,32 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
 
             let location
             if (wrap) {
-                delta = delta % itemCount
-                location = (start + delta + itemCount) % itemCount
+                delta = delta % numberOfItems
+                location = (start + delta + numberOfItems) % numberOfItems
             } else {
                 location = start + delta
                 if (location < 0) location = 0
-                if (location >= itemCount) location = itemCount - 1
+                if (location >= numberOfItems) location = numberOfItems - 1
             }
             return keyForLocation(location)
         }
         
         function setup(io) {
             if (store && store.setup) store.setup(io)
+        }
+        
+        function setOnLoadedCallback(callback) {
+            onLoadedCallback = callback
+        }
+        
+        function onLoaded() {
+            if (onLoadedCallback) {
+                isLoaded = true
+                setTimeout(onLoadedCallback, 0)
+                onLoadedCallback = null
+            } else {
+                isLoaded = true
+            }
         }
         
         const notebook = {
@@ -127,11 +144,21 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             locationForKey,
             keyForLocation,
             skip,
-            setup
+            setup,
+            setOnLoadedCallback,
+            onLoaded,
+            isLoaded: function () {
+                return isLoaded
+            },
+            isAvailable: function () {
+                return !store || store.isSetup()
+            }
         }
         
         if (store) {
             store.connect(notebook)
+        } else {
+            onLoaded()
         }
         
         return notebook

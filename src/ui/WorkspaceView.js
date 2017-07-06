@@ -1,9 +1,6 @@
-define(["FileUtils", "EvalUtils", "NotebookUsingMemory", "NotebookUsingLocalStorage", "NotebookUsingServer", "ace/ace", "ace/ext/modelist", "ExampleNotebookLoader", "CanonicalJSON", "vendor/sha256"], function(
+define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNotebookLoader", "CanonicalJSON", "vendor/sha256"], function(
     FileUtils,
     EvalUtils,
-    NotebookUsingMemory,
-    NotebookUsingLocalStorage,
-    NotebookUsingServer,
     ace,
     modelist,
     ExampleNotebookLoader,
@@ -33,7 +30,8 @@ define(["FileUtils", "EvalUtils", "NotebookUsingMemory", "NotebookUsingLocalStor
     
     const twirlip7DataUrlPrefix = "twirlip7://v1/"
     
-    function WorkspaceView() {
+    // TODO: FIx klidge of passing in NotebookUsingLocalStorage because of startup timing issues
+    function WorkspaceView(NotebookUsingLocalStorage) {
         let editor = null
         
         let lastLoadedItem = newItem()
@@ -68,7 +66,7 @@ define(["FileUtils", "EvalUtils", "NotebookUsingMemory", "NotebookUsingLocalStor
         let startupGoToKey = null
         
         function oninit() {
-            if (NotebookUsingLocalStorage.itemCount() === 0) {
+            if (Twirlip7.NotebookUsingLocalStorage.itemCount() === 0) {
                 show(function () { 
                     return [
                         m("div", "Thanks for trying Twirlip7, a programmable notebook and experimental Mithril.js playground -- with aspirations towards becoming a distributed social semantic desktop."),
@@ -199,7 +197,7 @@ define(["FileUtils", "EvalUtils", "NotebookUsingMemory", "NotebookUsingLocalStor
         }
         
         function restoreNotebookChoice() {
-            const newChoice = localStorage.getItem("_currentNotebookChoice")
+            const newChoice = localStorage.getItem("_currentNotebookChoice") || "local storage"
             if (newChoice) {
                 const newNotebook = notebooksAvailable()[newChoice]
                 if (newNotebook) {
@@ -213,9 +211,9 @@ define(["FileUtils", "EvalUtils", "NotebookUsingMemory", "NotebookUsingLocalStor
         
         function notebooksAvailable() {
             const notebooks = {
-                "local storage": NotebookUsingLocalStorage,
-                "memory": NotebookUsingMemory,
-                "server": NotebookUsingServer.socket ? NotebookUsingServer : null
+                "local storage": Twirlip7.NotebookUsingLocalStorage,
+                "memory": Twirlip7.NotebookUsingMemory,
+                "server": Twirlip7.NotebookUsingServer.isAvailable() ? Twirlip7.NotebookUsingServer : null
             }
             return notebooks
         }
@@ -406,7 +404,7 @@ define(["FileUtils", "EvalUtils", "NotebookUsingMemory", "NotebookUsingLocalStor
         }
 
         function openIt() {
-            if (currentNotebook !== NotebookUsingLocalStorage) {
+            if (currentNotebook !== Twirlip7.NotebookUsingLocalStorage) {
                 alert("Notes need to be in the \"local storage\" notebook (not memory or server)\nto be opened in a new window.")
                 return
             }
@@ -994,7 +992,7 @@ define(["FileUtils", "EvalUtils", "NotebookUsingMemory", "NotebookUsingLocalStor
                 },
                     Object.keys(notebooks).sort().map((notebookKey) => {
                         let name = notebookKey
-                        if (notebookKey === "server" && notebooks[notebookKey] && !NotebookUsingServer.isLoaded) {
+                        if (notebookKey === "server" && notebooks[notebookKey] && !Twirlip7.NotebookUsingServer.isLoaded()) {
                             name += " <-->"
                         }
                         return m("option", { value: notebookKey, disabled: !notebooks[notebookKey]}, name)
@@ -1256,7 +1254,7 @@ define(["FileUtils", "EvalUtils", "NotebookUsingMemory", "NotebookUsingLocalStor
             return [
                 m("input[type=checkbox].ma1", {
                     checked: isStartupItem,
-                    disabled: currentNotebook !== NotebookUsingLocalStorage,
+                    disabled: currentNotebook !== Twirlip7.NotebookUsingLocalStorage,
                     onclick: toggleUseAtStartup.bind(null, isStartupItem, currentItemId),
                     title: helpText
                 }),
@@ -1310,7 +1308,7 @@ define(["FileUtils", "EvalUtils", "NotebookUsingMemory", "NotebookUsingLocalStor
         }
         
         function isCurrentNotebookLoading() {
-            return notebookChoice === "server" && !NotebookUsingServer.isLoaded
+            return notebookChoice === "server" && !Twirlip7.NotebookUsingServer.isLoaded()
         }
         
         const notebookMenu = {
