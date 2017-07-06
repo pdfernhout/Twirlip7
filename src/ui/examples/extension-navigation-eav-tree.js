@@ -73,7 +73,9 @@ Twirlip7.workspaceView.extensionsInstall({
                     const title = "Go to last added\n" + lastItemInfo.timestamp + "\n" + lastItemInfo.contributor
                     return m("div.ml3",
                         m("span", { onclick: () => entityInfo.open = !entityInfo.open }, entityInfo.open ? "▼" : "►"),
-                        m("span.ml1", { title: title , onclick: () => load(lastItemInfo.key) }, entityInfo.entity || m("span.i", "<no entity name>")),
+                        m("span.ml1", 
+                            m("a.link.underline-hover", { href: "#item=" + lastItemInfo.key, title: title }, entityInfo.entity || m("span.i", "<no entity name>"))
+                        ),
                         entityInfo.open ?
                             Object.keys(entityInfo.attributes).sort().map((attributeInfoKey) => {
                                 const attributeInfo = entityInfo.attributes[attributeInfoKey]
@@ -81,15 +83,17 @@ Twirlip7.workspaceView.extensionsInstall({
                                 const title = "Go to last added\n" + lastItemInfo.timestamp + "\n" + lastItemInfo.contributor
                                 return m("div.ml3",
                                     m("span", { onclick: () => attributeInfo.open = !attributeInfo.open }, attributeInfo.open ? "▼" : "►"),
-                                    m("span.ml1", { title: title, onclick: () => load(lastItemInfo.key) },
-                                        attributeInfo.attribute  || m("span.i", "<no attribute name>")
+                                    m("span.ml1", 
+                                        m("a.link.underline-hover", { href: "#item=" + lastItemInfo.key, title: title }, attributeInfo.attribute  || m("span.i", "<no attribute name>"))
                                     ),
                                     attributeInfo.open ? 
                                         attributeInfo.itemsByOrder.map((itemInfo) => {
-                                            return m("div.ml5", { title: "Go", onclick: () => load(itemInfo.key) },
-                                                itemInfo.timestamp,
-                                                m("span.ma2"),
-                                                itemInfo.contributor
+                                            return m("div.ml4",
+                                                m("a.link.underline-hover", { href: "#item=" + itemInfo.key }, 
+                                                    itemInfo.timestamp,
+                                                    " ",
+                                                    itemInfo.contributor
+                                                )
                                             )
                                         }) :
                                         []
