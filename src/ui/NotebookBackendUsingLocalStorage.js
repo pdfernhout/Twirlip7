@@ -12,14 +12,14 @@ define(["vendor/sha256"], function(sha256) {
         function addItem(item) {
             const hash = "" + sha256.sha256(item)
             if (getItem(hash)) return { id: hash, existed: true }
-            const itemCount = itemCount()
-            const location = itemCount
+            const numberOfItems = itemCount()
+            const location = numberOfItems
             try {
                 // TODO: Could simplify this now -- but want to still support legacy notebooks
                 localStorage.setItem(hashToItemPrefix + hash, item)
                 localStorage.setItem(hashToLocationPrefix + hash, "" + location)
                 localStorage.setItem(locationToHashPrefix + location, hash)
-                localStorage.setItem(itemCountKey, "" + (itemCount + 1))
+                localStorage.setItem(itemCountKey, "" + (numberOfItems + 1))
             } catch (e) {
                 // Probably storage is full
                 console.log("addItem failed", location, hash, e)
