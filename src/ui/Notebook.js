@@ -61,6 +61,12 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
         }
 
         function clearItems() {
+            if (store) {
+                if (!store.clearItems) {
+                    throw new Error("clearItems not supported for current store")
+                }
+                store.clearItems()
+            }
             itemForLocation = []
             itemForHash = {}
         }
