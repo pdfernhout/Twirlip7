@@ -65,23 +65,23 @@ Twirlip7.workspaceView.extensionsInstall({
         // TODO: Updating the cache should be done outside of view function?
         updateCacheIfNeeded()
         return m("div",
-            m("span.i.b", { title: "click to open or close navigation tree", onclick: () => showNavigation = !showNavigation }, "Navigation Entity-Attribute-Value Tree"),
+            m("span.i.b", { title: "click to open or close navigation tree", onclick: () => showNavigation = !showNavigation }, showNavigation ? "▼" : "►", Twirlip7.icon("fa-tree.mr1"), "EAV Navigation Tree"),
             showNavigation ? 
                 Object.keys(cache).sort().map((entityInfoKey) => {
                     const entityInfo = cache[entityInfoKey]
                     const lastItemInfo = entityInfo.lastItemInfo
                     const title = "Go to last added\n" + lastItemInfo.timestamp + "\n" + lastItemInfo.contributor
-                    return m("div", 
+                    return m("div.ml3",
                         m("span", { onclick: () => entityInfo.open = !entityInfo.open }, entityInfo.open ? "▼" : "►"),
-                        m("span.ml3", { title: title , onclick: () => load(lastItemInfo.key) }, entityInfo.entity || m("span.i", "<no entity name>")),
+                        m("span.ml1", { title: title , onclick: () => load(lastItemInfo.key) }, entityInfo.entity || m("span.i", "<no entity name>")),
                         entityInfo.open ?
                             Object.keys(entityInfo.attributes).sort().map((attributeInfoKey) => {
                                 const attributeInfo = entityInfo.attributes[attributeInfoKey]
                                 const lastItemInfo = attributeInfo.itemsByOrder[attributeInfo.itemsByOrder.length - 1]
                                 const title = "Go to last added\n" + lastItemInfo.timestamp + "\n" + lastItemInfo.contributor
-                                return m("div.ml4",
+                                return m("div.ml3",
                                     m("span", { onclick: () => attributeInfo.open = !attributeInfo.open }, attributeInfo.open ? "▼" : "►"),
-                                    m("span", { title: title, onclick: () => load(lastItemInfo.key) },
+                                    m("span.ml1", { title: title, onclick: () => load(lastItemInfo.key) },
                                         attributeInfo.attribute  || m("span.i", "<no attribute name>")
                                     ),
                                     attributeInfo.open ? 
