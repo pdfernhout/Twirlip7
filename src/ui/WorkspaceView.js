@@ -65,6 +65,9 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
         
         let startupGoToKey = null
         
+        // Used to indicate that the ace editor is being changed by the application not the user
+        let isEditorContentsBeingSetByApplication = false
+        
         function oninit() {
             if (Twirlip7.NotebookUsingLocalStorage.itemCount() === 0) {
                 show(function () { 
@@ -238,7 +241,9 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
         }
 
         function setEditorContents(newContents, keepUndo) {
+            isEditorContentsBeingSetByApplication = true
             editor.setValue(newContents)
+            isEditorContentsBeingSetByApplication = false
             editor.selection.clearSelection()
             editor.selection.moveCursorFileStart()
             editor.getSession().setScrollTop(0)
@@ -322,7 +327,8 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
         
         function isEditorDirty() {
             // TODO: compare individual strings instead of use CanonicalJSON.stringify to be more efficient
-            return editor && (CanonicalJSON.stringify(lastLoadedItem) !== CanonicalJSON.stringify(currentItem))
+            const result = editor && (CanonicalJSON.stringify(lastLoadedItem) !== CanonicalJSON.stringify(currentItem))
+            return result
         }
 
         function confirmClear(promptText) {
@@ -345,10 +351,10 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 currentItem.encoding = oldItem.encoding
                 currentItem.license = oldItem.license
             }
-            setEditorContents(currentItem.value)
             wasEditorDirty = false
             saveCurrentItemId()
             updateIsLastMatch()
+            setEditorContents(currentItem.value)
             setDocumentTitleForCurrentItem()
         }
 
@@ -420,10 +426,10 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             FileUtils.loadFromFile(convertToBase64, (fileName, fileContents) => {
                 if (fileContents) {
                     const newContent = fileContents
-                    setEditorContents(newContent, "keepUndo")
                     // We don't know if the text is changed, so use null for wasEditorDirty
                     wasEditorDirty = null
                     currentItem.encoding = convertToBase64 ? "base64" : ""
+                    setEditorContents(newContent, "keepUndo")
                     m.redraw()
                 }
             })
@@ -580,7 +586,6 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             currentItemId = key
             currentItem = item
             
-            setEditorContents(item.value || "")
             wasEditorDirty = false
             updateLastLoadedItemFromCurrentItem()
                                     
@@ -588,6 +593,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             
             saveCurrentItemId()
             updateIsLastMatch()
+            setEditorContents(item.value || "")
             setDocumentTitleForCurrentItem()
         }
 
@@ -717,13 +723,13 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             currentItem.value = newText
             currentItem.contentType = contentType
             
-            setEditorContents(newText)
             wasEditorDirty = false
             updateLastLoadedItemFromCurrentItem()
             
             setEditorModeForContentType(currentItem.contentType)
             // saveCurrentItemId()
             updateIsLastMatch(true)
+            setEditorContents(newText)
         }
         
         function showNotebook(notebookText) {
@@ -1176,11 +1182,16 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     session.setUseWrapMode(true)
                     session.setOption("wrapMethod", "text")
 
-                    session.on("change", function() {
-                        currentItem.value = getEditorContents()
+                    session.on("change", function(e) {
+                        if (isEditorContentsBeingSetByApplication) return
+                        const newEditorContents = getEditorContents()
+                        currentItem.value = newEditorContents
                         // optimization with wasEditorDirty to prevent unneeded redraws
                         const isDirty = isEditorDirty()
                         if (isDirty !== wasEditorDirty) {
+                            if (isDirty && !isLastEntityAttributeMatch) {
+                                toast("You are not editing the latest value for this entity's attribute")
+                            }
                             wasEditorDirty = isDirty
                             updateIsLastMatch()
                             // Use setTimeout to give undo manager some time to update itself
