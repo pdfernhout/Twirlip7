@@ -58,53 +58,57 @@ function load(key) {
     Twirlip7.workspaceView.goToKey(key)
 }
 
+function view() {
+    // TODO: Updating the cache should be done outside of view function?
+    updateCacheIfNeeded()
+    return m("div",
+        m("span.i.b", { title: "click to open or close navigation tree", onclick: () => showNavigation = !showNavigation }, showNavigation ? "▼" : "►", "EAV Navigation Tree", Twirlip7.icon("fa-tree.ml1")),
+        showNavigation ? 
+            Object.keys(cache).sort().map((entityInfoKey) => {
+                const entityInfo = cache[entityInfoKey]
+                const lastItemInfo = entityInfo.lastItemInfo
+                const title = "Go to last added\n" + lastItemInfo.timestamp + "\n" + lastItemInfo.contributor
+                return m("div.ml3",
+                    m("span", { onclick: () => entityInfo.open = !entityInfo.open }, entityInfo.open ? "▼" : "►"),
+                    m("span.ml1", 
+                        m("a.link.underline-hover", { href: "#item=" + lastItemInfo.key, title: title }, entityInfo.entity || m("span.i", "<no entity name>"))
+                    ),
+                    entityInfo.open ?
+                        Object.keys(entityInfo.attributes).sort().map((attributeInfoKey) => {
+                            const attributeInfo = entityInfo.attributes[attributeInfoKey]
+                            const lastItemInfo = attributeInfo.itemsByOrder[attributeInfo.itemsByOrder.length - 1]
+                            const title = "Go to last added\n" + lastItemInfo.timestamp + "\n" + lastItemInfo.contributor
+                            return m("div.ml3",
+                                m("span", { onclick: () => attributeInfo.open = !attributeInfo.open }, attributeInfo.open ? "▼" : "►"),
+                                m("span.ml1", 
+                                    m("a.link.underline-hover", { href: "#item=" + lastItemInfo.key, title: title }, attributeInfo.attribute  || m("span.i", "<no attribute name>"))
+                                ),
+                                attributeInfo.open ? 
+                                    attributeInfo.itemsByOrder.map((itemInfo) => {
+                                        return m("div.ml4",
+                                            m("a.link.underline-hover", { href: "#item=" + itemInfo.key }, 
+                                                itemInfo.timestamp,
+                                                " ",
+                                                itemInfo.contributor
+                                            )
+                                        )
+                                    }) :
+                                    []
+                            )
+                        }) :
+                        []
+                )
+            }) :
+            []
+    )
+}
+
 Twirlip7.workspaceView.extensionsInstall({
     id: "navigation-eav-tree",
     tags: "footer",
-    code: (context) => {
-        // TODO: Updating the cache should be done outside of view function?
-        updateCacheIfNeeded()
-        return m("div",
-            m("span.i.b", { title: "click to open or close navigation tree", onclick: () => showNavigation = !showNavigation }, showNavigation ? "▼" : "►", Twirlip7.icon("fa-tree.mr1"), "EAV Navigation Tree"),
-            showNavigation ? 
-                Object.keys(cache).sort().map((entityInfoKey) => {
-                    const entityInfo = cache[entityInfoKey]
-                    const lastItemInfo = entityInfo.lastItemInfo
-                    const title = "Go to last added\n" + lastItemInfo.timestamp + "\n" + lastItemInfo.contributor
-                    return m("div.ml3",
-                        m("span", { onclick: () => entityInfo.open = !entityInfo.open }, entityInfo.open ? "▼" : "►"),
-                        m("span.ml1", 
-                            m("a.link.underline-hover", { href: "#item=" + lastItemInfo.key, title: title }, entityInfo.entity || m("span.i", "<no entity name>"))
-                        ),
-                        entityInfo.open ?
-                            Object.keys(entityInfo.attributes).sort().map((attributeInfoKey) => {
-                                const attributeInfo = entityInfo.attributes[attributeInfoKey]
-                                const lastItemInfo = attributeInfo.itemsByOrder[attributeInfo.itemsByOrder.length - 1]
-                                const title = "Go to last added\n" + lastItemInfo.timestamp + "\n" + lastItemInfo.contributor
-                                return m("div.ml3",
-                                    m("span", { onclick: () => attributeInfo.open = !attributeInfo.open }, attributeInfo.open ? "▼" : "►"),
-                                    m("span.ml1", 
-                                        m("a.link.underline-hover", { href: "#item=" + lastItemInfo.key, title: title }, attributeInfo.attribute  || m("span.i", "<no attribute name>"))
-                                    ),
-                                    attributeInfo.open ? 
-                                        attributeInfo.itemsByOrder.map((itemInfo) => {
-                                            return m("div.ml4",
-                                                m("a.link.underline-hover", { href: "#item=" + itemInfo.key }, 
-                                                    itemInfo.timestamp,
-                                                    " ",
-                                                    itemInfo.contributor
-                                                )
-                                            )
-                                        }) :
-                                        []
-                                )
-                            }) :
-                            []
-                    )
-                }) :
-                []
-        )
-    }
+    code: view
 })
 
 // Twirlip7.workspaceView.extensionsUninstall({id: "navigation"})
+
+// Twirlip7.show(view, { title: "EAV Navigation" })
