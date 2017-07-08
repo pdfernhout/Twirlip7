@@ -9,7 +9,7 @@ function input(event) {
     text = event.target.value
 }
 
-function done(event) {
+function done() {
     doneItems.push(text)
     // Toast will not show up running standalone as it depends on the editor
     Twirlip7.workspaceView.toast("did " + text)

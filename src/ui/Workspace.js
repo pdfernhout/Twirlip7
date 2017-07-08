@@ -23,4 +23,6 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             getCurrentNotebook
         }
     }
+
+    return Workspace
 })

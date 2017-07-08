@@ -1,5 +1,5 @@
 // This is a modification of the previous example which adds some styling using the Tachyons CSS library.
-// Tachyons predefines many classes which do common CSS tasks.
+// Tachyons defines many CSS classes which do common CSS tasks.
 // You can add these classes to your div using the Mithril ".cssClass" notation after the HTML tag name.
 // If there is no leading tag name before the CSS classes, Mithril assumes it is a "div".
 

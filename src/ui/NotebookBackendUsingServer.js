@@ -61,7 +61,7 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
                 }
             })
             
-            socket.on("connect", function(client) {
+            socket.on("connect", function() {
                 console.log("connect", socket.id, messagesReceivedCount, new Date().toISOString())
                 requestAllMessages()
             })

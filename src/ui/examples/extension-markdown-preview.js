@@ -13,7 +13,7 @@ requirejs(["vendor/marked"], function(marked) {
         id: "markdown-preview",
         // For tags, try header, middle, and footer
         tags: "footer",
-        code: (context) => {
+        code: () => {
             return m("button.ma1", {onclick: markdownPreview}, "Show markdown preview")
         }
     })

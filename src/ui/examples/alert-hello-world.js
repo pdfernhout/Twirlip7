@@ -1,6 +1,6 @@
 // These example snippets are a tutorial on using Twirlip7 as a browser-based IDE.
 // The examples show how to write Mithril.js applications in JavaScript.
-// This tutorial assumes you alread know the basics of JavaScript.
+// This tutorial assumes you already know the basics of JavaScript.
 
 // Using the "Do it" button
 

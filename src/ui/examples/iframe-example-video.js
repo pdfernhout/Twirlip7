@@ -1,7 +1,7 @@
 // Mithril component which embeds four iframes with HTML videos
 
 const MyComponent = {
-    view(controller, args) {
+    view() {
         return m("div.ba.ma3.pa3.bg-light-purple", [
             // The Mother of All Demos, presented by Douglas Engelbart (1968)
             m("iframe", {src: "//www.youtube.com/embed/yJDv-zdhzMY", width: 800, height: 600, frameborder: "0", allowfullscreen: true}),

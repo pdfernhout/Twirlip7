@@ -167,7 +167,7 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
     function makeAceDiffer() {
         cleanupAceDiffer()
         const aceDiffer = new AceDiff({
-            mode: Twirlip7.workspaceView.getEditorMode(),
+            mode: editorMode,
             left: {
                 id: "editor1",
                 content: earlierText
@@ -186,7 +186,7 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
     Twirlip7.workspaceView.extensionsInstall({
         id: "diff",
         tags: "footer",
-        code: (context) => {
+        code: () => {
             return m("div.mt1",
                 m("button", { onclick: diffClicked }, "Diff from " + (Twirlip7.workspaceView.isEditorDirty() ? "saved" : "previous") + " version"),
                 m("button.ml2", { onclick: cleanupAceDiffer }, "Hide Diff"),

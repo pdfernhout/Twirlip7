@@ -67,7 +67,6 @@ function getCurrencyValue(currency) {
     if (model.currency === currency) { return model.amount }
 
     // convert currency
-    const currencyRate = allRates[currency]
     const amount = parseFloat(model.amount)
     const dollarAmount = amount * allRates[model.currency].dollarsPerUnit
     const result = dollarAmount * allRates[currency].unitsPerDollar

@@ -1,6 +1,6 @@
 // Extend the application with more complex search functionality supporting regex and case-insensitive matches
 // Put the extension in the footer so the changing results do not make the editor go up and down on the page.
-// If you want this extention to install automatically at startup, check "Bootstrap it".
+// If you want this extension to install automatically at startup, check "Bootstrap it".
 
 const searchResults = []
 let searchText = ""
@@ -64,7 +64,7 @@ Twirlip7.workspaceView.extensionsInstall({
     id: "search-regex",
     // For tags, try header, middle, and footer
     tags: "footer",
-    code: (context) => {
+    code: () => {
         return m("div",
             m("hr"),
             "Find items matching:",

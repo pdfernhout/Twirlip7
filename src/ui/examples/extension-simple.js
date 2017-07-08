@@ -5,7 +5,7 @@ Twirlip7.workspaceView.extensionsInstall({
     id: "test",
     // For tags, try header, middle, and footer
     tags: "header",
-    code: (context) => {
+    code: () => {
         return m("button.ma1", {onclick: alert.bind(null, "test")}, "Test of changing application!")
     }
 })

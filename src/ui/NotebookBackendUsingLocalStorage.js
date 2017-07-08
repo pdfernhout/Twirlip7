@@ -27,8 +27,7 @@ define(["vendor/sha256"], function(sha256) {
             }
             return { id: hash, existed: false }
         }
-
-        // TODO: No longer used
+        
         function getItem(hash) {
             return localStorage.getItem(hashToItemPrefix + hash)
         }

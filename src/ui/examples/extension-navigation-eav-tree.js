@@ -53,11 +53,7 @@ function updateCacheIfNeeded() {
     }
 }
 
-function load(key) {
-    if (!Twirlip7.workspaceView.confirmClear()) return
-    Twirlip7.workspaceView.goToKey(key)
-}
-
+// TODO: If click on link when you have unsaved changes and pick cancel in the warning, the hash is still updated
 function view() {
     // TODO: Updating the cache should be done outside of view function?
     updateCacheIfNeeded()

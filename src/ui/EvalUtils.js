@@ -6,7 +6,7 @@ define([], function() {
         evalOrError(text) {
             let result
             try {
-                // object defintions produce syntax error unless within parens
+                // object definitions produce syntax error unless within parens
                 if (text.match(/^\s*{/)) text = "(" + text + ")"
                 result = EvalUtils.eval(text)
             } catch (error) {

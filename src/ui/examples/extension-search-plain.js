@@ -21,7 +21,7 @@ Twirlip7.workspaceView.extensionsInstall({
     id: "search-plain",
     // For tags, try header, middle, and footer
     tags: "header",
-    code: (context) => {
+    code: () => {
         return m("div",
             searchResults.map((result) => {
                 return m("div", {

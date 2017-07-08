@@ -15,7 +15,7 @@ And entire journal of snippets can be exported or imported as JSON.
 You can also copy and paste individual items (including their history) between Twirlip7 journals via data URLs using the clipboard.
 
 However, all that may change as the experiment progresses in new directions.
-For example, as one possibililty, these snippets and content they generate might someday be distributed through the decentralized Matrix.org.
+For example, as one possibility, these snippets and content they generate might someday be distributed through the decentralized Matrix.org.
 
 The IDE supports some functionality inspired by the Smalltalk "Workspace". You can select a section of code in the editor and then "do it" to evaluate the code, "print it" to insert the evaluation result in the editor, or "inspect it" to see the evaluation result (in the JavaScript console in this case). If you don't select anything specific, all the code in the editor is evaluated.
 

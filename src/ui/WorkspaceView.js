@@ -30,7 +30,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
     
     const twirlip7DataUrlPrefix = "twirlip7://v1/"
     
-    // TODO: FIx klidge of passing in NotebookUsingLocalStorage because of startup timing issues
+    // TODO: Fix kludge of passing in NotebookUsingLocalStorage because of startup timing issues
     function WorkspaceView(NotebookUsingLocalStorage) {
         let editor = null
         
@@ -608,7 +608,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             document.title = newTitle
         }
         
-        // TODO: Improve adhoc partial handling of character types which also ignores character set
+        // TODO: Improve ad hoc partial handling of character types which also ignores character set
 
         function setEditorModeForContentType(contentType) {
             let newMode = "javascript"
@@ -630,7 +630,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 } else if (contentType.startsWith("text/plain")) {
                     newMode = "text"
                 } else if (contentType.startsWith("text/x-")) {
-                    // TODO: Improve this to deal with chatracter encoding or other parameters after a semicolon
+                    // TODO: Improve this to deal with character encoding or other parameters after a semicolon
                     newMode = contentType.substring("text/x-".length)
                 } else if (contentType.startsWith("image/")) {
                     newMode = "text"
@@ -857,7 +857,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     }
                 } catch (error) {
                     console.log("Problem parsing startup info", error)
-                    console.log("Startup infor was", startupInfo)
+                    console.log("Startup info was", startupInfo)
                     setStartupInfo(null)
                 }
             }
@@ -994,7 +994,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 m("select.ma2", {
                     onchange: notebookChanged,
                     title: "Change storage location of notes",
-                    // The value is required here in addition to settign the options: https://gitter.im/mithriljs/mithril.js?at=59492498cf9c13503ca57fdd
+                    // The value is required here in addition to setting the options: https://gitter.im/mithriljs/mithril.js?at=59492498cf9c13503ca57fdd
                     value: notebookChoice
                 },
                     Object.keys(notebooks).sort().map((notebookKey) => {
@@ -1183,7 +1183,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     session.setUseWrapMode(true)
                     session.setOption("wrapMethod", "text")
 
-                    session.on("change", function(e) {
+                    session.on("change", function() {
                         if (isEditorContentsBeingSetByApplication) return
                         const newEditorContents = getEditorContents()
                         currentItem.value = newEditorContents
@@ -1301,7 +1301,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             minWidth: "20rem",
             isOpen: false,
             items: [
-                // This use of m outisde a view function creates vnodes which are not diffed every view -- should be OK for static icons
+                // This use of m outside a view function creates vnodes which are not diffed every view -- should be OK for static icons
                 { onclick: importTextPlain, title: "Load a file into editor", name: [icon("fa-upload.mr1"), "Import"]},
                 { onclick: importTextAsBase64, title: "Load a file into editor as base64", name: [icon("fa-file-image-o.mr1"), "Import image as Base64" ]},
                 { onclick: exportText, title: "Save current editor text to a file", name: [icon("fa-download.mr1"), "Export"] },
@@ -1313,10 +1313,6 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
         
         function viewImportExportButtons() {
             return m(importExportMenu)
-        }
-        
-        function viewBreak() {
-            return m("br")
         }
         
         function isCurrentNotebookLoading() {

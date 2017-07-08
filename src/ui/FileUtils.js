@@ -34,7 +34,7 @@ define([], function() {
                     if (event.target.files.length < 1) return
                     const file = event.target.files[0]
                     const reader = new FileReader()
-                    reader.onload = function(event) {
+                    reader.onload = function() {
                         let contents
                         if (convertToBase64) {
                             var base64Text = _arrayBufferToBase64(reader.result)

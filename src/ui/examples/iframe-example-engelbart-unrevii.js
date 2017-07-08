@@ -3,7 +3,7 @@
 // This also demonstrates supplying a specific title to display instead of the triple entity and attribute when the component is collapsed
 
 const MyComponent = {
-    view(controller, args) {
+    view() {
         return m("div.ba.ma3.pa3.bg-light-purple",
             m("iframe", {src: "//dougengelbart.org/colloquium/forum/discussion/date.html", width: 800, height: 600})
         )

@@ -21,7 +21,7 @@ function convertLowercase() {
 Twirlip7.workspaceView.extensionsInstall({
     id: "convert-text",
     tags: "middle",
-    code: (context) => {
+    code: () => {
         return m("div",
             m("button.ma1", {onclick: convertRemoveNewlines}, "Remove newlines"),
             m("button.ma1", {onclick: convertUppercase}, "Uppercase"),
