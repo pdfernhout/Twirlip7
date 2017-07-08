@@ -72,8 +72,9 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             if (Twirlip7.NotebookUsingLocalStorage.itemCount() === 0) {
                 show(function () { 
                     return [
-                        m("div", "Thanks for trying Twirlip7, a programmable notebook and experimental Mithril.js playground -- with aspirations towards becoming a distributed social semantic desktop."),
-                        m("div", "To get started with some example code snippets, click \"Show example notebook\" under \"Notebook operations\", then \"Merge notebook\" under \"Notebook operations\", then \"Next\", and then \"Do it\"."),
+                        m("div", "Thanks for trying Twirlip7, a programmable notebook and experimental Mithril.js playground."),
+                        m("div", "To get started with some example code snippets, click on the \"Notebook operations\" drop down and select \"Show example notebook\"."),
+                        m("div", "Then click \"Merge notebook\" (also under \"Notebook operations\"), then click the \"Next\" button, and then click the \"Do it\" button."),
                         m("div", "Use \"Previous\" and \"Next\" to scroll through more example snippets. \"Inspect it\" puts evaluation results for selected text into the console log.")
                     ]
                 }, { title: "Startup help" })
