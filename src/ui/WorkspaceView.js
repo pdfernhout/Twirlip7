@@ -582,6 +582,21 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             if (!options.reload && key === currentItemId && !isEditorDirty()) return Promise.resolve(false)
             if (!options.ignoreDirty && !confirmClear()) return Promise.resolve(false)
             
+            const progressDelay = 200
+            let progressTimeout
+            
+            // default to showing progress
+            if (options.showProgress === undefined) options.showProgress = true
+            
+            if (options.showProgress) {
+                progressTimeout = setTimeout(() => {
+                    console.log("progress timeout")
+                    progressTimeout = null
+                    progress("Loading " + key + " ...")
+                    m.redraw()
+                }, progressDelay)
+            }
+            
             return currentNotebook.getItem(key).then((itemText) => {
                 let item
                 if (itemText === undefined || itemText === null) {
@@ -608,12 +623,19 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 setEditorContents(item.value || "")
                 setDocumentTitleForCurrentItem()
                 
-                // Redraw as a convenience by default to avoid a dozen callers doing it since we now do Promises 
-                if (!options.noredraw) m.redraw()
-                
                 // TODO: Optimize this so the index is returned with item data
                 return currentNotebook.locationForKey(currentItemId).then((itemIndex) => {
                     currentItemIndex = itemIndex
+                    if (options.showProgress) {
+                        if (progressTimeout) {
+                            // Did not show progress message yet, so don't show it now
+                            clearTimeout(progressTimeout)
+                        } else {
+                            progress(null)
+                        }
+                    }
+                    // Redraw as a convenience by default to avoid a dozen callers doing it since we now do Promises 
+                    if (!options.noredraw) m.redraw()
                     return Promise.resolve(true)
                 })
             })

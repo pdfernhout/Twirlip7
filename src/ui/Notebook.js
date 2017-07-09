@@ -44,6 +44,10 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             const storedItem = itemForHash[reference]
             const result = storedItem ? storedItem.item : null
             return Promise.resolve(result)
+            // For testing: Simulate delay; uncomment this and comment above line
+            // return new Promise((resolve, reject) => {
+            //    setTimeout(() => resolve(result), 400)
+            // })
         }
         
         // Returns Promise
