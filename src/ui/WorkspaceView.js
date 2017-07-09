@@ -45,8 +45,8 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
         let currentNotebook = NotebookUsingLocalStorage
         let notebookChoice = "local storage"
         
-        let isLastEntityMatch = false
-        let isLastEntityAttributeMatch = false
+        let isLastEntityMatch = true
+        let isLastEntityAttributeMatch = true
         
         let aceEditorHeight = 20
         let editorMode = "ace/mode/javascript"
@@ -579,8 +579,16 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             if (!options) options = {}
             
             // First check is to prevent losing redo stack and cursor position if not moving
-            if (!options.reload && key === currentItemId && !isEditorDirty()) return Promise.resolve(false)
-            if (!options.ignoreDirty && !confirmClear()) return Promise.resolve(false)
+            if (!options.reload && key === currentItemId && !isEditorDirty()) {
+                updateIsLastMatch()
+                if (!options.noredraw) m.redraw()
+                return Promise.resolve(false)
+            }
+            if (!options.ignoreDirty && !confirmClear()) {
+                updateIsLastMatch()
+                if (!options.noredraw) m.redraw()
+                return Promise.resolve(false)
+            }
             
             const progressDelay = 200
             let progressTimeout
@@ -590,7 +598,6 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             
             if (options.showProgress) {
                 progressTimeout = setTimeout(() => {
-                    console.log("progress timeout")
                     progressTimeout = null
                     progress("Loading " + key + " ...")
                     m.redraw()
@@ -602,6 +609,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 if (itemText === undefined || itemText === null) {
                     if (key) toast("note not found for:\n\"" + key + "\"")
                     item = newItem()
+                    key = null
                 } else if (itemText[0] !== "{") {
                     // TODO: remove legacy development support
                     item = newItem()
@@ -706,55 +714,77 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
 
         function goLast() { skip(1000000) }
         
+        // Returns Promise
         function goToLatestForEntity() {
-            const key = findLatestForEntity()
-            if (key) {
-                goToKey(key)
-            }
+            return findLatestForEntity().then((key) => {
+                if (key) {
+                    return goToKey(key)
+                }
+                return Promise.resolve(false)
+            })
         }
         
+        // Returns Promise
         function goToLatestForEntityAttribute() {
-            const key = findLatestForEntityAttribute()
-            if (key) {
-                goToKey(key)
-            }
+            return findLatestForEntityAttribute().then((key) => {
+                if (key) {
+                    return goToKey(key)
+                }
+                return Promise.resolve(false)
+            })
         }
         
+        // Returns Promise
         function findLatestForEntity() {
-            const matches = Twirlip7.findItem({entity: currentItem.entity}, { includeMetadata: true, sortBy: "location" })
-            if (matches.length) {
-                return matches[0].key
-            }
-            return null
+            return Twirlip7.findItem({entity: currentItem.entity}, { includeMetadata: true, sortBy: "location" }).then((matches) => {
+                if (matches.length) {
+                    return Promise.resolve(matches[0].key)
+                }
+                return Promise.resolve(null)
+            })
         }
         
+        // Returns Promise
         function findLatestForEntityAttribute() {
-            const matches = Twirlip7.findItem({
+            return Twirlip7.findItem({
                 entity: currentItem.entity,
                 attribute: currentItem.attribute
-            }, { includeMetadata: true, sortBy: "location" })
-            if (matches.length) {
-                return matches[0].key
-            }
-            return null
+            }, { includeMetadata: true, sortBy: "location" }).then((matches) => {
+                if (matches.length) {
+                    return Promise.resolve(matches[0].key)
+                }
+                return Promise.resolve(null)
+            })
         }
         
+        // Returns Promise
+        // TODO: Rethink how this works -- users not using it like a promise-returning function so it has spurious redraw
         function updateIsLastMatch(value) {
             // TODO: Computing these two variables is CPU intensive as they both iterate over all items
             if (value !== undefined) {
                 isLastEntityMatch = value
                 isLastEntityAttributeMatch = value
-                return
+                m.redraw()
+                return Promise.resolve(false)
             }
-            if (isEditorDirty() || !currentItemId) {
-                isLastEntityMatch = !findLatestForEntity()
-                isLastEntityAttributeMatch = !findLatestForEntityAttribute()
-                return
-            }
-            if (currentItemId) {
-                isLastEntityMatch = findLatestForEntity() === currentItemId
-                isLastEntityAttributeMatch = findLatestForEntityAttribute() === currentItemId
-            }
+            return Promise.all([
+                findLatestForEntity(),
+                findLatestForEntityAttribute()
+            ]).then((allResults) => {
+                const latestForEntity = allResults[0]
+                const latestForEntityAttribute = allResults[1]
+                if (isEditorDirty() || !currentItemId) {
+                    isLastEntityMatch = !latestForEntity
+                    isLastEntityAttributeMatch = !latestForEntityAttribute
+                } else {
+                    isLastEntityMatch = latestForEntity === currentItemId
+                    isLastEntityAttributeMatch = latestForEntityAttribute === currentItemId
+                }
+                // TODO: Redraw for convenience of callers -- probably makes a spurious redraw a lot of times
+                // TODO: Replace this with optimization of info about item when it is retrieved or other new items are added
+                m.redraw()
+                return Promise.resolve(true)
+            })
         }
         
         function updateLastLoadedItemFromCurrentItem() {

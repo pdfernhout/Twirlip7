@@ -278,7 +278,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingL
                 const itemId = hash.substring("#item=".length)
                 initialKeyToGoTo = itemId
                 startEditor(() => {
-                    if (initialKeyToGoTo && workspaceView.getNotebookChoice() == "local storage") workspaceView.goToKey(initialKeyToGoTo)
+                    if (initialKeyToGoTo && workspaceView.getNotebookChoice() === "local storage") workspaceView.goToKey(initialKeyToGoTo)
                 }, () => {
                     workspaceView.restoreNotebookChoice()
                 })
