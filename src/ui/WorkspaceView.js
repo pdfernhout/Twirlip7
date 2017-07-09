@@ -82,6 +82,20 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             }
         }
         
+        // Reports errors into the view
+        function protectedViewFunction(viewFunction, label) {
+            return function() {
+                let subview
+                try {
+                    subview = viewFunction.call(arguments)
+                } catch (e) {
+                    console.log("Error in show function", e)
+                    subview = m("div.ba.ma2.pa2.bg-red", (label ? label + ": " : "") + "Error in show function: " + e)
+                }
+                return subview
+            }
+        }
+        
         // Convenience function which examples could use to put up closeable views
         function show(userComponentOrViewFunction, config, componentConfig) {
             // config supports extraStyling, onclose, and title displayed when collapsed or run stand alone (title can be a string or function) 
@@ -98,19 +112,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     view: userComponentOrViewFunction
                 }
             
-            function protect(viewFunction) {
-                return function() {
-                    let subview
-                    try {
-                        subview = viewFunction.call(arguments)
-                    } catch (e) {
-                        console.log("Error in show function", e)
-                        subview = m("div.ba.ma2.pa2.bg-red", "Error in show function: " + e)
-                    }
-                    return subview
-                }
-            }
-            userComponent.view = protect(userComponent.view)
+            userComponent.view = protectedViewFunction(userComponent.view)
             
             let collapsed = false
             
@@ -922,7 +924,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 if (!extension) continue
                 if (extension.tags && (tag === extension.tags || extension.tags[tag])) {
                     if (extension.code) {
-                        const callResult = extension.code({tag, phase, extension})
+                        const callResult = protectedViewFunction(extension.code, "Extension " + extension.id)({tag, phase, extension})
                         result.push(callResult)
                     } else {
                         console.log("no code for extension", extension.id)
