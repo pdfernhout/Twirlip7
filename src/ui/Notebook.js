@@ -22,6 +22,7 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             }
         }
 
+        // Returns Promise
         function addItem(item, isAlreadyStored) {
             const reference = "" + sha256.sha256(item)
             const storedItem = itemForHash[reference]
@@ -33,91 +34,114 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             itemForLocation.push(newStoredItem)
             itemForHash[reference] = newStoredItem
             if (!isAlreadyStored && store) store.addItem(item)
-            return { id: reference, location: newLocation, existed: false }
+            const result = { id: reference, location: newLocation, existed: false }
+            return Promise.resolve(result)
         }
 
+        // Returns Promise
         function getItem(reference) {
-            if (reference === null) return null
+            if (reference === null) return Promise.resolve(null)
             const storedItem = itemForHash[reference]
-            return storedItem ? storedItem.item : null
+            const result = storedItem ? storedItem.item : null
+            return Promise.resolve(result)
         }
         
+        // Returns Promise
         function getItemForLocation(location) {
             const storedItem = itemForLocation[location]
-            return storedItem ? storedItem.item : null
+            const result = storedItem ? storedItem.item : null
+            return Promise.resolve(result)
         }
 
+        // Return this value directly
+        // Track this seperately as it is used a lot and pertaisn to entire collection
+        // Updating this value will also involve a callback about new items
         function itemCount() {
-            return itemForLocation.length
+            const result = itemForLocation.length
+            return result
         }
 
+        // Returns Promise
         function textForNotebook() {
             const result = []
             for (let i = 0; i < itemForLocation.length; i++) {
                 const storedItem = itemForLocation[i]
                 result.push(storedItem.item)
             }
-            return JSON.stringify(result, null, 4)
+            const result = JSON.stringify(result, null, 4)
+            return Promise.resolve(result)
         }
 
+        // Returns Promise
         function clearItems() {
             if (store) {
                 if (!store.clearItems) {
-                    throw new Error("clearItems not supported for current store")
+                    return Promise.reject("clearItems not supported for current store")
                 }
                 store.clearItems()
             }
             itemForLocation = []
             itemForHash = {}
+            return Promise.resolve(true)
         }
         
+        // Returns Promise
         function loadFromNotebookText(notebookText) {
-            clearItems()
-            const items = JSON.parse(notebookText)
-            for (let item of items) { addItem(item) }
+            return clearItems().then(result => {
+                const items = JSON.parse(notebookText)
+                for (let item of items) { addItem(item) }
+                return Promise.resolve(true)
+            })
         }
         
+        // Returns Promise
         function locationForKey(key) {
-            if (key === null || key === "") return null
+            if (key === null || key === "") return Promise.resolve(null)
             const storedItem = itemForHash[key]
-            return storedItem ? storedItem.location : null
+            const result = storedItem ? storedItem.location : null
+            return Promise.resolve(result)
         }
         
+        // Returns Promise
         function keyForLocation(location) {
             const storedItem = itemForLocation[location]
-            return storedItem ? storedItem.id : null
+            const result = storedItem ? storedItem.id : null
+            return Promise.resolve(result)
         }
         
+        // Returns Promise
         function skip(reference, delta, wrap) {
             const numberOfItems = itemCount()
-            if (numberOfItems === 0) return null
-            let start = (!reference) ? null : locationForKey(reference)
-            if (start === null) {
-                if (wrap) {
-                    // when wrapping, want +1 to go to 0 or -1 to go to end
-                    if (delta === 0) {
-                        start = 0
-                    } else if (delta > 0) {
-                        start = -1
+            if (numberOfItems === 0) return Promise.resolve(null)
+            let startPromise = (!reference) ? Promise.resolve(null) : locationForKey(reference)
+            return startPromise.then((start) => {
+                if (start === null) {
+                    if (wrap) {
+                        // when wrapping, want +1 to go to 0 or -1 to go to end
+                        if (delta === 0) {
+                            start = 0
+                        } else if (delta > 0) {
+                            start = -1
+                        } else {
+                            start = numberOfItems
+                        }
                     } else {
-                        start = numberOfItems
+                        // if not wrapping, negative deltas get us nowhere, and positive deltas go from start
+                        start = -1
                     }
-                } else {
-                    // if not wrapping, negative deltas get us nowhere, and positive deltas go from start
-                    start = -1
                 }
-            }
-
-            let location
-            if (wrap) {
-                delta = delta % numberOfItems
-                location = (start + delta + numberOfItems) % numberOfItems
-            } else {
-                location = start + delta
-                if (location < 0) location = 0
-                if (location >= numberOfItems) location = numberOfItems - 1
-            }
-            return keyForLocation(location)
+    
+                let location
+                if (wrap) {
+                    delta = delta % numberOfItems
+                    location = (start + delta + numberOfItems) % numberOfItems
+                } else {
+                    location = start + delta
+                    if (location < 0) location = 0
+                    if (location >= numberOfItems) location = numberOfItems - 1
+                }
+                return keyForLocation(location) 
+            })
         }
         
         function setup(io) {

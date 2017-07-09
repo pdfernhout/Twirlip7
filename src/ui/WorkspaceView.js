@@ -37,6 +37,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
         let lastLoadedItem = newItem()
         
         let currentItemId = null
+        let currentItemIndex = null
         let currentItem = newItem()
         
         let currentContributor = ""
@@ -280,31 +281,35 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             return CanonicalJSON.stringify(currentItem)
         }
 
+        // Returns a Promise
         function save() {
             if (!isEditorDirty()) {
-                if (!confirm("There are no changes.\nSave a new note anyway with a later timestamp?")) return
+                if (!confirm("There are no changes.\nSave a new note anyway with a later timestamp?")) return Promise.resolve(false)
             }
             if (!currentContributor) {
-                if (!promptForContributor()) return
+                if (!promptForContributor()) return Promise.resolve(false)
             }
             const newContents = getEditorContents()
             const itemJSON = prepareCurrentItemForSaving(newContents)
-            const addResult = currentNotebook.addItem(itemJSON)
-            if (addResult.error) {
-                alert("save failed -- maybe too many localStorage items?\n" + addResult.error)
-                return
-            }
-            if (addResult.existed) {
-                toast("Note already saved", 1000)
-            } else {
-                toast("Saved note as:\n" + addResult.id, 2000)
-            }
-            updateLastLoadedItemFromCurrentItem()
-            wasEditorDirty = false
-            currentItemId = addResult.id
-            saveCurrentItemId()
-            updateIsLastMatch(true)
-            setDocumentTitleForCurrentItem()
+            return currentNotebook.addItem(itemJSON).then((addResult) => {
+                if (addResult.error) {
+                    alert("save failed -- maybe too many localStorage items?\n" + addResult.error)
+                    return
+                }
+                if (addResult.existed) {
+                    toast("Note already saved", 1000)
+                } else {
+                    toast("Saved note as:\n" + addResult.id, 2000)
+                }
+                updateLastLoadedItemFromCurrentItem()
+                wasEditorDirty = false
+                currentItemId = addResult.id
+                currentItemIndex = addResult.location
+                saveCurrentItemId()
+                updateIsLastMatch(true)
+                setDocumentTitleForCurrentItem()
+                return Promise.resolve(true)
+            })
         }
         
         function interceptSaveKey(evt) {
@@ -344,6 +349,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             // Preserve some fields if it has a value -- so can push twice to totally clear
             const oldItem = currentItem
             currentItemId = null
+            currentItemIndex = null
             currentItem = newItem()
             if (oldItem.value) {
                 currentItem.entity = oldItem.entity
@@ -557,45 +563,60 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 toast("No notes to display. Try saving one first -- or show the example notebook in the editor and then load it.")
                 return
             }
-            const key = currentNotebook.skip(currentItemId, delta, wrap)
-            goToKey(key)
+            currentNotebook.skip(currentItemId, delta, wrap).then((key) => {
+                goToKey(key)
+            })
         }
 
+        // Returns a Promise
         function goToKey(key, options) {
             if (!editor) {
                 console.log("EARLY GOTOKEY")
                 // Called before we are ready -- defer this for later
                 startupGoToKey = {key, options}
-                return
+                return Promise.resolve(false)
             }
             if (!options) options = {}
+            
             // First check is to prevent losing redo stack and cursor position if not moving
-            if (!options.reload && key === currentItemId && !isEditorDirty()) return
-            if (!options.ignoreDirty && !confirmClear()) return
-            let itemText = currentNotebook.getItem(key)
-            let item
-            if (itemText === undefined || itemText === null) {
-                if (key) toast("note not found for:\n\"" + key + "\"")
-                item = newItem()
-            } else if (itemText[0] !== "{") {
-                // TODO: remove legacy development support
-                item = newItem()
-                item.value = itemText
-            } else {
-                item = JSON.parse(itemText)
-            }
-            currentItemId = key
-            currentItem = item
+            if (!options.reload && key === currentItemId && !isEditorDirty()) return Promise.resolve(false)
+            if (!options.ignoreDirty && !confirmClear()) return Promise.resolve(false)
             
-            wasEditorDirty = false
-            updateLastLoadedItemFromCurrentItem()
-                                    
-            setEditorModeForContentType(item.contentType)
-            
-            saveCurrentItemId()
-            updateIsLastMatch()
-            setEditorContents(item.value || "")
-            setDocumentTitleForCurrentItem()
+            return currentNotebook.getItem(key).then((itemText) => {
+                let item
+                if (itemText === undefined || itemText === null) {
+                    if (key) toast("note not found for:\n\"" + key + "\"")
+                    item = newItem()
+                } else if (itemText[0] !== "{") {
+                    // TODO: remove legacy development support
+                    item = newItem()
+                    item.value = itemText
+                } else {
+                    item = JSON.parse(itemText)
+                }
+                currentItemId = key
+                // TODO: Uptimize settign currentItemIndex here from item info once that is changed
+                currentItem = item
+                
+                wasEditorDirty = false
+                updateLastLoadedItemFromCurrentItem()
+                                        
+                setEditorModeForContentType(item.contentType)
+                
+                saveCurrentItemId()
+                updateIsLastMatch()
+                setEditorContents(item.value || "")
+                setDocumentTitleForCurrentItem()
+                
+                // Redraw as a convenience by default to avoid a dozen callers doing it since we now do Promises 
+                if (!options.noredraw) m.redraw()
+                
+                // TODO: Optimize this so the index is returned with item data
+                return currentNotebook.locationForKey(currentItemId).then((itemIndex) => {
+                    currentItemIndex = itemIndex
+                    return Promise.resolve(true)
+                })
+            })
         }
 
         function setDocumentTitleForCurrentItem() {
@@ -720,6 +741,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
         
         function showText(newText, contentType) {
             // currentItemId = null
+            // currentItemIndex = null
             currentItem = newItem()
             currentItem.value = newText
             currentItem.contentType = contentType
@@ -935,7 +957,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
         
         function viewNavigate() {
             const itemCount = currentNotebook.itemCount()
-            const itemIndex = currentNotebook.locationForKey(currentItemId)
+            const itemIndex = currentItemIndex
             
             const notebooks = notebooksAvailable()
             
