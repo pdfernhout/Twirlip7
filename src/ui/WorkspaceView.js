@@ -456,56 +456,72 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             FileUtils.saveToFile(provisionalFileName, fileContents)
         }
         
+        // Returns Promise
         function makeDataURLForItemId(itemId) {
-            const itemText = currentNotebook.getItem(itemId)
-            const encodedText = encodeURIComponent(itemText)
-            const dataURL = twirlip7DataUrlPrefix + itemId + "/" + itemText.length + "/" + encodedText.length + "/" + encodedText
-            return { itemId, itemText, dataURL }
+            return currentNotebook.getItem(itemId).then((itemText => {
+                const encodedText = encodeURIComponent(itemText)
+                const dataURL = twirlip7DataUrlPrefix + itemId + "/" + itemText.length + "/" + encodedText.length + "/" + encodedText
+                const result = { itemId, itemText, dataURL }
+                return Promise.resolve(result)
+            }))
         }
                
-        function displayCurrentNote() {
+        function displayDataURLForCurrentNote() {
             if (currentItemId) {
                 if (!confirmClear()) return
-                const dataURL = makeDataURLForItemId(currentItemId).dataURL
-                showText(dataURL, "text/plain")
-                editor.selection.selectAll()
-                editor.focus()
+                makeDataURLForItemId(currentItemId).then((dataURLConversionResult) => {
+                    const dataURL = dataURLConversionResult.dataURL
+                    showText(dataURL, "text/plain")
+                    editor.selection.selectAll()
+                    editor.focus()    
+                    m.redraw()
+                })
             } else {
                 alert("Please select a saved note first")
             }
         }
         
-        function displayCurrentNoteAndHistory() {
+        function displayDataURLForCurrentNoteAndHistory() {
             if (currentItemId) {
                 if (!confirmClear()) return
                 let dataURLs = []
-                let itemId = currentItemId
-                while (itemId) {
-                    const dataURLConversionResult = makeDataURLForItemId(itemId)
-                    dataURLs.unshift(dataURLConversionResult.dataURL)
-                    const item = Twirlip7.getItemForJSON(dataURLConversionResult.itemText)
-                    itemId = item.derivedFrom
+                
+                function followDerivedFrom(itemId) {
+                    if (itemId) {
+                        return makeDataURLForItemId(itemId).then((dataURLConversionResult) => {
+                            dataURLs.unshift(dataURLConversionResult.dataURL)
+                            const item = Twirlip7.getItemForJSON(dataURLConversionResult.itemText)
+                            return followDerivedFrom(item.derivedFrom)
+                        })
+                    } else {
+                        return Promise.resolve(null)
+                    }
                 }
-                const textForAllItems = dataURLs.join("\n")
-                showText(textForAllItems, "text/plain")
-                editor.selection.selectAll()
-                editor.focus()
+
+                followDerivedFrom(currentItemId).then(() => {
+                    const textForAllItems = dataURLs.join("\n")
+                    showText(textForAllItems, "text/plain")
+                    editor.selection.selectAll()
+                    editor.focus()
+                    m.redraw()
+                })
             } else {
                 alert("Please select a saved note first")
             }
         }
         
+        // Returns Promise
         function makeNoteForDataURL(dataURL) {
             if (dataURL) {
                 if (!dataURL.startsWith(twirlip7DataUrlPrefix)) {
                     alert("Twirlip7 data URL should start with: " + twirlip7DataUrlPrefix)
-                    return null
+                    return Promise.resolve(null)
                 }
                 
                 const subparts = dataURL.substring(twirlip7DataUrlPrefix.length).split("/")
                 if (subparts.length != 4) {
                     alert("Twirlip7 data URL should have exactly four subparts: key/itemLength/contentsLength/contents")
-                    return null
+                    return Promise.resolve(null)
                 }
                 
                 const key = subparts[0]
@@ -515,32 +531,32 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 
                 if (encodedText.length !== contentsLength) {
                     alert("Twirlip7 data URL contents length of " + encodedText.length + " does not match expected length of " + contentsLength)
-                    return null
+                    return Promise.resolve(null)
                 }
                 
                 const itemText = decodeURIComponent(encodedText)
                 if (itemText.length !== itemLength) {
                     alert("Twirlip7 data URL decoded item length of " + itemText.length + " does not match expected length of " + itemLength)
-                    return null
+                    return Promise.resolve(null)
                 }
                 
                 const itemSHA256 = "" + sha256.sha256(itemText)
                 if (itemSHA256 !== key) {
                     alert("Twirlip7 data URL decoded item sha256 of " + itemSHA256 + " does not match expected sha256 of " + key)
-                    return null
+                    return Promise.resolve(null)
                 }
                 
                 // TODO: Consolidate the copy/paste adding of item with where this is copied from
-                const addResult = currentNotebook.addItem(itemText)
-                if (addResult.error) {
-                    alert("save failed -- maybe too many localStorage items?\n" + addResult.error)
-                    return null
-                }
-                
-                return key
+                return currentNotebook.addItem(itemText).then((addResult) => {
+                    if (addResult.error) {
+                        alert("save failed -- maybe too many localStorage items?\n" + addResult.error)
+                        return Promise.resolve(null)
+                    }
+                    return Promise.resolve(key)
+                })
             } else {
                 alert("Please enter a Twirlip 7 data url starting with " + twirlip7DataUrlPrefix)
-                return null
+                return Promise.resolve(null)
             }
         }
         
@@ -548,14 +564,26 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             const textForAllItems = getSelectedEditorText().text.trim()
             const dataURLs = textForAllItems.split("\n")
             const keys = []
-            for (let dataURL of dataURLs) {
-                const key = makeNoteForDataURL(dataURL)
-                if (!key) break
-                keys.push(key)
+            
+            const dataURLStack = dataURLs.slice()
+            function recursivelyMakeNotes() {
+                if (!dataURLStack.length) return Promise.resolve(true)
+                const dataURL = dataURLStack.shift()
+                return makeNoteForDataURL(dataURL).then((key) => {
+                    if (key) {
+                        keys.push(key)
+                        return recursivelyMakeNotes()
+                    } else {
+                        Promise.resolve(false)
+                    }
+                })
             }
-            if (keys.length && keys.length === dataURLs.length) {
-                goToKey(keys[keys.length - 1], {ignoreDirty: true})
-            }
+            
+            recursivelyMakeNotes().then(() => {
+                if (keys.length && keys.length === dataURLs.length) {
+                    goToKey(keys[keys.length - 1], {ignoreDirty: true})
+                }
+            })
         }
 
         function skip(delta, wrap) {
@@ -1379,8 +1407,8 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 { onclick: importTextPlain, title: "Load a file into editor", name: [icon("fa-upload.mr1"), "Import"]},
                 { onclick: importTextAsBase64, title: "Load a file into editor as base64", name: [icon("fa-file-image-o.mr1"), "Import image as Base64" ]},
                 { onclick: exportText, title: "Save current editor text to a file", name: [icon("fa-download.mr1"), "Export"] },
-                { onclick: displayCurrentNote, title: "Print the current note in the editor as a data URL (to copy)", disabled: () => !currentItemId, name: [icon("fa-print.mr1"), "Print data URL for current note"] },
-                { onclick: displayCurrentNoteAndHistory, title: "Print the current note and its entire derived-from history in the editor as data URLs (to copy)", disabled: () => !currentItemId, name: [icon("fa-history.mr1"), "Print entire history for note as data URLs"] },
+                { onclick: displayDataURLForCurrentNote, title: "Print the current note in the editor as a data URL (to copy)", disabled: () => !currentItemId, name: [icon("fa-print.mr1"), "Print data URL for current note"] },
+                { onclick: displayDataURLForCurrentNoteAndHistory, title: "Print the current note and its entire derived-from history in the editor as data URLs (to copy)", disabled: () => !currentItemId, name: [icon("fa-history.mr1"), "Print entire history for note as data URLs"] },
                 { onclick: readNotesFromDataURLs, title: "Read one or more notes from data URLs in the editor (like from a paste) and save them into the current notebook", name: [icon("fa-plus-square-o.mr1"), "Create notes from data URLs in editor"] },
             ]
         }
