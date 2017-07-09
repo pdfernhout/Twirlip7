@@ -52,13 +52,15 @@ function search() {
         }
         
         Promise.all(promises).then((results) => {
-           for (let result of results) {
-               if (result) searchResults.push(result)
-           }
-           m.redraw()
+            for (let result of results) {
+                if (result) searchResults.push(result)
+            }
+            noMatches = !searchResults.length
+            m.redraw()
         })
+    } else {
+        noMatches = true
     }
-    noMatches = searchText && !searchResults.length
 }
 
 function latest() {
