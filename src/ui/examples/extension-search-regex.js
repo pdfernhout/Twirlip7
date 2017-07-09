@@ -24,6 +24,18 @@ function getValueForItem(item) {
     return item
 }
 
+function isMatch(notebook, re, i) {
+    return notebook.getItemForLocation(i).then((item) => {
+        const value = getValueForItem(item)
+        if (value && value.match(re)) {
+            return notebook.keyForLocation(i).then((key) => {
+                return Promise.resolve({i, key, item: value})
+            })
+        }
+        return Promise.resolve(null)
+    })
+}
+        
 function search() {
     searchResults.splice(0)
     if (searchText) {
@@ -31,15 +43,20 @@ function search() {
         let reString = matchRegex ? searchText : escapeRegExp(searchText)
         if (matchWordBoundary) reString = "\\b" + reString + "\\b"
         const re = new RegExp(reString, matchCase ? "m" : "mi")
+        
+        const promises = []
         // Display in reverse order so most recent is at top of results
         for (let i = notebook.itemCount() - 1; i >= 0; i--) {
-            const item = notebook.getItemForLocation(i)
-            const value = getValueForItem(item)
-            if (value && value.match(re)) {
-                const key = notebook.keyForLocation(i)
-                searchResults.push({i, key, item: value})
-            }
+            const promise = isMatch(notebook, re, i)
+            promises.push(promise)
         }
+        
+        Promise.all(promises).then((results) => {
+           for (let result of results) {
+               if (result) searchResults.push(result)
+           }
+           m.redraw()
+        })
     }
     noMatches = searchText && !searchResults.length
 }
