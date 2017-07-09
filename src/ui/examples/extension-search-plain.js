@@ -5,16 +5,27 @@ const searchResults = []
 let searchText = ""
 
 function search() {
+    
     searchResults.splice(0)
     const notebook = Twirlip7.getCurrentNotebook()
     if (!searchText) return
-    for (let i = 0; i < notebook.itemCount(); i++) {
-        const item = notebook.getItemForLocation(i)
+    
+    function processItem(i, item) {
         if (item && item.indexOf(searchText) !== -1) {
-            const key = notebook.keyForLocation(i)
-            searchResults.push({i, key, item})
+            return notebook.keyForLocation(i).then((key) => {
+                searchResults.push({i, key, item})
+                return Promise.resolve(null)
+            })
         }
+        return Promise.resolve(null)
     }
+    
+    const promises = []
+    for (let i = 0; i < notebook.itemCount(); i++) {
+        const promise = notebook.getItemForLocation(i).then(processItem.bind(null, i))
+        promises.push(promise)
+    }
+    Promise.all(promises).then(() => m.redraw())
 }
 
 Twirlip7.workspaceView.extensionsInstall({
