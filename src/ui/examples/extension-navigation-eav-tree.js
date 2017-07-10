@@ -1,6 +1,6 @@
 // Extend the application with navigation functionality
 
-// TODO: Build the caching support for this tree nto the Notebook itself
+// TODO: Build the caching support for this tree into the Notebook itself
 
 let showNavigation = false
 let cacheItemCount = 0
