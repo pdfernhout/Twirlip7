@@ -135,7 +135,6 @@ if (!window.CompendiumIcons) {
             return new Promise((resolve, reject) => {
                 requirejs(["vendor/text!examples/ibis_icons.js"], function (ibisIconItemContents) {
                     eval(ibisIconItemContents)
-                    m.redraw()
                     resolve(true)
                 }, function (error) {
                     reject(error)
