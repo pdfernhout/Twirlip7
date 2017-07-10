@@ -137,31 +137,40 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
         makeAceDiffer()
     }
     
-    function diffClicked() {
-        let earlierItem
-        let laterItem
-        
-        if (Twirlip7.workspaceView.isEditorDirty()) {
-            earlierItemKey = Twirlip7.workspaceView.getCurrentItemId()
-            const earlierItemText = Twirlip7.getCurrentNotebook().getItem(earlierItemKey)
-            earlierItem = Twirlip7.getItemForJSON(earlierItemText)
-            
-            laterItemKey = "<editor>"
-            laterItem = { value: Twirlip7.workspaceView.getEditorContents() }
-        } else {
-            laterItemKey = Twirlip7.workspaceView.getCurrentItemId()
-            const laterItemText = Twirlip7.getCurrentNotebook().getItem(laterItemKey)
-            laterItem = Twirlip7.getItemForJSON(laterItemText)
-            
-            earlierItemKey = laterItem.derivedFrom || ""
-            const earlierItemText = Twirlip7.getCurrentNotebook().getItem(earlierItemKey)
-            earlierItem = Twirlip7.getItemForJSON(earlierItemText)
-        }
-        
+    function makeAceDifferForTwoItems(earlierItem, laterItem) {
         earlierText = (earlierItem && earlierItem.value) || ""
         laterText = (laterItem && laterItem.value) || ""
         editorMode = Twirlip7.workspaceView.getEditorMode()
         makeAceDiffer()
+    }
+
+    function diffClicked() {
+        if (Twirlip7.workspaceView.isEditorDirty()) {
+            earlierItemKey = Twirlip7.workspaceView.getCurrentItemId()
+            Twirlip7.getCurrentNotebook().getItem(earlierItemKey).then((earlierItemText) => {
+                const earlierItem = Twirlip7.getItemForJSON(earlierItemText)
+                
+                laterItemKey = "<editor>"
+                const laterItem = { value: Twirlip7.workspaceView.getEditorContents() }
+                makeAceDifferForTwoItems(earlierItem, laterItem)
+                m.redraw()
+            }).catch((error) => {
+                console.log("Problem loading item", error)
+            })
+        } else {
+            laterItemKey = Twirlip7.workspaceView.getCurrentItemId()
+            Twirlip7.getCurrentNotebook().getItem(laterItemKey).then((laterItemText) => {
+                const laterItem = Twirlip7.getItemForJSON(laterItemText)
+                earlierItemKey = laterItem.derivedFrom || ""
+                return Twirlip7.getCurrentNotebook().getItem(earlierItemKey).then((earlierItemText) => {
+                    const earlierItem = Twirlip7.getItemForJSON(earlierItemText)
+                    makeAceDifferForTwoItems(earlierItem, laterItem)
+                    m.redraw()
+                })
+            }).catch((error) => {
+                console.log("Problem loading item", error)
+            })
+        }
     }
     
     function makeAceDiffer() {
