@@ -115,26 +115,34 @@ After pasting, load it using "Update Diagram from JSON" button.
 
 // You need to have run the snippet which defines the CompendiumIcons global with the IBIS icons first
 // This next section does that for you if you are using a local storage notebook with the examples loaded
+let iconsPromise = Promise.resolve(true)
 if (!window.CompendiumIcons) {
     const iconLoaderResource = {
         name: "Compendium Icons Loader",
         id: "e82b2713edf72692e6546436b0e4ac1a777e8a6269b2df17459f293e8f66fbd9"
     }
     
-    const iconLoaderItemJSON = Twirlip7.getCurrentNotebook().getItem(iconLoaderResource.id)
-    if (iconLoaderItemJSON) {
-        /* eslint no-eval: 0 */
-        /* jslint evil: true */
-        eval(JSON.parse(iconLoaderItemJSON).value)
-    } else {
-        // If all else fails, try to load the icons directly from example files -- this will run asynchronously and cause a brief flicker
-        // Temporarily set global to reduce flicker
-        window.CompendiumIcons = {}
-        requirejs(["vendor/text!examples/ibis_icons.js"], function (ibisIconItemContents) {
-            eval(ibisIconItemContents)
-            m.redraw()
-        })
-    }
+    iconsPromise = Twirlip7.getCurrentNotebook().getItem(iconLoaderResource.id).then((iconLoaderItemJSON) => {
+        if (iconLoaderItemJSON) {
+            /* eslint no-eval: 0 */
+            /* jslint evil: true */
+            eval(JSON.parse(iconLoaderItemJSON).value)
+            return Promise.resolve(false)
+        } else {
+            // If all else fails, try to load the icons directly from example files -- this will run asynchronously and cause a brief flicker
+            // Temporarily set global to reduce flicker
+            window.CompendiumIcons = {}
+            return new Promise((resolve, reject) => {
+                requirejs(["vendor/text!examples/ibis_icons.js"], function (ibisIconItemContents) {
+                    eval(ibisIconItemContents)
+                    m.redraw()
+                    resolve(true)
+                }, function (error) {
+                    reject(error)
+                })    
+            })
+        }
+    })
 }
 
 let diagram = {
@@ -444,7 +452,7 @@ function changeDiagramName() {
     if (newDiagramName) diagram.diagramName = newDiagramName
 }
 
-Twirlip7.show(() => {
+function view() {
     return [
         "Issue Based Information System (IBIS) for Dialogue Mapping",
         " -- ",
@@ -504,4 +512,11 @@ Twirlip7.show(() => {
         viewItemPanel(),
         viewJSONPanel(),
     ]
-}, { extraStyling: ".bg-blue.br4", title: () => "IBIS Diagram for: " + diagram.diagramName })
+}
+
+iconsPromise.then(() => {
+    Twirlip7.show(view, { extraStyling: ".bg-blue.br4", title: () => "IBIS Diagram for: " + diagram.diagramName })
+}).catch((error) => {
+    console.log(error)
+    alert("Problem loading IBIS icons")
+})
