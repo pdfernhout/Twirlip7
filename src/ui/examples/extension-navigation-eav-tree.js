@@ -1,19 +1,39 @@
 // Extend the application with navigation functionality
 
+// TODO: Build the caching support for this tree nto the Notebook itself
+
 let showNavigation = false
 let cacheItemCount = 0
 let cachedNotebook = null
 let cache = {}
+let processingNewItemsPromise = null
+
+function processNewNotebookItemRecursive(callback, i) {
+    if (i >= cachedNotebook.itemCount()) {
+        processingNewItemsPromise = null
+        return Promise.resolve(true)
+    }
+    return cachedNotebook.getItemForLocation(i).then((item) => {
+        if (item) {
+            return cachedNotebook.keyForLocation(i).then((key) => {
+                callback({i, key, item:  Twirlip7.getItemForJSON(item) })
+                return processNewNotebookItemRecursive(callback, i + 1)
+            })
+        } else {
+            // Should never get here...
+            return processNewNotebookItemRecursive(callback, i + 1)
+        }
+    }).catch(() => {
+        processingNewItemsPromise = null
+        return Promise.resolve(false)
+    })
+}
 
 function processNewNotebookItems(callback, startIndex) {
+    if (processingNewItemsPromise) return processingNewItemsPromise
     if (!startIndex) startIndex = 0
-    for (let i = startIndex; i < cachedNotebook.itemCount(); i++) {
-        const item = cachedNotebook.getItemForLocation(i)
-        if (item) {
-            const key = cachedNotebook.keyForLocation(i)
-            callback({i, key, item:  Twirlip7.getItemForJSON(item) })
-        }
-    }
+    processingNewItemsPromise = processNewNotebookItemRecursive(callback, startIndex)
+    return processingNewItemsPromise
 }
 
 function addToMap(itemContext) {
@@ -42,15 +62,18 @@ function addToMap(itemContext) {
 
 function updateCacheIfNeeded() {
     const currentNotebook = Twirlip7.getCurrentNotebook()
-    if (cachedNotebook !== currentNotebook) {
-        cachedNotebook = currentNotebook
-        cache = {}
-        cacheItemCount = 0
-    }
-    const currentItemCount = cachedNotebook.itemCount()
-    if (cacheItemCount < currentItemCount) {
-        processNewNotebookItems(addToMap, cacheItemCount)
-    }
+    const promise = processingNewItemsPromise || Promise.resolve(true)
+    promise.then(() => {
+        if (cachedNotebook !== currentNotebook) {
+            cachedNotebook = currentNotebook
+            cache = {}
+            cacheItemCount = 0
+        }
+        const currentItemCount = cachedNotebook.itemCount()
+        if (cacheItemCount < currentItemCount) {
+            processNewNotebookItems(addToMap, cacheItemCount)
+        }  
+    })
 }
 
 // TODO: If click on link when you have unsaved changes and pick cancel in the warning, the hash is still updated
