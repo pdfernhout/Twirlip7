@@ -72,8 +72,8 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
                 const storedItem = itemForLocation[i]
                 result.push(storedItem.item)
             }
-            const result = JSON.stringify(result, null, 4)
-            return Promise.resolve(result)
+            const resultAsJSON = JSON.stringify(result, null, 4)
+            return Promise.resolve(resultAsJSON)
         }
 
         // Returns Promise

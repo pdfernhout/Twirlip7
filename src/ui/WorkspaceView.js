@@ -843,7 +843,9 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
 
         function showCurrentNotebook() {
             if (!confirmClear()) return
-            showNotebook(currentNotebook.textForNotebook())
+            currentNotebook.textForNotebook().then((textForNotebook) => {
+                showNotebook(textForNotebook)
+            })
         }
 
         function showExampleNotebook() {
