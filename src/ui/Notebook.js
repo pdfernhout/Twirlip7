@@ -113,39 +113,36 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             return Promise.resolve(result)
         }
         
-        // Returns Promise
-        function skip(reference, delta, wrap) {
+        // Returns Promise with newLocation
+        function skip(start, delta, wrap) {
             const numberOfItems = itemCount()
             if (numberOfItems === 0) return Promise.resolve(null)
-            let startPromise = (!reference) ? Promise.resolve(null) : locationForKey(reference)
-            return startPromise.then((start) => {
-                if (start === null) {
-                    if (wrap) {
-                        // when wrapping, want +1 to go to 0 or -1 to go to end
-                        if (delta === 0) {
-                            start = 0
-                        } else if (delta > 0) {
-                            start = -1
-                        } else {
-                            start = numberOfItems
-                        }
-                    } else {
-                        // if not wrapping, negative deltas get us nowhere, and positive deltas go from start
-                        start = -1
-                    }
-                }
-    
-                let location
+            if (start === null || start === undefined) {
                 if (wrap) {
-                    delta = delta % numberOfItems
-                    location = (start + delta + numberOfItems) % numberOfItems
+                    // when wrapping, want +1 to go to 0 or -1 to go to end
+                    if (delta === 0) {
+                        start = 0
+                    } else if (delta > 0) {
+                        start = -1
+                    } else {
+                        start = numberOfItems
+                    }
                 } else {
-                    location = start + delta
-                    if (location < 0) location = 0
-                    if (location >= numberOfItems) location = numberOfItems - 1
+                    // if not wrapping, negative deltas get us nowhere, and positive deltas go from start
+                    start = -1
                 }
-                return keyForLocation(location) 
-            })
+            }
+
+            let newLocation
+            if (wrap) {
+                delta = delta % numberOfItems
+                newLocation = (start + delta + numberOfItems) % numberOfItems
+            } else {
+                newLocation = start + delta
+                if (newLocation < 0) newLocation = 0
+                if (newLocation >= numberOfItems) newLocation = numberOfItems - 1
+            }
+            return Promise.resolve(newLocation)
         }
         
         function setup(io) {

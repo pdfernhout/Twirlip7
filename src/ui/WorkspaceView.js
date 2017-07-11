@@ -593,9 +593,10 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 toast("No notes to display. Try saving one first -- or show the example notebook in the editor and then load it.")
                 return
             }
-            currentNotebook.skip(currentItemId, delta, wrap).then((key) => {
-                goToKey(key)
-            })
+            currentNotebook.skip(currentItemIndex, delta, wrap)
+                .then(newIndex => currentNotebook.keyForLocation(newIndex))
+                .then(key => goToKey(key))
+                .catch(error => console.log("Error when skipping", error))
         }
 
         // Returns a Promise
@@ -648,7 +649,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     item = JSON.parse(itemText)
                 }
                 currentItemId = key
-                // TODO: Uptimize settign currentItemIndex here from item info once that is changed
+                // TODO: Optimize setting currentItemIndex here from item info once that is changed
                 currentItem = item
                 
                 wasEditorDirty = false
