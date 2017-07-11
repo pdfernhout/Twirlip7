@@ -27,7 +27,7 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             const reference = "" + sha256.sha256(item)
             const storedItem = itemForHash[reference]
             if (storedItem) {
-                return { id: reference, location: storedItem.location, existed: true }
+                return Promise.resolve({ id: reference, location: storedItem.location, existed: true })
             }
             const newLocation = itemForLocation.length
             const newStoredItem = { id: reference, location: newLocation, item: item }

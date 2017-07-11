@@ -195,8 +195,17 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
         function restoreCurrentItemId() {
             let storedItemId = fetchStoredItemId()
             // Memory is transient on reload, so don't try to go to missing keys to avoid a warning
-            if (notebookChoice === "memory" && currentNotebook.getItem(storedItemId) === null) storedItemId = null
-            goToKey(storedItemId, {ignoreDirty: true})
+            Promise.resolve().then(() => {
+                if (notebookChoice === "memory") {
+                    return currentNotebook.getItem(storedItemId).then(item => {
+                        if (item === null) storedItemId = null
+                        return Promise.resolve(true)
+                    })
+                }
+                return Promise.resolve(true)
+            }).then(() => {
+                goToKey(storedItemId, {ignoreDirty: true})
+            })
         }
         
         function saveNotebookChoice() {
@@ -593,7 +602,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 toast("No items to display. Try saving one first -- or show the example notebook in the editor and then load it.")
                 return
             }
-            currentNotebook.skip(currentItemIndex, delta, wrap)
+            return currentNotebook.skip(currentItemIndex, delta, wrap)
                 .then(newIndex => currentNotebook.keyForLocation(newIndex))
                 .then(key => goToKey(key))
                 .catch(error => console.log("Error when skipping", error))
@@ -677,6 +686,10 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     if (!options.noredraw) m.redraw()
                     return Promise.resolve(true)
                 })
+            }).catch((error) => {
+                console.log("Error in goToKey", error)
+                m.redraw()
+                return Promise.resolve(false)
             })
         }
 
@@ -865,37 +878,50 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             )
         }
 
+        // Returns Promise
         function replaceNotebook() {
-            if (currentNotebook.itemCount() && !confirm("Replace all items in the " + notebookChoice + " notebook with items from JSON in editor?")) return
-            try {
-                currentNotebook.loadFromNotebookText(getEditorContents())
-            } catch (error) {
-                toast("Problem replacing notebook from editor:\n" + error)
-                return
-            }
-            // Update lastLoadedItem.value in case pasted in contents to avoid warning later since data was processed as intended
-            lastLoadedItem.value = getEditorContents()
-            wasEditorDirty = false
-            toast("Replaced notebook from editor")
+            if (currentNotebook.itemCount() && !confirm("Replace all items in the " + notebookChoice + " notebook with items from JSON in editor?")) return Promise.resolve(false)
+            return currentNotebook.loadFromNotebookText(getEditorContents())
+                .then(() => {
+                    // Update lastLoadedItem.value in case pasted in contents to avoid warning later since data was processed as intended
+                    lastLoadedItem.value = getEditorContents()
+                    wasEditorDirty = false
+                    toast("Replaced notebook from editor")
+                    m.redraw()
+                    return Promise.resolve(true)
+                })
+                .catch((error) => {
+                    toast("Problem replacing notebook from editor:\n" + error)
+                    m.redraw()
+                    return Promise.resolve(false)
+                })
         }
         
+        // Returns Promise
         function mergeNotebook() {
             if (currentNotebook.itemCount() && !confirm("Merge items from JSON in editor into the current notebook?")) return
-            try {
+            return Promise.resolve().then(() => {
                 let addedItemCount = 0
                 const newNotebookItems = JSON.parse(getEditorContents())
-                for (let itemJSON of newNotebookItems) {
-                    const addResult = currentNotebook.addItem(itemJSON)
-                    if (!addResult.existed) addedItemCount++
-                }
-                toast("Added " + addedItemCount + " item" + ((addedItemCount === 1 ? "" : "s")) + " to current notebook")
-            } catch (error) {
+                return Promise.all(
+                    newNotebookItems.map((itemJSON) => {
+                        return currentNotebook.addItem(itemJSON).then((addResult) => {
+                            if (!addResult.existed) addedItemCount++
+                            return Promise.resolve(true)
+                        }) 
+                    })
+                ).then(() => {
+                    toast("Added " + addedItemCount + " item" + ((addedItemCount === 1 ? "" : "s")) + " to current notebook")
+                    // Update lastLoadedItem.value in case pasted in contents to avoid warning later since data was processed as intended
+                    lastLoadedItem.value = getEditorContents()
+                    wasEditorDirty = false
+                    m.redraw()
+                })
+            }).catch((error) => {
+                console.log("Problem while merging", error)
                 toast("Problem merging notebook from editor:\n" + error)
-                return
-            }
-            // Update lastLoadedItem.value in case pasted in contents to avoid warning later since data was processed as intended
-            lastLoadedItem.value = getEditorContents()
-            wasEditorDirty = false
+                m.redraw()
+            })
         }
 
         function progress(message) {
@@ -1073,23 +1099,35 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 const newItemId = prompt("Go to item id", currentItemId)
                 if (!newItemId) return
                 // TODO: Should have a check for "exists"
-                if (currentNotebook.getItem(newItemId) === null) {
-                    alert("Could not find item for id:\n" + newItemId)
-                } else {
-                    goToKey(newItemId, {reload: true})
-                }
+                currentNotebook.getItem(newItemId).then((item) => {
+                    if (item === null) {
+                        alert("Could not find item for id:\n" + newItemId)
+                    } else {
+                        goToKey(newItemId, {reload: true})
+                    }
+                }).catch((error) => {
+                    console.log("Error in itemIdentifierClicked", error)
+                })
             }
             
             function itemPositionClicked() {
                 const newItemIndex = prompt("Go to item index", itemIndex === null ? "" : itemIndex + 1)
                 if (!newItemIndex || newItemIndex === itemIndex) return
-                const newItemId = currentNotebook.keyForLocation(parseInt(newItemIndex) - 1)
-                // TODO: Should have a check for "exists"
-                if (currentNotebook.getItem(newItemId) === null) {
-                    alert("Could not find item for index:\n" + newItemIndex)
-                } else {
-                    goToKey(newItemId, {reload: true})
-                }
+                // TODO: Should have a check for "exists" at location
+                let newItemId = null
+                currentNotebook.keyForLocation(parseInt(newItemIndex) - 1)
+                    .then((itemId) => {
+                        newItemId = itemId
+                        return currentNotebook.getItem(newItemId)
+                    }).then((item) => {
+                        if (item === null) {
+                            alert("Could not find item for index:\n" + newItemIndex)
+                        } else {
+                            goToKey(newItemId, {reload: true})
+                        }   
+                    }).catch((error) => {
+                        console.log("Error in itemPositionClicked", error)
+                    })
             }
             
             const itemIdentifier = (currentItemId === null) ? 
