@@ -1118,13 +1118,9 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 m("button.ma1", { onclick: goLast, title: "Go to last item", disabled: isNextDisabled() }, "Last", icon("fa-fast-forward.ml1")),
                "Item ",
                 m("span", { title: "Click to jump to different item by identifier", onclick: itemIdentifierClicked }, itemIdentifier),
-                currentNotebook.getCapabilities().idIsPosition ? 
-                    "" : 
-                    m("span", { onclick: itemPositionClicked, title: "Click to jump to different item by index" },
-                        " : " + (itemIndex === null ?
-                        "???" : 
-                        (itemIndex + 1))
-                    ),
+                m("span", { onclick: itemPositionClicked, title: "Click to jump to different item by index" },
+                    " : " + (itemIndex === null ? "???" : (itemIndex + 1))
+                ),
                 " of ",
                 itemCount
             )
