@@ -1424,6 +1424,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             const helpText = "Whether to run this snippet when the editor starts up -- snippets run in the order they were added"
             const startupInfo = getStartupInfo()
             const isStartupItem = startupInfo.startupItemIds.indexOf(currentItemId) !== -1
+            
             function toggleUseAtStartup(isStartupItem, itemId) {
                 const startupInfo = getStartupInfo()
                 if (isStartupItem) {
@@ -1438,6 +1439,13 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 }
                 
             }
+            
+            function showBootstrapItems() {
+                if (!confirm("Show startup items in editor?")) return
+                if (!confirmClear()) return
+                setEditorContents(JSON.stringify(startupInfo, null, 4))
+            }
+            
             return [
                 m("input[type=checkbox].ma1", {
                     checked: isStartupItem,
@@ -1445,7 +1453,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     onclick: toggleUseAtStartup.bind(null, isStartupItem, currentItemId),
                     title: helpText
                 }),
-                m("span", {title: helpText}, "Bootstrap it"),
+                m("span", { title: helpText, onclick: showBootstrapItems }, "Bootstrap it"),
             ]
         }
         
