@@ -286,7 +286,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
         // Returns a Promise
         function save() {
             if (!isEditorDirty()) {
-                if (!confirm("There are no changes.\nSave a new note anyway with a later timestamp?")) return Promise.resolve(false)
+                if (!confirm("There are no changes.\nSave a new item anyway with a later timestamp?")) return Promise.resolve(false)
             }
             if (!currentContributor) {
                 if (!promptForContributor()) return Promise.resolve(false)
@@ -299,9 +299,9 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     return
                 }
                 if (addResult.existed) {
-                    toast("Note already saved", 1000)
+                    toast("Item already saved", 1000)
                 } else {
-                    toast("Saved note as:\n" + addResult.id, 2000)
+                    toast("Saved item as:\n" + addResult.id, 2000)
                 }
                 updateLastLoadedItemFromCurrentItem()
                 wasEditorDirty = false
@@ -420,11 +420,11 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
 
         function openIt() {
             if (currentNotebook !== Twirlip7.NotebookUsingLocalStorage) {
-                alert("Notes need to be in the \"local storage\" notebook (not memory or server)\nto be opened in a new window.")
+                alert("Items need to be in the \"local storage\" notebook (not memory or server)\nto be opened in a new window.")
                 return
             }
             if (currentItemId === null) {
-                alert("To open (and run) a note in its own window, you need to\nnavigate to a note from local storage first or save a new one.")
+                alert("To open (and run) an item in its own window, you need to\nnavigate to an item from local storage first or save a new one.")
                 return
             }
             window.open("#open=" + currentItemId)
@@ -479,7 +479,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     m.redraw()
                 })
             } else {
-                alert("Please select a saved note first")
+                alert("Please select a saved item first")
             }
         }
         
@@ -508,7 +508,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     m.redraw()
                 })
             } else {
-                alert("Please select a saved note first")
+                alert("Please select a saved item first")
             }
         }
         
@@ -590,7 +590,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
 
         function skip(delta, wrap) {
             if (!currentNotebook.itemCount()) {
-                toast("No notes to display. Try saving one first -- or show the example notebook in the editor and then load it.")
+                toast("No items to display. Try saving one first -- or show the example notebook in the editor and then load it.")
                 return
             }
             currentNotebook.skip(currentItemIndex, delta, wrap)
@@ -638,7 +638,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             return currentNotebook.getItem(key).then((itemText) => {
                 let item
                 if (itemText === undefined || itemText === null) {
-                    if (key) toast("note not found for:\n\"" + key + "\"")
+                    if (key) toast("item not found for:\n\"" + key + "\"")
                     item = newItem()
                     key = null
                 } else if (itemText[0] !== "{") {
@@ -866,7 +866,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
         }
 
         function replaceNotebook() {
-            if (currentNotebook.itemCount() && !confirm("Replace all notes in the " + notebookChoice + " notebook with notes from JSON in editor?")) return
+            if (currentNotebook.itemCount() && !confirm("Replace all items in the " + notebookChoice + " notebook with items from JSON in editor?")) return
             try {
                 currentNotebook.loadFromNotebookText(getEditorContents())
             } catch (error) {
@@ -880,7 +880,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
         }
         
         function mergeNotebook() {
-            if (currentNotebook.itemCount() && !confirm("Merge notes from JSON in editor into the current notebook?")) return
+            if (currentNotebook.itemCount() && !confirm("Merge items from JSON in editor into the current notebook?")) return
             try {
                 let addedItemCount = 0
                 const newNotebookItems = JSON.parse(getEditorContents())
@@ -888,7 +888,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     const addResult = currentNotebook.addItem(itemJSON)
                     if (!addResult.existed) addedItemCount++
                 }
-                toast("Added " + addedItemCount + " note" + ((addedItemCount === 1 ? "" : "s")) + " to current notebook")
+                toast("Added " + addedItemCount + " item" + ((addedItemCount === 1 ? "" : "s")) + " to current notebook")
             } catch (error) {
                 toast("Problem merging notebook from editor:\n" + error)
                 return
@@ -1070,23 +1070,23 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             }
             
             function itemIdentifierClicked() {
-                const newItemId = prompt("Go to note id", currentItemId)
+                const newItemId = prompt("Go to item id", currentItemId)
                 if (!newItemId) return
                 // TODO: Should have a check for "exists"
                 if (currentNotebook.getItem(newItemId) === null) {
-                    alert("Could not find note for id:\n" + newItemId)
+                    alert("Could not find item for id:\n" + newItemId)
                 } else {
                     goToKey(newItemId, {reload: true})
                 }
             }
             
             function itemPositionClicked() {
-                const newItemIndex = prompt("Go to note index", itemIndex === null ? "" : itemIndex + 1)
+                const newItemIndex = prompt("Go to item index", itemIndex === null ? "" : itemIndex + 1)
                 if (!newItemIndex || newItemIndex === itemIndex) return
                 const newItemId = currentNotebook.keyForLocation(parseInt(newItemIndex) - 1)
                 // TODO: Should have a check for "exists"
                 if (currentNotebook.getItem(newItemId) === null) {
-                    alert("Could not find note for index:\n" + newItemIndex)
+                    alert("Could not find item for index:\n" + newItemIndex)
                 } else {
                     goToKey(newItemId, {reload: true})
                 }
@@ -1100,7 +1100,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 m("span.ml1", "Notebook"),
                 m("select.ma2", {
                     onchange: notebookChanged,
-                    title: "Change storage location of notes",
+                    title: "Change storage location of items",
                     // The value is required here in addition to setting the options: https://gitter.im/mithriljs/mithril.js?at=59492498cf9c13503ca57fdd
                     value: notebookChoice
                 },
@@ -1112,15 +1112,15 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                         return m("option", { value: notebookKey, disabled: !notebooks[notebookKey]}, name)
                     })
                 ),
-                m("button.ma1", { onclick: goFirst, title: "Go to first note", disabled: isPreviousDisabled() }, icon("fa-fast-backward.mr1"), "First"),
-                m("button.ma1", { onclick: goPrevious, title: "Go to earlier note", disabled: isPreviousDisabled() }, icon("fa-step-backward.mr1"), "Previous"),
-                m("button.ma1", { onclick: goNext, title: "Go to later note", disabled: isNextDisabled() }, "Next", icon("fa-step-forward.ml1")),
-                m("button.ma1", { onclick: goLast, title: "Go to last note", disabled: isNextDisabled() }, "Last", icon("fa-fast-forward.ml1")),
-               "Note ",
-                m("span", { title: "Click to jump to different note by identifier", onclick: itemIdentifierClicked }, itemIdentifier),
+                m("button.ma1", { onclick: goFirst, title: "Go to first item", disabled: isPreviousDisabled() }, icon("fa-fast-backward.mr1"), "First"),
+                m("button.ma1", { onclick: goPrevious, title: "Go to earlier item", disabled: isPreviousDisabled() }, icon("fa-step-backward.mr1"), "Previous"),
+                m("button.ma1", { onclick: goNext, title: "Go to later item", disabled: isNextDisabled() }, "Next", icon("fa-step-forward.ml1")),
+                m("button.ma1", { onclick: goLast, title: "Go to last item", disabled: isNextDisabled() }, "Last", icon("fa-fast-forward.ml1")),
+               "Item ",
+                m("span", { title: "Click to jump to different item by identifier", onclick: itemIdentifierClicked }, itemIdentifier),
                 currentNotebook.getCapabilities().idIsPosition ? 
                     "" : 
-                    m("span", { onclick: itemPositionClicked, title: "Click to jump to different note by index" },
+                    m("span", { onclick: itemPositionClicked, title: "Click to jump to different item by index" },
                         " : " + (itemIndex === null ?
                         "???" : 
                         (itemIndex + 1))
@@ -1168,7 +1168,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     }),
                     m("button.ml1", {
                         onclick: goToLatestForEntity,
-                        title: "Latest note for Entity",
+                        title: "Latest item for Entity",
                         disabled: isLastEntityMatch
                     }, " E", icon("fa-fast-forward.ml1"))
                 ),
@@ -1187,7 +1187,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     }),
                     m("button.ml1", {
                         onclick: goToLatestForEntityAttribute,
-                        title: "Latest note for Entity-Attribute pair",
+                        title: "Latest item for Entity-Attribute pair",
                         disabled: isLastEntityAttributeMatch 
                     }, " EA", icon("fa-fast-forward.ml1"))
                 ),
@@ -1202,7 +1202,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                             m("button.ml1.mr2", {onclick: () => undoManager.redo(), disabled: !undoManager.hasRedo() }, "Redo", icon("fa-repeat.ml1")),
                         ] : [],
                         focusMode ? [] : viewSaveButton(),
-                        m("button", { onclick: clear, title: "Clear out text in editor and the derivedFrom link\nPress a second time to clear other fields too" }, icon("fa-file-o.mr1"), "New note")
+                        m("button", { onclick: clear, title: "Clear out text in editor and the derivedFrom link\nPress a second time to clear other fields too" }, icon("fa-file-o.mr1"), "New item")
                     )
                 )
             ]
@@ -1244,7 +1244,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 ),
                 m("div.ma1",
                     m("span.dib.w4.tr.mr2", {
-                        title: "click to go to note",
+                        title: "click to go to item",
                         onclick: () => { if (currentItem.derivedFrom) goToKey(currentItem.derivedFrom) },
                     }, "Derived from", icon("fa-arrow-circle-o-left.ml1")),
                     m("input.w-40.bg-light-gray", {
@@ -1400,7 +1400,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 style: (isEditorDirty() ? "text-shadow: 1px 0px 0px black" : ""),
                 onclick: save,
                 title: "Add a new version of the value of the entity's attribute to the current notebook"
-            }, icon("fa-share-square-o.mr1"), "Save note to " + notebookChoice)
+            }, icon("fa-share-square-o.mr1"), "Save item to " + notebookChoice)
         }
         
         const importExportMenu = {
@@ -1412,9 +1412,9 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 { onclick: importTextPlain, title: "Load a file into editor", name: [icon("fa-upload.mr1"), "Import"]},
                 { onclick: importTextAsBase64, title: "Load a file into editor as base64", name: [icon("fa-file-image-o.mr1"), "Import image as Base64" ]},
                 { onclick: exportText, title: "Save current editor text to a file", name: [icon("fa-download.mr1"), "Export"] },
-                { onclick: displayDataURLForCurrentNote, title: "Print the current note in the editor as a data URL (to copy)", disabled: () => !currentItemId, name: [icon("fa-print.mr1"), "Print data URL for current note"] },
-                { onclick: displayDataURLForCurrentNoteAndHistory, title: "Print the current note and its entire derived-from history in the editor as data URLs (to copy)", disabled: () => !currentItemId, name: [icon("fa-history.mr1"), "Print entire history for note as data URLs"] },
-                { onclick: readNotesFromDataURLs, title: "Read one or more notes from data URLs in the editor (like from a paste) and save them into the current notebook", name: [icon("fa-plus-square-o.mr1"), "Create notes from data URLs in editor"] },
+                { onclick: displayDataURLForCurrentNote, title: "Print the current item in the editor as a data URL (to copy)", disabled: () => !currentItemId, name: [icon("fa-print.mr1"), "Print data URL for current item"] },
+                { onclick: displayDataURLForCurrentNoteAndHistory, title: "Print the current item and its entire derived-from history in the editor as data URLs (to copy)", disabled: () => !currentItemId, name: [icon("fa-history.mr1"), "Print entire history for item as data URLs"] },
+                { onclick: readNotesFromDataURLs, title: "Read one or more items from data URLs in the editor (like from a paste) and save them into the current notebook", name: [icon("fa-plus-square-o.mr1"), "Create items from data URLs in editor"] },
             ]
         }
         
@@ -1433,8 +1433,8 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             items: [
                 { disabled: isCurrentNotebookLoading, onclick: showCurrentNotebook, title: "Put JSON for current notebook contents into editor", name: "Show current notebook" },
                 { disabled: isCurrentNotebookLoading, onclick: showExampleNotebook, title: "Put JSON for a notebook of example snippets into editor (for loading afterwards)", name: "Show example notebook" },
-                { disabled: isCurrentNotebookLoading, onclick: mergeNotebook, title: "Load notebook from JSON in editor -- merging with the previous notes", name: "Merge notebook" },
-                { disabled: isCurrentNotebookLoading, onclick: replaceNotebook, title: "Load notebook from JSON from editor -- replacing all previous notes!", name: "Replace notebook" },
+                { disabled: isCurrentNotebookLoading, onclick: mergeNotebook, title: "Load notebook from JSON in editor -- merging with the previous items", name: "Merge notebook" },
+                { disabled: isCurrentNotebookLoading, onclick: replaceNotebook, title: "Load notebook from JSON from editor -- replacing all previous items!", name: "Replace notebook" },
             ]
         }
         
