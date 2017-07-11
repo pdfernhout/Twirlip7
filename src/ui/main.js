@@ -203,8 +203,10 @@ requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingL
                 console.log("startup item not found", itemId)
                 return Promise.resolve("missing")
             }
+        }).catch((error) => {
+            console.log("Problem in runStartupItem", error)
+            return Promise.reject(error)
         })
-
     }
     
     function runAllStartupItems() {
@@ -232,6 +234,9 @@ requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingL
                         workspaceView.setStartupInfo(startupInfo)
                     }
                     m.redraw()
+                }).catch((error) => {
+                    console.log("Problem in runAllStartupItems", error)
+                    return Promise.reject(error)
                 })
             })
         }

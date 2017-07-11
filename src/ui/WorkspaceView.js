@@ -320,6 +320,9 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 updateIsLastMatch(true)
                 setDocumentTitleForCurrentItem()
                 return Promise.resolve(true)
+            }).catch((error) => {
+                console.log("Problem in save", error)
+                return Promise.reject(error)
             })
         }
         
@@ -486,6 +489,9 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     editor.selection.selectAll()
                     editor.focus()    
                     m.redraw()
+                }).catch((error) => {
+                    console.log("Problem in displayDataURLForCurrentNote", error)
+                    return Promise.reject(error)
                 })
             } else {
                 alert("Please select a saved item first")
@@ -515,6 +521,9 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     editor.selection.selectAll()
                     editor.focus()
                     m.redraw()
+                }).catch((error) => {
+                    console.log("Problem in displayDataURLForCurrentNoteAndHistory", error)
+                    return Promise.reject(error)
                 })
             } else {
                 alert("Please select a saved item first")
@@ -564,6 +573,9 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                         return Promise.resolve(null)
                     }
                     return Promise.resolve(key)
+                }).catch((error) => {
+                    console.log("Problem in makeNoteForDataURL", error)
+                    return Promise.reject(error)
                 })
             } else {
                 alert("Please enter a Twirlip 7 data url starting with " + twirlip7DataUrlPrefix)
@@ -571,6 +583,8 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             }
         }
         
+        // Returns a Promise
+        // Also does a redraw when needed
         function readNotesFromDataURLs() {
             const textForAllItems = getSelectedEditorText().text.trim()
             const dataURLs = textForAllItems.split("\n")
@@ -590,10 +604,13 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 })
             }
             
-            recursivelyMakeNotes().then(() => {
+            return recursivelyMakeNotes().then(() => {
                 if (keys.length && keys.length === dataURLs.length) {
                     goToKey(keys[keys.length - 1], {ignoreDirty: true})
                 }
+            }).catch((error) => {
+                console.log("Problem in readNotesFromDataURLs", error)
+                return Promise.reject(error)
             })
         }
 
@@ -765,6 +782,9 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     return goToKey(key)
                 }
                 return Promise.resolve(false)
+            }).catch((error) => {
+                console.log("Problem in goToLatestForEntity", error)
+                return Promise.reject(error)
             })
         }
         
@@ -775,6 +795,9 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     return goToKey(key)
                 }
                 return Promise.resolve(false)
+            }).catch((error) => {
+                console.log("Problem in goToLatestForEntityAttribute", error)
+                return Promise.reject(error)
             })
         }
         
@@ -785,6 +808,9 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     return Promise.resolve(matches[0].key)
                 }
                 return Promise.resolve(null)
+            }).catch((error) => {
+                console.log("Problem in findLatestForEntity", error)
+                return Promise.reject(error)
             })
         }
         
@@ -798,6 +824,9 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     return Promise.resolve(matches[0].key)
                 }
                 return Promise.resolve(null)
+            }).catch((error) => {
+                console.log("Problem in findLatestForEntityAttribute", error)
+                return Promise.reject(error)
             })
         }
         
@@ -828,6 +857,9 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 // TODO: Replace this with optimization of info about item when it is retrieved or other new items are added
                 m.redraw()
                 return Promise.resolve(true)
+            }).catch((error) => {
+                console.log("Problem in updateIsLastMatch", error)
+                return Promise.reject(error)
             })
         }
         
@@ -859,6 +891,9 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             if (!confirmClear()) return
             currentNotebook.textForNotebook().then((textForNotebook) => {
                 showNotebook(textForNotebook)
+            }).catch((error) => {
+                console.log("Problem in showCurrentNotebook", error)
+                return Promise.reject(error)
             })
         }
 
@@ -889,8 +924,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     toast("Replaced notebook from editor")
                     m.redraw()
                     return Promise.resolve(true)
-                })
-                .catch((error) => {
+                }).catch((error) => {
                     toast("Problem replacing notebook from editor:\n" + error)
                     m.redraw()
                     return Promise.resolve(false)
