@@ -16,6 +16,7 @@
     "socket.io": "2.0.2"
   },
   "devDependencies": {
+    "dompurify": "0.9.0",
     "eslint": "3.19.0",
     "font-awesome": "4.7.0",
     "marked": "0.3.6",
