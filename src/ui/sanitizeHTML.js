@@ -148,7 +148,7 @@ define(["vendor/mithril"], function(mDiscard) {
                 }
                 
                 if (tagName === "img") {
-                    if (!attributes["width"] || !attributes["height"]) {
+                    if (attributes["width"] === 0 || attributes["width"] === 1 || attributes["height"] === 0 || attributes["height"] === 1) {
                         console.log("discarding likely tracking image (2)", attributes["src"])
                         tagName = "span"
                         attributes = {}
