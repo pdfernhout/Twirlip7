@@ -145,6 +145,7 @@ define(["vendor/mithril"], function(mDiscard) {
                 
                 if (tagName === "a") {
                     attributes["rel"] = "nofollow"
+                    attributes["target"]  = "_blank"
                 }
                 
                 if (tagName === "img") {
