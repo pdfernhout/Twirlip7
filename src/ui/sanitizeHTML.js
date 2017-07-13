@@ -60,9 +60,11 @@ define(["vendor/mithril"], function(mDiscard) {
         "narrafirma-special-warning": 1
     }
     
-    function isURLAcceptable(url) {
-        if (!url) return false
-        return url.substring(0, 5) === "http:" || url.substring(0, 6) === "https"
+    function isURLAcceptable(url, configuration) {
+        if (!url) return ""
+        if (url.substring(0, 5) === "http:" || url.substring(0, 6) === "https:") return url
+        if (configuration.baseURL) return configuration.baseURL + url
+        return ""
     }
     
     function isTagAllowed(tagName, configuration) {
@@ -112,8 +114,9 @@ define(["vendor/mithril"], function(mDiscard) {
                         if (url && url.substring(0, 2) === "//") {
                             url = window.location.protocol + url
                         }
-                        if (isURLAcceptable(url)) {
-                            attributes["href"] = url
+                        const usableURL = isURLAcceptable(url, configuration)
+                        if (usableURL) {
+                            attributes["href"] = usableURL
                         }
                     }
                     if (configuration.allowImages && attribute.name === "src") {
@@ -121,8 +124,9 @@ define(["vendor/mithril"], function(mDiscard) {
                         if (url && url.substring(0, 2) === "//") {
                             url = window.location.protocol + url
                         }
-                        if (isURLAcceptable(url)) {
-                            attributes["src"] = url
+                        const usableURL = isURLAcceptable(url, configuration)
+                        if (usableURL) {
+                            attributes["src"] = usableURL
                         }
                     }
                     if (configuration.allowImages && (attribute.name === "width" || attribute.name === "height")) {

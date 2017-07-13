@@ -59,6 +59,7 @@ draggable-simplified.js
 canvas-example.js
 
 // Proxy
+proxy-web-page.js
 proxy-rss-reader.js
 
 // Markdown library
