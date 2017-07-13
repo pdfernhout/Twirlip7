@@ -15,10 +15,13 @@ var http = require("http")
 var crypto = require("crypto")
 
 var express = require("express")
+var bodyParser = require("body-parser")
 var SocketIOServer = require("socket.io")
 
 var https = require("https")
 var pem = require("pem")
+
+var proxyRequest = require("./proxyRequest")
 
 var dataDirectory = __dirname + "/../server-data/"
 var storageExtension = ".txt"
@@ -52,7 +55,22 @@ function logger(request, response, next) {
 
 app.use(logger)
 
+// Include support to parse JSON-encoded bodies (and saving the rawBody)
+// TODO: Could there be an issue with bodyParser with undeleted temp files? (Mentioned somewhere online)
+app.use(bodyParser.json({
+    limit: "10mb"
+}))
+
+// to support URL-encoded bodies
+app.use(bodyParser.urlencoded({
+    extended: true
+}))
+
 app.use(express.static(__dirname + "/ui"))
+
+app.post("/api/proxy", function (request, response) {
+    proxyRequest(request, response)
+})
 
 var io = new SocketIOServer()
 
