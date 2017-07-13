@@ -127,7 +127,7 @@ define(["vendor/mithril"], function(mDiscard) {
                     }
                     if (configuration.allowImages && (attribute.name === "width" || attribute.name === "height")) {
                         const size = parseInt(attribute.value)
-                        if (!isNan(size) && size > 1) {
+                        if (!isNaN(size) && size > 1) {
                             attributes[attribute.name] = size
                         } else {
                             // Tracking image
