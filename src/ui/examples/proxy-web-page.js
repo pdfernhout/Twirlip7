@@ -1,4 +1,6 @@
 // Web page retrieval using server-side proxy support to get around CORS restrictions
+// Proxying will only work if using the Twirlip7 server
+// So, proxy requests won't work if running from GitHub and rawgit.com.
 
 requirejs(["sanitizeHTML", "vendor/purify"], function(sanitizeHTML, DOMPurify) {
 
@@ -19,7 +21,7 @@ requirejs(["sanitizeHTML", "vendor/purify"], function(sanitizeHTML, DOMPurify) {
         m.redraw()
     }).catch((error) => {
         console.log("An error occured:", error)
-        content = JSON.stringify(error)
+        content = "ERROR: " + error
         m.redraw()
     })
     
