@@ -63,6 +63,7 @@ define(["vendor/mithril"], function(mDiscard) {
     function isURLAcceptable(url, configuration) {
         if (!url) return ""
         if (url.substring(0, 5) === "http:" || url.substring(0, 6) === "https:") return url
+        if (url.startsWith("#") && isIdAllowed(url.substring(1))) return url
         if (configuration.baseURL) return configuration.baseURL + url
         return ""
     }
@@ -75,6 +76,10 @@ define(["vendor/mithril"], function(mDiscard) {
         if (tagName === "a" && configuration.allowLinks) return true
         if (tagName === "img" && configuration.allowImages) return true
         return false
+    }
+    
+    function isIdAllowed(id) {
+        return !/[^a-zA-Z0-9_-]/.test(id)
     }
     
     function generateVDOM(nodes, configuration) {
@@ -111,6 +116,14 @@ define(["vendor/mithril"], function(mDiscard) {
                             if (debugLogging) console.log("WARN: CSS class not allowed", theClassOrClasses)
                         }
                     }
+                    if (attribute.name === "id") {
+                        const theId = attribute.value
+                        if (isIdAllowed(theId)) {
+                            attributes["id"] = theId
+                        } else {
+                            if (debugLogging) console.log("WARN: CSS id not allowed", theId)
+                        }
+                    }
                     if (configuration.allowLinks && attribute.name === "href") {
                         let url = attribute.value
                         if (url && url.substring(0, 2) === "//") {
@@ -145,7 +158,7 @@ define(["vendor/mithril"], function(mDiscard) {
                     }                    
                 }
                 
-                if (tagName === "a") {
+                if (tagName === "a" && attributes["href"] && !attributes["href"].startsWith("#")) {
                     attributes["rel"] = "nofollow"
                     attributes["target"]  = "_blank"
                 }
