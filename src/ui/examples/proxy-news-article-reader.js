@@ -38,6 +38,12 @@ requirejs(["sanitizeHTML", "vendor/purify"], function(sanitizeHTML, DOMPurify) {
         data: { url: App.url, proxyKey },
     }).then((response) => {
         console.log(response)
+        if (!response.success) {
+            alert("Something went wrong")
+            App.article = response.errorMessage
+            m.redraw()
+            return
+        }
         const parser = new DOMParser()
         const htmlDoc = parser.parseFromString(response.content, "text/html")
         console.log("htmlDoc", htmlDoc)

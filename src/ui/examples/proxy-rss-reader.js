@@ -12,8 +12,7 @@
 
 requirejs(["sanitizeHTML", "vendor/purify"], function(sanitizeHTML, dompurify) {
     
-    const proxyKey = prompt("proxyKey?")
-    if (!proxyKey) return
+    let proxyKey
 
     const sampleFeeds = [
         "http://static.fsf.org/fsforg/rss/news.xml",
@@ -127,11 +126,15 @@ requirejs(["sanitizeHTML", "vendor/purify"], function(sanitizeHTML, dompurify) {
         if (displayMode === "very unsafe html") displayMode = "images"
         // TODO: m.request({method: "POST", url: "/api/proxy"}).then( ...
         apiRequestSend("/api/proxy", { url, proxyKey }, 10000, (result) => {
-            fetchResult = { status: "OK" }
-            sourceContent = result.content
-            // console.log("sourceContent", sourceContent)
-            rssFeedInstance = parseRSS(sourceContent)
-            // console.log("proxy request success", result)
+            fetchResult = { status: result.status }
+            if (result.success) {
+                sourceContent = result.content
+                // console.log("sourceContent", sourceContent)
+                rssFeedInstance = parseRSS(sourceContent)
+                // console.log("proxy request success", result)
+            } else {
+                fetchResult.errorMessage = result.errorMessage
+            }
             m.redraw()
         }, (failed) => {
             console.log("proxy request failed", failed)
@@ -219,6 +222,8 @@ requirejs(["sanitizeHTML", "vendor/purify"], function(sanitizeHTML, dompurify) {
     function display() {
         return m("div", [
             m("h4.strong.ma2", "RSS feed reader"),
+            m("button.ma2", { onclick: () => proxyKey = prompt("proxyKey?") }, "Set proxyKey so proxying will work"),
+            m("br"),
             m("span.ma2", "Example RSS feeds:"),
             displayFeedChooser(),
             displayModeChooser(),

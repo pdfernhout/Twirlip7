@@ -18,10 +18,14 @@ requirejs(["sanitizeHTML", "vendor/purify"], function(sanitizeHTML, DOMPurify) {
     m.request({
         method: "POST",
         url: crossOriginService,
-        data: { url, proxyKey: proxyKey },
+        data: { url, proxyKey },
     }).then((result) => {
         console.log("result", result)
-        content = result.content
+        if (result.success) {
+            content = result.content
+        } else {
+            content = result.errorMessage
+        }
         m.redraw()
     }).catch((error) => {
         console.log("An error occured:", error)
