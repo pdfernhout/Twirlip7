@@ -61,6 +61,7 @@ canvas-example.js
 // Proxy
 proxy-web-page.js
 proxy-rss-reader.js
+proxy-news-article-reader.js
 
 // Markdown library
 markdown-library-use.js
