@@ -25,10 +25,14 @@ The UI uses Mithril.js, Tachyons.js, RequireJS, and the ACE editor in plain Java
 
 The Server uses Node.js with Express to serve the UI files and to store and retrieve items shared by all users.
 Using the server requires running "npm install" to load the supporting npm modules and then "npm start" to run the server. 
+If you want to allow the server to proxy requests to avoid CORS issues when retrieving data from different sites,
+you need to add a proxyKey.txt file with a proxyKey passphrase which must be supplied in proxy requests.
 
 You don't need to install and run the server to do some simple tests.
 You can just load the UI files directly into your browser (like with the rawgit example).
-If you run without the server, however, you can only store data in memory or local storage; the server journal option will be greyed out in the UI.
+If you run without the server, however, you can only store data in memory or local storage;
+the server journal option will be greyed out in the UI.
+Also, proxy support is not available without the server, so the proxying examples won't work.
 
 No required build step (yet).
 

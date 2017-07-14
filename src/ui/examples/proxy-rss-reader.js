@@ -222,7 +222,7 @@ requirejs(["sanitizeHTML", "vendor/purify"], function(sanitizeHTML, dompurify) {
     function display() {
         return m("div", [
             m("h4.strong.ma2", "RSS feed reader"),
-            m("button.ma2", { onclick: () => proxyKey = prompt("proxyKey?") }, "Set proxyKey so proxying will work"),
+            m("button.ma2", { onclick: () => proxyKey = prompt("proxyKey?") }, "Set proxyKey required by server"),
             m("br"),
             m("span.ma2", "Example RSS feeds:"),
             displayFeedChooser(),
