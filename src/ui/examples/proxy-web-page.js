@@ -1,6 +1,7 @@
 // Web page retrieval using server-side proxy support to get around CORS restrictions
 // Proxying will only work if using the Twirlip7 server
 // So, proxy requests won't work if running from GitHub and rawgit.com.
+// You also need to know the proxyKey for the server
 
 requirejs(["sanitizeHTML", "vendor/purify"], function(sanitizeHTML, DOMPurify) {
 
@@ -11,10 +12,13 @@ requirejs(["sanitizeHTML", "vendor/purify"], function(sanitizeHTML, DOMPurify) {
     
     const crossOriginService = "/api/proxy"
     
+    const proxyKey = prompt("proxyKey?")
+    if (!proxyKey) return
+    
     m.request({
         method: "POST",
         url: crossOriginService,
-        data: { url },
+        data: { url, proxyKey: proxyKey },
     }).then((result) => {
         console.log("result", result)
         content = result.content

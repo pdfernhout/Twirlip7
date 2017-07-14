@@ -4,6 +4,9 @@
 /* global m, requirejs, Twirlip7 */
 
 requirejs(["sanitizeHTML", "vendor/purify"], function(sanitizeHTML, DOMPurify) {
+    
+    const proxyKey = prompt("proxyKey?")
+    if (!proxyKey) return
 
     // Quit reading news url
     const url = "https://soylentnews.org/article.pl?sid=16/12/13/0353212"
@@ -32,7 +35,7 @@ requirejs(["sanitizeHTML", "vendor/purify"], function(sanitizeHTML, DOMPurify) {
     m.request({
         method: "POST",
         url: crossOriginService,
-        data: { url: App.url },
+        data: { url: App.url, proxyKey },
     }).then((response) => {
         console.log(response)
         const parser = new DOMParser()

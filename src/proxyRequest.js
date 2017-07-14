@@ -18,7 +18,9 @@ function proxyRequest(request, response) {
     }
 
     if (!url) {
-        respond.fail(response, "url field was not specified in request: " + JSON.stringify(request.body))
+        respond.fail(response, "url field was not specified in request")
+    } else if (request.body.proxyKey !== "swordfish") {
+        respond.fail(response, "incorrect or missing proxyKey in request")
     } else if (url.substring(0, 5) === "http:" || url.substring(0, 6) === "https:") {
         requestAPI(options, function(error, requestResponse, content) {
             if (error || content === null) {

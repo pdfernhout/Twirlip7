@@ -11,6 +11,9 @@
 // TODO: Wondering if there is an issue where request converts to JSON and some character encoding is ignored?
 
 requirejs(["sanitizeHTML", "vendor/purify"], function(sanitizeHTML, dompurify) {
+    
+    const proxyKey = prompt("proxyKey?")
+    if (!proxyKey) return
 
     const sampleFeeds = [
         "http://static.fsf.org/fsforg/rss/news.xml",
@@ -123,7 +126,7 @@ requirejs(["sanitizeHTML", "vendor/purify"], function(sanitizeHTML, dompurify) {
         rssFeedInstance = {items: []}
         if (displayMode === "very unsafe html") displayMode = "images"
         // TODO: m.request({method: "POST", url: "/api/proxy"}).then( ...
-        apiRequestSend("/api/proxy", { url: url }, 10000, (result) => {
+        apiRequestSend("/api/proxy", { url, proxyKey }, 10000, (result) => {
             fetchResult = { status: "OK" }
             sourceContent = result.content
             // console.log("sourceContent", sourceContent)
