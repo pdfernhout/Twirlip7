@@ -63,7 +63,7 @@ define(["vendor/mithril"], function(mDiscard) {
     function isURLAcceptable(url, configuration) {
         if (!url) return ""
         if (url.substring(0, 5) === "http:" || url.substring(0, 6) === "https:") return url
-        if (url.startsWith("#") && isIdAllowed(url.substring(1))) return url
+        if (url.startsWith("#") && isIdAllowed(url.substring(1), configuration)) return url
         if (configuration.baseURL) return configuration.baseURL + url
         return ""
     }
@@ -78,8 +78,8 @@ define(["vendor/mithril"], function(mDiscard) {
         return false
     }
     
-    function isIdAllowed(id) {
-        return !/[^a-zA-Z0-9_-]/.test(id)
+    function isIdAllowed(id, configuration) {
+        return configuration.allowIds && !/[^a-zA-Z0-9_-]/.test(id)
     }
     
     function generateVDOM(nodes, configuration) {
@@ -116,9 +116,9 @@ define(["vendor/mithril"], function(mDiscard) {
                             if (debugLogging) console.log("WARN: CSS class not allowed", theClassOrClasses)
                         }
                     }
-                    if (attribute.name === "id") {
+                    if (configuration.allowIds && attribute.name === "id") {
                         const theId = attribute.value
-                        if (isIdAllowed(theId)) {
+                        if (isIdAllowed(theId, configuration)) {
                             attributes["id"] = theId
                         } else {
                             if (debugLogging) console.log("WARN: CSS id not allowed", theId)

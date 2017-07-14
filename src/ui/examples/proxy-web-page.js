@@ -27,7 +27,7 @@ requirejs(["sanitizeHTML", "vendor/purify"], function(sanitizeHTML, DOMPurify) {
         return m("div", [
             content ?
                 // Two examples of ways to sanitize web content for display locally -- but always a bit of a risk to display remote content
-                sanitizeHTML.generateSanitizedHTMLForMithrilWithAttributes(m, DOMParser, content, {allowLinks: true, allowImages: true, baseURL: url})
+                sanitizeHTML.generateSanitizedHTMLForMithrilWithAttributes(m, DOMParser, content, {allowLinks: true, allowImages: true, allowIds: true, baseURL: url})
                 // m.trust(DOMPurify.sanitize(content))
                 : 
                 "loading..."
