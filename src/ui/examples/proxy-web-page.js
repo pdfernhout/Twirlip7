@@ -4,8 +4,8 @@ requirejs(["sanitizeHTML", "vendor/purify"], function(sanitizeHTML, DOMPurify) {
 
     let content
     
-    const url = "http://kurtz-fernhout.com/"
-    // const url = "http://pdfernhout.net/"
+    // const url = "http://kurtz-fernhout.com/"
+    const url = "http://pdfernhout.net/"
     
     const crossOriginService = "/api/proxy"
     
@@ -32,5 +32,5 @@ requirejs(["sanitizeHTML", "vendor/purify"], function(sanitizeHTML, DOMPurify) {
                 : 
                 "loading..."
         ])
-    })
+    }, { title: url })
 })
