@@ -88,8 +88,10 @@ define(["vendor/mithril"], function(mDiscard) {
             // console.log("nodeType", node.nodeType)
     
             switch (node.nodeType) {
-            case 1:
+            case Node.ELEMENT_NODE:
                 let tagName = node.tagName.toLowerCase()
+                
+                if (tagName === "style") continue
                 
                 // console.log("element", node)
                 if (!isTagAllowed(tagName, configuration)) {
@@ -160,11 +162,18 @@ define(["vendor/mithril"], function(mDiscard) {
                 const vdom = m(tagName, attributes, children)
                 result.push(vdom)
                 break
-            case 3:
+            case Node.TEXT_NODE:
                 if (node.data) {
                     // console.log("adding text node", node.data)
                     result.push(node.data)
                 }
+                break
+            case Node.PROCESSING_INSTRUCTION_NODE:
+            case Node.COMMENT_NODE:
+            case Node.DOCUMENT_NODE:
+            case Node.DOCUMENT_TYPE_NODE:
+            case Node.DOCUMENT_FRAGMENT_NODE:
+                // Discard these Node types
                 break
             default:
                 console.log("WARN: Unhandled node type", node.nodeType, node)
