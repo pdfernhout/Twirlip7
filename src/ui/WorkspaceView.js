@@ -1623,6 +1623,9 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             },
             getEditorMode() {
                 return editorMode
+            },
+            getEditor() {
+                return editor;
             }
         }
     }
