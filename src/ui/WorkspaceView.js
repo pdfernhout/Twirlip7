@@ -104,6 +104,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             }
             if (!config) config = {}
             if (!config.extraStyling) { config.extraStyling = "" }
+            if (!config.extraStyling.includes(".bg-")) { config.extraStyling += ".bg-light-purple" }
             
             let div = document.createElement("div")
             
@@ -141,7 +142,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                             }
                         }
                     }
-                    return m("div.ba.ma3.pa3.bg-light-purple.relative" + config.extraStyling,
+                    return m("div.ba.ma3.pa3.relative" + config.extraStyling,
                         m("div",
                             { style: collapsed ? "display: none" : "display: block" },
                             m(userComponent, componentConfig)
