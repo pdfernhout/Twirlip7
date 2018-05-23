@@ -28,6 +28,9 @@
             "error",
             "never"
         ],
-        "no-console":  "off"
+        "no-console":  "off",
+        "no-unused-vars":  "off",
+        "no-case-declarations": "off",
+        "no-inner-declarations": "off"
     }
 }

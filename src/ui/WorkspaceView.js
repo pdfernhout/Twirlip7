@@ -9,7 +9,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
 ) {
     "use strict"
     /* global m, location, localStorage, Twirlip7 */
-    
+
     function newItem() {
         return {
             entity: "",
@@ -23,55 +23,55 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             license: ""
         }
     }
-    
+
     function icon(iconName, extraClasses) {
         return m("i.fa." + iconName + "[aria-hidden=true]" + (extraClasses ? extraClasses : ""))
     }
-    
+
     const twirlip7DataUrlPrefix = "twirlip7://v1/"
-    
+
     // TODO: Fix kludge of passing in NotebookUsingLocalStorage because of startup timing issues
     function WorkspaceView(NotebookUsingLocalStorage) {
         let editor = null
-        
+
         let lastLoadedItem = newItem()
-        
+
         let currentItemId = null
         let currentItemIndex = null
         let currentItem = newItem()
-        
+
         let currentContributor = ""
-        
+
         let currentNotebook = NotebookUsingLocalStorage
         let notebookChoice = "local storage"
-        
+
         let isLastEntityMatch = true
         let isLastEntityAttributeMatch = true
-        
+
         let aceEditorHeight = 20
         let editorMode = "ace/mode/javascript"
         let wasEditorDirty = false
-        
+
         let focusMode = false
         let collapseWorkspace = false
-        
+
         // to support user-defined extensions
         const extensions = {}
-        
+
         const toastMessages = []
         let progressMessage = null
-        
+
         // Used for resizing the editor's height
         let dragOriginY = 0
-        
+
         let startupGoToKey = null
-        
+
         // Used to indicate that the ace editor is being changed by the application not the user
         let isEditorContentsBeingSetByApplication = false
-        
+
         function oninit() {
             if (Twirlip7.NotebookUsingLocalStorage.itemCount() === 0) {
-                show(function () { 
+                show(function () {
                     return [
                         m("div", "Thanks for trying Twirlip7, a programmable notebook and experimental Mithril.js playground."),
                         m("div", "To get started with some example code snippets, click on the \"Notebook operations\" drop down and select \"Show example notebook\"."),
@@ -81,7 +81,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 }, { title: "Startup help" })
             }
         }
-        
+
         // Reports errors into the view
         function protectedViewFunction(viewFunction, label) {
             return function() {
@@ -95,43 +95,43 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 return subview
             }
         }
-        
+
         // Convenience function which examples could use to put up closeable views
         function show(userComponentOrViewFunction, config, componentConfig) {
-            // config supports extraStyling, onclose, and title displayed when collapsed or run stand alone (title can be a string or function) 
+            // config supports extraStyling, onclose, and title displayed when collapsed or run stand alone (title can be a string or function)
             if (typeof config === "string") {
                 config = { extraStyling: config }
             }
             if (!config) config = {}
             if (!config.extraStyling) { config.extraStyling = "" }
             if (!config.extraStyling.includes(".bg-")) { config.extraStyling += ".bg-light-purple" }
-            
+
             let div = document.createElement("div")
-            
+
             const userComponent = userComponentOrViewFunction.view ?
                 userComponentOrViewFunction : {
                     view: userComponentOrViewFunction
                 }
-            
+
             userComponent.view = protectedViewFunction(userComponent.view)
-            
+
             let collapsed = false
-            
+
             function title() {
                 if (config.title === undefined || config.title === null) return "Untitled"
                 if (typeof config.title === "function") return config.title()
                 return config.title
             }
-    
+
             const isCloseButtonHidden = location.hash.startsWith("#open=")
-            
+
             let currentTitle
-            
+
             if (!isCloseButtonHidden && !config.title && currentItem && (currentItem.entity || currentItem.attribute)) {
                 config.title = (currentItem.entity || "<No Entity>") + " :: " + (currentItem.attribute || "<No Attribute>")
             }
-                    
-            const ClosableComponent = {            
+
+            const ClosableComponent = {
                 view() {
                     if (collapsed || isCloseButtonHidden) {
                         const newTitle = title()
@@ -173,11 +173,11 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     )
                 }
             }
-    
+
             document.body.appendChild(div)
             m.mount(div, ClosableComponent)
         }
-        
+
         function saveCurrentItemId() {
             if (currentItemId !== null) {
                 localStorage.setItem("_current_" + notebookChoice, currentItemId)
@@ -187,12 +187,12 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 location.hash = "#"
             }
         }
-        
+
         function fetchStoredItemId() {
             const storedItemId = localStorage.getItem("_current_" + notebookChoice)
             return storedItemId
         }
-        
+
         function restoreCurrentItemId() {
             let storedItemId = fetchStoredItemId()
             // Memory is transient on reload, so don't try to go to missing keys to avoid a warning
@@ -208,11 +208,11 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 goToKey(storedItemId, {ignoreDirty: true})
             })
         }
-        
+
         function saveNotebookChoice() {
             localStorage.setItem("_currentNotebookChoice", notebookChoice)
         }
-        
+
         function restoreNotebookChoice() {
             const newChoice = localStorage.getItem("_currentNotebookChoice") || "local storage"
             if (newChoice) {
@@ -225,7 +225,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 }
             }
         }
-        
+
         function notebooksAvailable() {
             const notebooks = {
                 "local storage": Twirlip7.NotebookUsingLocalStorage,
@@ -238,13 +238,13 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
         function changeNotebook(newChoice) {
             const oldChoice = notebookChoice
             if (newChoice === oldChoice) return
-            
+
             const newNotebook = notebooksAvailable()[newChoice]
             if (!newNotebook) {
                 alert("Notebook not available for: " + newChoice)
                 return
             }
-            
+
             if (!confirmClear()) return
 
             saveCurrentItemId()
@@ -282,7 +282,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 isNoSelection,
             }
         }
-         
+
         function prepareCurrentItemForSaving(value) {
             // TODO: reference previous if relevant and also set timestamps and author as needed
             currentItem.value = value
@@ -326,26 +326,26 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 return Promise.reject(error)
             })
         }
-        
+
         function interceptSaveKey(evt) {
             // derived from: https://stackoverflow.com/questions/2903991/how-to-detect-ctrlv-ctrlc-using-javascript
             evt = evt || window.event // IE support
             var c = evt.keyCode
             var ctrlDown = evt.ctrlKey || evt.metaKey // Mac support
-        
+
             // Check for Alt+Gr (http://en.wikipedia.org/wiki/AltGr_key)
             if (ctrlDown && evt.altKey) return true
-        
+
             // Check for ctrl+s
             if (ctrlDown && c == 83) {
                 save()
                 return false
             }
-        
+
             // Otherwise allow
             return true
         }
-        
+
         function isEditorDirty() {
             // TODO: compare individual strings instead of use CanonicalJSON.stringify to be more efficient
             const result = editor && (CanonicalJSON.stringify(lastLoadedItem) !== CanonicalJSON.stringify(currentItem))
@@ -388,32 +388,32 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 toast("Eval error:\n" + error)
             }
         }
-        
+
         function replaceSelection(textToInsert) {
             const selection = getSelectedEditorText()
-            
+
             // Assume want to replace everything if no selection
             if (selection.isNoSelection) { editor.selection.selectAll() }
-            
+
             const selectedRange = editor.selection.getRange()
             const start = selectedRange.start
             const end = editor.session.replace(selectedRange, textToInsert)
             editor.selection.setRange({start, end})
-            
+
             editor.focus()
         }
 
-        
+
         function insertText(textToInsert) {
             const selection = getSelectedEditorText()
-            
+
             if (selection.isNoSelection) { editor.selection.moveCursorFileEnd() }
-            
+
             const selectedRange = editor.selection.getRange()
             const start = selectedRange.end
             const end = editor.session.insert(start, textToInsert)
             editor.selection.setRange({start, end})
-            
+
             editor.focus()
         }
 
@@ -421,7 +421,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             const selection = getSelectedEditorText()
             const evalResult = EvalUtils.evalOrError(selection.text)
             const textToInsert = " " + evalResult
-            
+
             insertText(textToInsert)
         }
 
@@ -442,7 +442,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             }
             window.open("#open=" + currentItemId)
         }
-        
+
         function importText(convertToBase64) {
             if (!confirmClear()) return
             FileUtils.loadFromFile(convertToBase64, (fileName, fileContents) => {
@@ -456,21 +456,21 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 }
             })
         }
-        
+
         function importTextPlain() {
             importText(false)
         }
-        
+
         function importTextAsBase64() {
             importText(true)
         }
-        
+
         function exportText() {
             const fileContents = getEditorContents()
             const provisionalFileName = fileContents.split("\n")[0]
             FileUtils.saveToFile(provisionalFileName, fileContents)
         }
-        
+
         // Returns Promise
         function makeDataURLForItemId(itemId) {
             return currentNotebook.getItem(itemId).then((itemText => {
@@ -480,7 +480,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 return Promise.resolve(result)
             }))
         }
-               
+
         function displayDataURLForCurrentNote() {
             if (currentItemId) {
                 if (!confirmClear()) return
@@ -488,7 +488,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     const dataURL = dataURLConversionResult.dataURL
                     showText(dataURL, "text/plain")
                     editor.selection.selectAll()
-                    editor.focus()    
+                    editor.focus()
                     m.redraw()
                 }).catch((error) => {
                     console.log("Problem in displayDataURLForCurrentNote", error)
@@ -498,12 +498,12 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 alert("Please select a saved item first")
             }
         }
-        
+
         function displayDataURLForCurrentNoteAndHistory() {
             if (currentItemId) {
                 if (!confirmClear()) return
                 let dataURLs = []
-                
+
                 function followDerivedFrom(itemId) {
                     if (itemId) {
                         return makeDataURLForItemId(itemId).then((dataURLConversionResult) => {
@@ -530,7 +530,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 alert("Please select a saved item first")
             }
         }
-        
+
         // Returns Promise
         function makeNoteForDataURL(dataURL) {
             if (dataURL) {
@@ -538,35 +538,35 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     alert("Twirlip7 data URL should start with: " + twirlip7DataUrlPrefix)
                     return Promise.resolve(null)
                 }
-                
+
                 const subparts = dataURL.substring(twirlip7DataUrlPrefix.length).split("/")
                 if (subparts.length != 4) {
                     alert("Twirlip7 data URL should have exactly four subparts: key/itemLength/contentsLength/contents")
                     return Promise.resolve(null)
                 }
-                
+
                 const key = subparts[0]
                 const itemLength = parseInt(subparts[1])
                 const contentsLength = parseInt(subparts[2])
                 const encodedText = subparts[3]
-                
+
                 if (encodedText.length !== contentsLength) {
                     alert("Twirlip7 data URL contents length of " + encodedText.length + " does not match expected length of " + contentsLength)
                     return Promise.resolve(null)
                 }
-                
+
                 const itemText = decodeURIComponent(encodedText)
                 if (itemText.length !== itemLength) {
                     alert("Twirlip7 data URL decoded item length of " + itemText.length + " does not match expected length of " + itemLength)
                     return Promise.resolve(null)
                 }
-                
+
                 const itemSHA256 = "" + sha256.sha256(itemText)
                 if (itemSHA256 !== key) {
                     alert("Twirlip7 data URL decoded item sha256 of " + itemSHA256 + " does not match expected sha256 of " + key)
                     return Promise.resolve(null)
                 }
-                
+
                 // TODO: Consolidate the copy/paste adding of item with where this is copied from
                 return currentNotebook.addItem(itemText).then((addResult) => {
                     if (addResult.error) {
@@ -583,14 +583,14 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 return Promise.resolve(null)
             }
         }
-        
+
         // Returns a Promise
         // Also does a redraw when needed
         function readNotesFromDataURLs() {
             const textForAllItems = getSelectedEditorText().text.trim()
             const dataURLs = textForAllItems.split("\n")
             const keys = []
-            
+
             const dataURLStack = dataURLs.slice()
             function recursivelyMakeNotes() {
                 if (!dataURLStack.length) return Promise.resolve(true)
@@ -604,7 +604,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     }
                 })
             }
-            
+
             return recursivelyMakeNotes().then(() => {
                 if (keys.length && keys.length === dataURLs.length) {
                     goToKey(keys[keys.length - 1], {ignoreDirty: true})
@@ -635,7 +635,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 return Promise.resolve(false)
             }
             if (!options) options = {}
-            
+
             // First check is to prevent losing redo stack and cursor position if not moving
             if (!options.reload && key === currentItemId && !isEditorDirty()) {
                 updateIsLastMatch()
@@ -647,13 +647,13 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 if (!options.noredraw) m.redraw()
                 return Promise.resolve(false)
             }
-            
+
             const progressDelay = 200
             let progressTimeout
-            
+
             // default to showing progress
             if (options.showProgress === undefined) options.showProgress = true
-            
+
             if (options.showProgress) {
                 progressTimeout = setTimeout(() => {
                     progressTimeout = null
@@ -661,7 +661,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     m.redraw()
                 }, progressDelay)
             }
-            
+
             return currentNotebook.getItem(key).then((itemText) => {
                 let item
                 if (itemText === undefined || itemText === null) {
@@ -678,17 +678,17 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 currentItemId = key
                 // TODO: Optimize setting currentItemIndex here from item info once that is changed
                 currentItem = item
-                
+
                 wasEditorDirty = false
                 updateLastLoadedItemFromCurrentItem()
-                                        
+
                 setEditorModeForContentType(item.contentType)
-                
+
                 saveCurrentItemId()
                 updateIsLastMatch()
                 setEditorContents(item.value || "")
                 setDocumentTitleForCurrentItem()
-                
+
                 // TODO: Optimize this so the index is returned with item data
                 return currentNotebook.locationForKey(currentItemId).then((itemIndex) => {
                     currentItemIndex = itemIndex
@@ -700,7 +700,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                             progress(null)
                         }
                     }
-                    // Redraw as a convenience by default to avoid a dozen callers doing it since we now do Promises 
+                    // Redraw as a convenience by default to avoid a dozen callers doing it since we now do Promises
                     if (!options.noredraw) m.redraw()
                     return Promise.resolve(true)
                 })
@@ -716,11 +716,11 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             if (!currentItem.entity && !currentItem.attribute) {
                 newTitle = "Twirlip7 Programmable Notebook"
             } else {
-                newTitle = currentItem.entity + " :: " + currentItem.attribute 
+                newTitle = currentItem.entity + " :: " + currentItem.attribute
             }
             document.title = newTitle
         }
-        
+
         // TODO: Improve ad hoc partial handling of character types which also ignores character set
 
         function setEditorModeForContentType(contentType) {
@@ -775,7 +775,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
         function goNext() { skip(1) }
 
         function goLast() { skip(1000000) }
-        
+
         // Returns Promise
         function goToLatestForEntity() {
             return findLatestForEntity().then((key) => {
@@ -788,7 +788,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 return Promise.reject(error)
             })
         }
-        
+
         // Returns Promise
         function goToLatestForEntityAttribute() {
             return findLatestForEntityAttribute().then((key) => {
@@ -801,7 +801,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 return Promise.reject(error)
             })
         }
-        
+
         // Returns Promise
         function findLatestForEntity() {
             return Twirlip7.findItem({entity: currentItem.entity}, { includeMetadata: true, sortBy: "location" }).then((matches) => {
@@ -814,7 +814,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 return Promise.reject(error)
             })
         }
-        
+
         // Returns Promise
         function findLatestForEntityAttribute() {
             return Twirlip7.findItem({
@@ -830,7 +830,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 return Promise.reject(error)
             })
         }
-        
+
         // Returns Promise
         // TODO: Rethink how this works -- users not using it like a promise-returning function so it has spurious redraw
         function updateIsLastMatch(value) {
@@ -863,27 +863,27 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 return Promise.reject(error)
             })
         }
-        
+
         function updateLastLoadedItemFromCurrentItem() {
             lastLoadedItem = JSON.parse(JSON.stringify(currentItem))
         }
-        
+
         function showText(newText, contentType) {
             // currentItemId = null
             // currentItemIndex = null
             currentItem = newItem()
             currentItem.value = newText
             currentItem.contentType = contentType
-            
+
             wasEditorDirty = false
             updateLastLoadedItemFromCurrentItem()
-            
+
             setEditorModeForContentType(currentItem.contentType)
             // saveCurrentItemId()
             updateIsLastMatch(true)
             setEditorContents(newText)
         }
-        
+
         function showNotebook(notebookText) {
             showText(notebookText, "application/json")
         }
@@ -931,7 +931,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     return Promise.resolve(false)
                 })
         }
-        
+
         // Returns Promise
         function mergeNotebook() {
             if (currentNotebook.itemCount() && !confirm("Merge items from JSON in editor into the current notebook?")) return
@@ -943,7 +943,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                         return currentNotebook.addItem(itemJSON).then((addResult) => {
                             if (!addResult.existed) addedItemCount++
                             return Promise.resolve(true)
-                        }) 
+                        })
                     })
                 ).then(() => {
                     toast("Added " + addedItemCount + " item" + ((addedItemCount === 1 ? "" : "s")) + " to current notebook")
@@ -962,7 +962,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
         function progress(message) {
             progressMessage = message
         }
-        
+
         function toast(message, delay) {
             function removeToastAfterDelay() {
                 setTimeout(function() {
@@ -975,10 +975,10 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             toastMessages.push({message, delay})
             if ( toastMessages.length === 1) { removeToastAfterDelay() }
         }
-        
+
         // Extension sections are intended to be user-defined
         // extension example: {id: "hello", tags: "header", code: (context) => m("div", "Hello from extension") }
-        
+
         // This finds all extensions with the tag, runs the code for each, and returns an array of the results
         function extensionsCallForTag(tag, phase) {
             const result = []
@@ -997,7 +997,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             }
             return result
         }
-        
+
         function extensionsInstall(extension) {
             if (!extension.id) {
                 console.log("no id for extension to install\n" + JSON.stringify(extension))
@@ -1005,7 +1005,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             }
             extensions[extension.id] = extension
         }
-        
+
         function extensionsUninstall(extension) {
             if (!extension.id) {
                 console.log("no id for extension to uninstall\n" + JSON.stringify(extension))
@@ -1013,7 +1013,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             }
             delete extensions[extension.id]
         }
-        
+
         function getStartupInfo() {
             // format: { startupItemIds: [ids...] }
             const startupInfo = localStorage.getItem("_startup")
@@ -1031,11 +1031,11 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             }
             return { startupItemIds: [] }
         }
-        
+
         function setStartupInfo(info) {
             localStorage.setItem("_startup", JSON.stringify(info))
         }
-        
+
         function promptForContributor() {
             const contributor = prompt("Contributor? e.g. Jane Smith <jane.smith@example.com>", currentContributor)
             if (contributor !== null) {
@@ -1045,29 +1045,29 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             }
             return false
         }
-        
+
         // View functions which are composed into one big view at the end
-        
+
         function viewProgress() {
-            return m(".progressDiv.fixed.top-2.left-2.pa2.fieldset.bg-light-blue.pl3.pr3.tc.o-90.z-max", 
+            return m(".progressDiv.fixed.top-2.left-2.pa2.fieldset.bg-light-blue.pl3.pr3.tc.o-90.z-max",
                 { hidden: !progressMessage },
                 progressMessage
             )
         }
-        
+
         function viewToast() {
-            return m(".toastDiv.fixed.top-2.left-2.pa2.fieldset.bg-gold.pl3.pr3.tc.o-90.z-max", 
+            return m(".toastDiv.fixed.top-2.left-2.pa2.fieldset.bg-gold.pl3.pr3.tc.o-90.z-max",
                 { hidden: toastMessages.length === 0 },
                 toastMessages.length ? toastMessages[0].message : ""
-            ) 
+            )
         }
-        
+
         function viewFocusAndCollapse() {
             return m("div.fr", [
                 viewDirty(),
                 m("span.mr2"),
                 m("span.mr2", {  title: "focus mode hides extraneous editor controls to provide more space for testing" },
-                    m("input[type=checkbox].ma1", { 
+                    m("input[type=checkbox].ma1", {
                         checked: focusMode,
                         onchange: (event) => focusMode = event.target.checked
                     }),
@@ -1076,7 +1076,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 m("button.fr", { style: "min-width: 1.5rem", onclick: () => collapseWorkspace = true, title: "click here to hide the editor" }, "-"),
             ])
         }
-        
+
         function viewAbout() {
             return m("div#about.bg-lightest-blue.pa1.mb1", { style: "padding-bottom: 0.5rem" }, [
                 m("a.ml2", { target: "_blank", href: "https://github.com/pdfernhout/Twirlip7" }, "Twirlip7"),
@@ -1100,20 +1100,20 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 viewFocusAndCollapse(),
             ])
         }
-        
+
         function viewNavigate() {
             const itemCount = currentNotebook.itemCount()
             const itemIndex = currentItemIndex
-            
+
             const notebooks = notebooksAvailable()
-            
+
             function notebookChanged(event) {
                 if (!confirmClear()) {
                     return
                 }
                 changeNotebook(event.target.value)
             }
-            
+
             function isPreviousDisabled() {
                 if (itemCount === 0) return true
                 // Allow null item index to go to first or last
@@ -1121,7 +1121,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 if (itemIndex === 0) return true
                 return false
             }
-            
+
             function isNextDisabled() {
                 if (itemCount === 0) return true
                 // Allow null item index to go to first or last
@@ -1129,7 +1129,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 if (itemIndex >= itemCount - 1) return true
                 return false
             }
-            
+
             function itemIdentifierClicked() {
                 const newItemId = prompt("Go to item id", currentItemId)
                 if (!newItemId) return
@@ -1144,7 +1144,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     console.log("Error in itemIdentifierClicked", error)
                 })
             }
-            
+
             function itemPositionClicked() {
                 const newItemIndex = prompt("Go to item index", itemIndex === null ? "" : itemIndex + 1)
                 if (!newItemIndex || newItemIndex === itemIndex) return
@@ -1159,16 +1159,16 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                             alert("Could not find item for index:\n" + newItemIndex)
                         } else {
                             goToKey(newItemId, {reload: true})
-                        }   
+                        }
                     }).catch((error) => {
                         console.log("Error in itemPositionClicked", error)
                     })
             }
-            
-            const itemIdentifier = (currentItemId === null) ? 
-                "???" : 
+
+            const itemIdentifier = (currentItemId === null) ?
+                "???" :
                 ("" + currentItemId).substring(0, 12) + ((("" + currentItemId).length > 12) ? "..." : "")
-            
+
             return m("div.ba.ma1",
                 m("span.ml1", "Notebook"),
                 m("select.ma2", {
@@ -1198,7 +1198,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 itemCount
             )
         }
-        
+
         function viewEditorMode() {
             function selectChanged(event) {
                 const newEditorMode = event.target.value
@@ -1206,24 +1206,24 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 editor.getSession().setMode(editorMode)
                 currentItem.contentType = guessContentTypeForEditorMode(newEditorMode)
             }
-            return m("select", { value: editorMode, onchange: selectChanged }, 
+            return m("select", { value: editorMode, onchange: selectChanged },
                 modelist.modes.map(mode => m("option", { value: mode.mode }, mode.name))
             )
         }
-        
+
         function viewDirty() {
-            return m("span.dirty", 
+            return m("span.dirty",
                 isEditorDirty() ?
                    "Modified" :
                    ""
             )
         }
-        
+
         function viewContext() {
             const undoManager = editor && editor.getSession().getUndoManager()
             return [
                 m("div.ma1",
-                    m("span.dib.w4.tr.mr1", { 
+                    m("span.dib.w4.tr.mr1", {
                         title: "Entity: the object, event, idea, instance, examplar, element, record, activity, row, dependent variable, group, topic, category, or document" +
                         " being described or defined. Entities can also recursively include parts or sections of larger entities when they are thought of as individual things with their own specific details."
                     }, "Entity", icon("fa-snowflake-o.ml1")),
@@ -1257,7 +1257,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     m("button.ml1", {
                         onclick: goToLatestForEntityAttribute,
                         title: "Latest item for Entity-Attribute pair",
-                        disabled: isLastEntityAttributeMatch 
+                        disabled: isLastEntityAttributeMatch
                     }, " EA", icon("fa-fast-forward.ml1"))
                 ),
                 m("div.ma1",
@@ -1276,7 +1276,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 )
             ]
         }
-        
+
         function viewAuthor() {
             return [
                 m("div.ma1",
@@ -1293,7 +1293,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                         oninput: event => currentItem.encoding = event.target.value,
                         onkeydown: interceptSaveKey
                     })
-                ),  
+                ),
                 m("div.ma1",
                     m("span.dib.w4.tr.mr2", viewContributor()),
                     m("input.w-40.bg-light-gray", {
@@ -1332,14 +1332,14 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 )
             ]
         }
-        
+
         function viewContributor() {
             return m("span", {
                 onclick: promptForContributor,
                 title: "Click to set current contributor for next contribution" + (currentContributor ? "\n" + currentContributor : ""),
             }, "Contributor", icon("fa-user.ml1"))
         }
-        
+
         function viewEditor() {
             return m("div.w-100#editor", {
                 style: {
@@ -1347,14 +1347,14 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 },
                 oncreate: function() {
                     editor = ace.edit("editor")
-                    
+
                     // Suppress warning about deprecated feature
                     editor.$blockScrolling = Infinity
-                    
+
                     const session = editor.getSession()
                     session.setMode(editorMode)
                     session.setUseSoftTabs(true)
-                    
+
                     // wrapping
                     session.setUseWrapMode(true)
                     session.setOption("wrapMethod", "text")
@@ -1375,7 +1375,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                             setTimeout(m.redraw, 0)
                         }
                     })
-                    
+
                     // Bind a key for saving
                     editor.commands.addCommand({
                         name: "save",
@@ -1387,7 +1387,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                         },
                         readOnly: false
                     })
-                    
+
                     if (startupGoToKey) {
                         setTimeout(() => {
                             goToKey(startupGoToKey.key, startupGoToKey.options)
@@ -1400,7 +1400,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 }
             })
         }
-        
+
         function viewSplitter() {
             return m("div.bg-light-gray", {
                 // splitter for resizing the editor's height
@@ -1420,12 +1420,12 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 },
             })
         }
-        
+
         function viewStartupItem()  {
             const helpText = "Whether to run this snippet when the editor starts up -- snippets run in the order they were added"
             const startupInfo = getStartupInfo()
             const isStartupItem = startupInfo.startupItemIds.indexOf(currentItemId) !== -1
-            
+
             function toggleUseAtStartup(isStartupItem, itemId) {
                 const startupInfo = getStartupInfo()
                 if (isStartupItem) {
@@ -1438,15 +1438,15 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                     startupInfo.startupItemIds.push(itemId)
                     setStartupInfo(startupInfo)
                 }
-                
+
             }
-            
+
             function showBootstrapItems() {
                 if (!confirm("Show startup items in editor?")) return
                 if (!confirmClear()) return
                 setEditorContents(JSON.stringify(startupInfo, null, 4))
             }
-            
+
             return [
                 m("input[type=checkbox].ma1", {
                     checked: isStartupItem,
@@ -1457,7 +1457,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 m("span", { title: helpText, onclick: showBootstrapItems }, "Bootstrap it"),
             ]
         }
-        
+
         function viewEvaluateButtons() {
             return [
                 m("button.ma1", { onclick: doIt, title: "Evaluate selected code" }, icon("fa-play.mr1"), "Do it"),
@@ -1467,11 +1467,11 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 viewStartupItem()
             ]
         }
-                
+
         function viewSpacer() {
             return m("span.pa1")
         }
-        
+
         function viewSaveButton() {
             return m("button.ma1.ml2.mr3", {
                 style: (isEditorDirty() ? "text-shadow: 1px 0px 0px black" : ""),
@@ -1479,7 +1479,7 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 title: "Add a new version of the value of the entity's attribute to the current notebook"
             }, icon("fa-share-square-o.mr1"), "Save item to " + notebookChoice)
         }
-        
+
         const importExportMenu = {
             view: () => Twirlip7.menu("Import/Export", importExportMenu),
             minWidth: "20rem",
@@ -1494,15 +1494,15 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 { onclick: readNotesFromDataURLs, title: "Read one or more items from data URLs in the editor (like from a paste) and save them into the current notebook", name: [icon("fa-plus-square-o.mr1"), "Create items from data URLs in editor"] },
             ]
         }
-        
+
         function viewImportExportButtons() {
             return m(importExportMenu)
         }
-        
+
         function isCurrentNotebookLoading() {
             return notebookChoice === "server" && !Twirlip7.NotebookUsingServer.isLoaded()
         }
-        
+
         const notebookMenu = {
             view: () => Twirlip7.menu("Notebook operations", notebookMenu),
             minWidth: "20rem",
@@ -1514,23 +1514,23 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 { disabled: isCurrentNotebookLoading, onclick: replaceNotebook, title: "Load notebook from JSON from editor -- replacing all previous items!", name: "Replace notebook" },
             ]
         }
-        
+
         function viewNotebookButtons() {
             return m(notebookMenu)
         }
-        
+
         function viewExtensionsHeader() {
             return m("#extensionsHeader", extensionsCallForTag("header", "view"))
         }
-        
+
         function viewExtensionsMiddle() {
             return m("#extensionsMiddle", extensionsCallForTag("middle", "view"))
         }
-        
+
         function viewExtensionsFooter() {
             return m("#extensionsFooter", extensionsCallForTag("footer", "view"))
         }
-        
+
         function viewMain() {
             return [
                 viewProgress(),
@@ -1566,12 +1566,12 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 }, viewMain())
             ])
         }
-        
+
         return {
             oninit,
             view,
             show,
-            
+
             newItem,
             goToKey,
             getStartupInfo,
@@ -1579,31 +1579,31 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
             restoreNotebookChoice,
             setEditorContents,
             fetchStoredItemId,
-            
+
             // Extra accessors for extensions
-                       
+
             extensionsInstall,
             extensionsUninstall,
-            
+
             toast,
             confirmClear,
             getEditorContents,
             isEditorDirty,
-    
+
             getSelectedEditorText,
             getSelection,
             doIt,
             printIt,
             inspectIt,
             openIt,
-            
+
             icon,
-            
+
             replaceSelection,
             insertText,
-            
+
             // Extra accessors for other users
-            
+
             getCurrentItem() {
                 return currentItem
             },
@@ -1626,10 +1626,10 @@ define(["FileUtils", "EvalUtils", "ace/ace", "ace/ext/modelist", "ExampleNoteboo
                 return editorMode
             },
             getEditor() {
-                return editor;
+                return editor
             }
         }
     }
-    
+
     return WorkspaceView
 })
