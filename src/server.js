@@ -23,7 +23,7 @@ var pem = require("pem")
 
 var proxyRequest = require("./proxyRequest")
 
-var dataDirectory = __dirname + "/../server-data/"
+var dataDirectory = __dirname + "/../server-data"
 var storageExtension = ".txt"
 
 var messageStorageQueue = []
@@ -42,8 +42,8 @@ function log() {
 log("Twirlip7 server started")
 
 function ipForRequest(request) {
-    return request.headers["x-forwarded-for"] 
-        || request.connection.remoteAddress 
+    return request.headers["x-forwarded-for"]
+        || request.connection.remoteAddress
         || request.socket.remoteAddress
         || request.connection.socket.remoteAddress
 }
@@ -96,14 +96,14 @@ pem.createCertificate({ days: 120, selfSigned: true }, function(err, keys) {
 
 io.on("connection", function(socket) {
     var clientId = socket.id
-    
+
     var address = socket.request.connection.remoteAddress
     log(address, "socket.io connection", clientId)
-  
+
     socket.on("disconnect", function() {
         log(address, "socket.io disconnect", clientId)
     })
-    
+
     socket.on("twirlip", function (message) {
         log(address, "socket.io message", clientId, message)
         processMessage(clientId, message)
@@ -133,19 +133,19 @@ function setListenerState(clientId, streamId, state) {
         listeners = {}
         streamToListenerMap[streamId] = listeners
     }
-    
+
     if (state === undefined) {
         delete listeners[clientId]
     } else {
         listeners[clientId] = state
     }
-    
+
     var streams = listenerToStreamsMap[clientId]
     if (!streams) {
         streams = {}
         listenerToStreamsMap[streamId] = streams
     }
- 
+
     if (state === undefined) {
         delete streams[streamId]
     } else {
@@ -154,7 +154,7 @@ function setListenerState(clientId, streamId, state) {
 }
 
 /* Commands for messages:
-    listen -- start listening for messages after (optionally) getting all previous messages from a stream 
+    listen -- start listening for messages after (optionally) getting all previous messages from a stream
     unlisten -- stop getting messages from a stream
     insert -- add a message to a stream
     remove -- remove one specific message from a stream (or act as if that happened)
@@ -186,11 +186,11 @@ function listen(clientId, message) {
     var fromIndex = message.fromIndex || 0
     var messageCount = 0
     var messagesSent = 0
-    
+
     log("listen", clientId, streamId, fromIndex)
-    
+
     setListenerState(clientId, streamId, "listening")
-    
+
     var fileName = getStorageFileNameForMessage(message)
 
     // TODO: Make this asynchronous
@@ -249,7 +249,7 @@ function reset(clientId, message) {
     storeMessage(message)
     sendMessageToAllClients(message)
 }
-   
+
 // File reading and writing
 
 function calculateSha256(value) {
@@ -259,10 +259,30 @@ function calculateSha256(value) {
     return result
 }
 
-function getStorageFileNameForMessage(message) {
+function getFilePathForData(sha256, createPath) {
+    const segments = [dataDirectory]
+    // TODO: Use asynchronous directory creation
+    segments.push(sha256.substring(0, 2))
+    if (createPath && !fs.existsSync(segments.join("/"))) {
+        fs.mkdirSync(segments.join("/"))
+    }
+    segments.push(sha256.substring(2, 4))
+    if (createPath && !fs.existsSync(segments.join("/"))) {
+        fs.mkdirSync(segments.join("/"))
+    }
+    segments.push(sha256.substring(4, 6))
+    if (createPath && !fs.existsSync(segments.join("/"))) {
+        fs.mkdirSync(segments.join("/"))
+    }
+    segments.push(sha256)
+    const result = segments.join("/")
+    return result
+}
+
+function getStorageFileNameForMessage(message, createPath) {
     var streamId = message.streamId
-    var hash = calculateSha256(streamId)
-    return dataDirectory + hash + storageExtension
+    var sha256 = calculateSha256(streamId)
+    return getFilePathForData(sha256, createPath) + storageExtension
 }
 
 // TODO: Could schedule up to one active write per file for more throughput...
@@ -270,7 +290,7 @@ function writeNextMessage() {
     if (!messageStorageQueue.length) return
     var message = messageStorageQueue.shift()
     var lineToWrite = JSON.stringify(message) + "\n"
-    var fileName = getStorageFileNameForMessage(message)
+    var fileName = getStorageFileNameForMessage(message, "createPath")
     // TODO: Do we need to datasync to be really sure data is written?
     fs.appendFile(fileName, lineToWrite, function (err) {
         if (err) {
