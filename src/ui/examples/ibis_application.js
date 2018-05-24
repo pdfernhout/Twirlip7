@@ -6,14 +6,14 @@
 /**************************************
 # Conceptual references
 
-Dialogue Mapping: Building Shared Understanding of Wicked Problems 
+Dialogue Mapping: Building Shared Understanding of Wicked Problems
 by Jeff Conklin
 https://www.amazon.com/Dialogue-Mapping-Building-Understanding-Problems/dp/0470017686
 
 The book explains how we can visualize discussions on complex topics
-using the IBIS notation (Questions/Issues, Ideas, Reasons/Pros&Cons) 
+using the IBIS notation (Questions/Issues, Ideas, Reasons/Pros&Cons)
 which provides just enough structure to aid a group's short-term memory without getting in the way.
-What might be arguments over the best way to proceed become collaborations 
+What might be arguments over the best way to proceed become collaborations
 in constructing a dialogue map exploring all the possibilities and their evaluations.
 
 More on Dialog Mapping can be found at Jeff Conklin's website here:
@@ -26,7 +26,7 @@ Constructing Knowledge Art: An Experiential Perspective on Crafting Participator
 by Al Selvin and Simon Buckingham Shum (who created the Compendium software)
 https://www.amazon.com/gp/product/1627052593
 
-This is a broader exploration of dialog mapping and similar participatory technologies 
+This is a broader exploration of dialog mapping and similar participatory technologies
 from an advanced facilitator's perspective.
 Most people would probably want to read Jeff Conklin's "how to" book on Dialogue Mapping first,
 and then move onto this one once they are ready to grow further as a facilitator of group work.
@@ -109,7 +109,7 @@ After pasting, load it using "Update Diagram from JSON" button.
 **************************************/
 
 "use strict"
- 
+
 /* jshint maxerr: 100000 */
 /* global CompendiumIcons, Twirlip7, m, window, prompt, confirm, requirejs */
 
@@ -121,7 +121,7 @@ if (!window.CompendiumIcons) {
         name: "Compendium Icons Loader",
         id: "e82b2713edf72692e6546436b0e4ac1a777e8a6269b2df17459f293e8f66fbd9"
     }
-    
+
     iconsPromise = Twirlip7.getCurrentNotebook().getItem(iconLoaderResource.id).then((iconLoaderItemJSON) => {
         if (iconLoaderItemJSON) {
             /* eslint no-eval: 0 */
@@ -138,7 +138,7 @@ if (!window.CompendiumIcons) {
                     resolve(true)
                 }, function (error) {
                     reject(error)
-                })    
+                })
             })
         }
     })
@@ -154,7 +154,7 @@ let diagram = {
 let currentItemId = ""
 
 let diagramJSON = JSON.stringify(diagram, null, 4)
-    
+
 // tiny stack for connecting items
 let earlierDraggedItem = null
 let laterDraggedItem = null
@@ -262,21 +262,21 @@ function viewLink(element) {
     if (!parentId) return []
     const parent = diagram.elements.find(element => element.id === parentId)
     if (!parent) return []
-    
+
     const xA = parent.x
     const yA = parent.y
     const xB = element.x
     const yB = element.y
     const radius = 24
-    
+
     const d = Math.sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA))
     const d2 = d - radius
-    
+
     const ratio = d2 / d
-    
+
     const dx = (xB - xA) * ratio
     const dy = (yB - yA) * ratio
-    
+
     const x = xA + dx
     const y = yA + dy
 
@@ -286,16 +286,16 @@ function viewLink(element) {
         x2: element.x - dx,
         y2: element.y - dy,
         "marker-end": "url(#arrowhead)",
-        stroke: "black", 
+        stroke: "black",
         "stroke-width": 1
     })
 }
 
 function viewElement(element) {
     return [
-        element === laterDraggedItem ? 
+        element === laterDraggedItem ?
             m("text", {x: element.x, y: element.y - 20, "text-anchor": "middle"}, "*") :
-            element === earlierDraggedItem ? 
+            element === earlierDraggedItem ?
                 m("text", {x: element.x, y: element.y - 20, "text-anchor": "middle"}, "<") :
                 [],
         m("image", {
@@ -358,7 +358,7 @@ function viewItemPanel() {
             "Name",
             m("br"),
             m("input.w-100", {
-                value: element ? element.name : "", 
+                value: element ? element.name : "",
                 oninput: (event) => { element.name = event.target.value; updateJSONFromDiagram() },
                 disabled
             }),
@@ -386,7 +386,7 @@ function importDiagram() {
                 diagram.diagramName = fileName
             }
             m.redraw()
-        } 
+        }
     })
 }
 
@@ -414,14 +414,16 @@ function loadDiagram() {
     const diagramName = prompt("Load which diagram name?", diagram.diagramName)
     if (!diagramName) return
 
-    const items = Twirlip7.findItem({entity: diagramName, attribute: "contents"})
-    if (items.length === 0) {
-        console.log("item not found", diagramName)
-        return
-    }
-    const item = items[0]
-    diagramJSON = item.value
-    updateDiagramFromJSON()
+    Twirlip7.findItem({entity: diagramName, attribute: "contents"}).then((items) => {
+        if (items.length === 0) {
+            console.log("item not found", diagramName)
+            return
+        }
+        const item = items[0]
+        diagramJSON = item.value
+        updateDiagramFromJSON()
+        m.redraw()
+    })
 }
 
 function viewJSONPanel() {
@@ -473,12 +475,12 @@ function view() {
             title: "Diagram height -- click to change"
         }, diagram.height),
         m("br"),
-        m("button.ma1.pa1", { onclick: addElement.bind(null, "issue") }, 
-            m("img.v-mid.mr1", { src: CompendiumIcons.issue_png, style: "width: 16px; height: 16px;" }), 
+        m("button.ma1.pa1", { onclick: addElement.bind(null, "issue") },
+            m("img.v-mid.mr1", { src: CompendiumIcons.issue_png, style: "width: 16px; height: 16px;" }),
             "Question"
         ),
         m("button.ma1.pa1", { onclick: addElement.bind(null, "position") },
-            m("img.v-mid.mr1", { src: CompendiumIcons.position_png, style: "width: 16px; height: 16px;" }), 
+            m("img.v-mid.mr1", { src: CompendiumIcons.position_png, style: "width: 16px; height: 16px;" }),
             "Idea"
         ),
         m("button.ma1.pa1", { onclick: addElement.bind(null, "plus") },

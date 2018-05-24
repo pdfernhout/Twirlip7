@@ -7,17 +7,17 @@ requirejs.config({
 
 requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingLocalStorage", "NotebookBackendUsingServer", "FileUtils", "CanonicalJSON"], function(mDiscardAsMadeGlobal, WorkspaceView, Notebook, NotebookBackendUsingLocalStorage, NotebookBackendUsingServer, FileUtils, CanonicalJSON) {
     "use strict"
-    
+
     /* global location */
-    
+
     let initialKeyToGoTo = null
 
-    const NotebookUsingMemory = Notebook()    
+    const NotebookUsingMemory = Notebook()
     const NotebookUsingLocalStorage = Notebook(NotebookBackendUsingLocalStorage())
     const NotebookUsingServer = Notebook(NotebookBackendUsingServer())
-    
+
     let workspaceView = WorkspaceView(NotebookUsingLocalStorage)
-    
+
     function getItemForJSON(itemJSON) {
         if (itemJSON === null) return null
         if (itemJSON.startsWith("{")) {
@@ -31,27 +31,27 @@ requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingL
         newItem.value = itemJSON
         return newItem
     }
-    
+
     function popup(popupName, popupState, popupContent) {
         return m("div.relative.dib", { onmouseleave: () => popupState.isOpen = false  },
             m("button", { onclick: () => popupState.isOpen = !popupState.isOpen }, popupName, m("span.ml2", "▾")),
-            popupState.isOpen ? m("div.absolute.bg-white.shadow-2.pa1.z-1", { 
-                style: { 
+            popupState.isOpen ? m("div.absolute.bg-white.shadow-2.pa1.z-1", {
+                style: {
                     display: (popupState.isOpen ? "block" : "none"),
                     "min-width": popupState.minWidth || "100%"
-                } 
+                }
             }, popupContent) : []
         )
     }
-    
+
     function menu(menuName, menuState) {
         return m("div.relative.dib", { onmouseleave: () => menuState.isOpen = false  },
             m("button", { onclick: () => menuState.isOpen = !menuState.isOpen }, menuName, m("span.ml2", "▾")),
-            menuState.isOpen ? m("div.absolute.bg-white.shadow-2.pa1.z-1", { 
-                style: { 
+            menuState.isOpen ? m("div.absolute.bg-white.shadow-2.pa1.z-1", {
+                style: {
                     display: (menuState.isOpen ? "block" : "none"),
                     "min-width": menuState.minWidth || "100%"
-                } 
+                }
             }, menuState.items.map((item) => {
                 const disabled = item.disabled && item.disabled()
                 return m("div" + (disabled ? ".gray.bg-light-gray" : ".hover-bg-light-blue"), {
@@ -65,7 +65,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingL
             })) : []
         )
     }
-        
+
     function setupTwirlip7Global(callback) {
         // setup Twirlip7 global for use by evaluated code
         if (window.Twirlip7) {
@@ -78,36 +78,36 @@ requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingL
             icon: workspaceView.icon,
             popup,
             menu,
-            
+
             workspaceView,
             // TODO: Remove legacy support for older extensions using "WorkspaceView"
             WorkspaceView: workspaceView,
-            
+
             FileUtils,
             CanonicalJSON,
             NotebookUsingLocalStorage,
             NotebookUsingMemory,
             NotebookUsingServer,
-            
+
             // TODO: Remove legacy support for previous development notes
             getCurrentJournal: () => {
                 return workspaceView.getCurrentNotebook()
             },
-            
+
             getCurrentNotebook: () => {
                 return workspaceView.getCurrentNotebook()
             },
-            
+
             getItemForJSON: getItemForJSON,
             newItem: workspaceView.newItem,
-            
+
             saveItem: (item) => {
                 if (!item.timestamp) item.timestamp = new Date().toISOString()
                 if (!item.contributor) item.contributor = workspaceView.getCurrentContributor()
                 const itemJSON = CanonicalJSON.stringify(item)
                 return workspaceView.getCurrentNotebook().addItem(itemJSON)
             },
-            
+
             // returns a Promise
             findItem(match, configuration) {
                 // configuration: { includeMetadata: false, sortBy: "timestamp" (default) | "location" }
@@ -120,6 +120,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingL
                 const notebook = workspaceView.getCurrentNotebook()
                 const count = notebook.itemCount()
                 for (let i = 0; i < count; i++) {
+                    const index = i
                     const promise = notebook.getItemForLocation(i).then((itemJSON) => {
                         const item = getItemForJSON(itemJSON)
                         if (!item) return
@@ -131,8 +132,9 @@ requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingL
                             }
                         }
                         if (isMatch) {
-                            const key = notebook.keyForLocation(i)
-                            result.push({location: i, item, key})
+                            notebook.keyForLocation(index).then(key => {
+                                result.push({location: index, item, key})
+                            })
                         }
                     })
                     promises.push(promise)
@@ -163,7 +165,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingL
                 })
             }
         }
-        
+
         // Try to load socket.io, which may fail
         requirejs(["/socket.io/socket.io.js"], function(io) {
             NotebookUsingServer.setOnLoadedCallback(function() {
@@ -208,7 +210,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingL
             return Promise.reject(error)
         })
     }
-    
+
     function runAllStartupItems() {
         const startupInfo = workspaceView.getStartupInfo()
         if (startupInfo.startupItemIds.length) {
@@ -241,11 +243,11 @@ requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingL
             })
         }
     }
-    
+
     function startEditor(postMountCallback, preMountCallback) {
         if (preMountCallback) preMountCallback()
         const root = document.body
-        m.mount(root, workspaceView) 
+        m.mount(root, workspaceView)
         setTimeout(() => {
             if (postMountCallback) {
                 postMountCallback()
@@ -255,7 +257,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingL
             window.addEventListener("hashchange", () =>  hashChange, false)
         }, 0)
     }
-    
+
     function hashChange() {
         const hash = location.hash
         // do our own routing and ignore things that don't match in case other evaluated code is using Mithril's router
@@ -264,17 +266,17 @@ requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingL
             if (workspaceView.getCurrentItemId() !== itemId) {
                 workspaceView.goToKey(itemId)
             }
-        } 
+        }
         m.redraw()
     }
-    
+
     window.addEventListener("hashchange", hashChange, false)
-    
+
     function startup() {
         setupTwirlip7Global(() => {
-        
+
             workspaceView.setCurrentContributor(localStorage.getItem("_contributor") || "")
-            
+
             const hash = location.hash
             if (hash && hash.startsWith("#open=")) {
                 const startupItemId = hash.substring("#open=".length)
@@ -317,6 +319,6 @@ requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingL
             }
         })
     }
-    
+
     startup()
 })
