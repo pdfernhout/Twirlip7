@@ -4,15 +4,15 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
     // This elegant style of defining notebooks is "inefficient" of memory
     // compared to sharing function definitions via a common prototype.
     // But, we are only going to have a few notebooks in the application,
-    // so the clarity is not very costly 
+    // so the clarity is not very costly
     // (especially compared to megabytes of items in each notebook).
     // See also: https://stackoverflow.com/questions/387707/what-techniques-can-be-used-to-define-a-class-in-javascript-and-what-are-their/1169656#1169656
 
     function Notebook(store) {
-        
+
         let itemForLocation = []
         let itemForHash = {}
-        
+
         let isLoaded = false
         let onLoadedCallback = null
 
@@ -49,7 +49,7 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             //    setTimeout(() => resolve(result), 400)
             // })
         }
-        
+
         // Returns Promise
         function getItemForLocation(location) {
             const storedItem = itemForLocation[location]
@@ -58,7 +58,7 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
         }
 
         // Return this value directly
-        // Track this seperately as it is used a lot and pertaisn to entire collection
+        // Track this separately as it is used a lot and pertains to entire collection
         // Updating this value will also involve a callback about new items
         function itemCount() {
             const result = itemForLocation.length
@@ -88,7 +88,7 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             itemForHash = {}
             return Promise.resolve(true)
         }
-        
+
         // Returns Promise
         function loadFromNotebookText(notebookText) {
             return clearItems().then(result => {
@@ -97,7 +97,7 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
                 return Promise.resolve(true)
             })
         }
-        
+
         // Returns Promise
         function locationForKey(key) {
             if (key === null || key === "") return Promise.resolve(null)
@@ -105,14 +105,14 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             const result = storedItem ? storedItem.location : null
             return Promise.resolve(result)
         }
-        
+
         // Returns Promise
         function keyForLocation(location) {
             const storedItem = itemForLocation[location]
             const result = storedItem ? storedItem.id : null
             return Promise.resolve(result)
         }
-        
+
         // Returns Promise with newLocation
         function skip(start, delta, wrap) {
             const numberOfItems = itemCount()
@@ -144,15 +144,15 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             }
             return Promise.resolve(newLocation)
         }
-        
+
         function setup(io) {
             if (store && store.setup) store.setup(io)
         }
-        
+
         function setOnLoadedCallback(callback) {
             onLoadedCallback = callback
         }
-        
+
         function onLoaded() {
             if (onLoadedCallback) {
                 isLoaded = true
@@ -162,7 +162,7 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
                 isLoaded = true
             }
         }
-        
+
         const notebook = {
             getCapabilities,
             addItem,
@@ -185,15 +185,15 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
                 return !store || store.isSetup()
             }
         }
-        
+
         if (store) {
             store.connect(notebook)
         } else {
             onLoaded()
         }
-        
+
         return notebook
     }
-    
+
     return Notebook
 })
