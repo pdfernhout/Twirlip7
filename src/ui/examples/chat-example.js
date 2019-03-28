@@ -58,7 +58,8 @@ function updateCacheIfNeeded() {
         if (cacheItemsProcessedCount < currentItemCount) {
             processNewNotebookItems(addToMessages, cacheItemsProcessedCount)
             cacheItemsProcessedCount++
-        }  
+            m.redraw()
+        }
     })
 }
 
@@ -70,7 +71,7 @@ function addToMessages(itemContext) {
 }
 
 var App = {
-    
+
     view: function () {
         updateCacheIfNeeded()
         return m("div", [
