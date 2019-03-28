@@ -5,25 +5,24 @@ define(["CanonicalJSON"], function(CanonicalJSON) {
 
     const ExampleNotebookLoader = {
 
-        it: null,
-
         loadFile(fileName) {
             const fullFileName = "vendor/text!examples/" + fileName
-            requirejs([fullFileName], function (fileContents) {
-                ExampleNotebookLoader.it.next(fileContents)
+
+            return new Promise((resolve) => {
+                requirejs([fullFileName], function (fileContents) {
+                    resolve(fileContents)
+                })
             })
         },
 
         loadAllFiles(progressCallback, doneCallback) {
             requirejs(["vendor/text!examples/" + exampleNotebookConfigurationFileName], function (configFileContents) {
                 // console.log("configFileContents", configFileContents)
-                ExampleNotebookLoader.it = ExampleNotebookLoader.loader(configFileContents, progressCallback, doneCallback)
-                ExampleNotebookLoader.it.next()
+                ExampleNotebookLoader.loader(configFileContents, progressCallback, doneCallback)
             })
         },
 
-        // Use generator to keep code looking like blocking node.js version: https://davidwalsh.name/async-generators
-        *loader(configFileContents, progressCallback, doneCallback) {
+        async loader(configFileContents, progressCallback, doneCallback) {
             const inputLines = configFileContents.split("\n")
 
             const output = []
@@ -61,8 +60,7 @@ define(["CanonicalJSON"], function(CanonicalJSON) {
                 }
                 const fileName = inputLine.trim()
 
-                // An iterator for a generator makes this file load operation look synchronous even though it is asynchronous
-                const fileContents = yield ExampleNotebookLoader.loadFile(fileName)
+                const fileContents = await ExampleNotebookLoader.loadFile(fileName)
 
                 item.attribute = savedAttribute || fileName
                 item.value = fileContents
