@@ -2,9 +2,7 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
     "use strict"
 
     // returns position + 1 for item reference to avoid first item being "0"
-    function NotebookBackendUsingServer() {
-        let streamId = "common"
-        let userId = "anonymous"
+    function NotebookBackendUsingServer(streamId = "common", userId = "anonymous") {
         let socket = null
         let messagesReceivedCount = 0
         let notebook = null
@@ -12,22 +10,22 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
         function addItem(item) {
             sendInsertItemMessage(item)
         }
-        
+
         // =============== socket.io communications
-        
+
         function sendMessage(message) {
             socket.emit("twirlip", message)
         }
-        
+
         function sendInsertItemMessage(item) {
             sendMessage({command: "insert", streamId: streamId, item: item, userId: userId, timestamp: new Date().toISOString()})
         }
-        
+
         function requestAllMessages() {
             console.log("requestAllMessages", messagesReceivedCount)
             sendMessage({command: "listen", streamId: streamId, fromIndex: messagesReceivedCount})
         }
-        
+
         function messageReceived(message) {
             // console.log("messageReceived", message)
             if (message.command === "insert") {
@@ -48,29 +46,29 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             }
             m.redraw()
         }
-        
+
         function setup(io) {
             console.log("setup", io)
             // TODO: Concern: Want to get all messages, but new messages may be added while waiting
             socket = io()
-            
+
             socket.on("twirlip", function(message) {
                 // console.log("twirlip", message)
                 if (message.streamId === streamId) {
                     messageReceived(message)
                 }
             })
-            
+
             socket.on("connect", function() {
                 console.log("connect", socket.id, messagesReceivedCount, new Date().toISOString())
                 requestAllMessages()
             })
         }
-        
+
         function connect(aNotebook) {
             notebook = aNotebook
         }
-        
+
         return {
             addItem,
             connect,
