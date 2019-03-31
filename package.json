@@ -11,18 +11,18 @@
   "author": "Paul D. Fernhout",
   "license": "MIT",
   "dependencies": {
-    "body-parser": "1.17.2",
-    "express": "4.15.2",
-    "pem": "1.9.7",
+    "body-parser": "1.18.3",
+    "express": "4.16.4",
+    "pem": "1.14.2",
     "push.js": "1.0.9",
-    "request": "2.81.0",
-    "socket.io": "2.0.2"
+    "request": "2.88.0",
+    "socket.io": "2.2.0"
   },
   "devDependencies": {
     "dompurify": "0.9.0",
-    "eslint": "3.19.0",
+    "eslint": "5.16.0",
     "font-awesome": "4.7.0",
-    "marked": "0.3.6",
+    "marked": "0.6.1",
     "ospec": "1.2.3",
     "tachyons": "4.7.0",
     "text": "requirejs/text",
