@@ -7,7 +7,7 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
     console.log("NotebookBackendUsingServer", NotebookBackendUsingServer)
 
     let chatRoom = "test"
-    let userID = "anonymous"
+    let userID = localStorage.getItem("userID") || "anonymous"
     let chatText = ""
     const messages = []
 
@@ -51,6 +51,7 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
     function userIDChange(event) {
         userID = event.target.value
         backend.configure(undefined, userID)
+        localStorage.setItem("userID", userID)
     }
 
     function chatTextChange(event) {
