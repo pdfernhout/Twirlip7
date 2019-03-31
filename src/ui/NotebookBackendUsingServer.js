@@ -69,10 +69,21 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             notebook = aNotebook
         }
 
+        function configure(streamIdNew, userIdNew) {
+            if (streamIdNew !== undefined) {
+                sendMessage({command: "unlisten", streamId: streamId})
+                streamId = streamIdNew
+                messagesReceivedCount = 0
+                requestAllMessages()
+            }
+            if (userIdNew !== undefined) userId = userIdNew
+        }
+
         return {
             addItem,
             connect,
             setup,
+            configure,
             isSetup: function() { return !!socket }
         }
     }
