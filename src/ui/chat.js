@@ -11,6 +11,8 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "vendor/mithril
     let chatText = ""
     const messages = []
 
+    let messagesDiv = null
+
     let backend = NotebookBackendUsingServer({chatRoom}, userID)
 
     function chatRoomChange(event) {
@@ -54,7 +56,7 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "vendor/mithril
 
     const TwirlipChat = {
         view: function () {
-            return m("div", [
+            return m("div..pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
                 m("h4.tc", "Twirlip Chat"),
                 m("div.ma1",
                     m("span.dib.tr.w4", "Chat room:"),
@@ -64,14 +66,21 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "vendor/mithril
                     m("span.dib.tr.w4", "User ID:"),
                     m("input", {value: userID, onchange: userIDChange})
                 ),
-                messages.map(function (message) {
-                    var localeTimestamp = new Date(Date.parse(message.timestamp)).toLocaleString()
-                    return m("div", [
-                        m("span", {title: localeTimestamp, style: "font-size: 50%;"}, message.userID + ":"),
-                        " ",
-                        message.chatText
-                    ])
-                }),
+                m("div.overflow-auto.flex-auto",
+                    {
+                        oncreate: (vnode) => {
+                            messagesDiv = (vnode.dom);
+                        },
+                    },
+                    messages.map(function (message) {
+                        var localeTimestamp = new Date(Date.parse(message.timestamp)).toLocaleString()
+                        return m("div", [
+                            m("span", {title: localeTimestamp, style: "font-size: 50%;"}, message.userID + ":"),
+                            " ",
+                            message.chatText
+                        ])
+                    })
+                ),
                 m("br"),
                 m("textarea", {value: chatText, onchange: chatTextChange, onkeydown: textAreaKeyDown}),
                 m("button", {onclick: sendChatMessage}, "Send")
@@ -84,6 +93,9 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "vendor/mithril
         addItem: (item, isAlreadyStored) => {
             console.log("addItem", item)
             messages.push(item)
+            setTimeout(() => {
+                messagesDiv.scrollTop = messagesDiv.scrollHeight
+            }, 0)
         }
     }
 
