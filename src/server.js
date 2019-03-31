@@ -110,10 +110,15 @@ io.on("connection", function(socket) {
     })
 })
 
+function keyForStreamId(streamId) {
+    return JSON.stringify(streamId)
+}
+
 function sendMessageToAllClients(message) {
     // log("sendMessageToAllClients", JSON.stringify(message));
     // io.emit("twirlip", message); // This would send to all clients -- even ones not listening on stream
-    var streams = streamToListenerMap[message.streamId]
+    var key = keyForStreamId(message.streamId)
+    var streams = streamToListenerMap[key]
     if (streams) {
         for (var clientId in streams) {
             if (streams[clientId]) {
@@ -128,10 +133,11 @@ function sendMessageToClient(clientId, message) {
 }
 
 function setListenerState(clientId, streamId, state) {
-    var listeners = streamToListenerMap[streamId]
+    var key = keyForStreamId(streamId)
+    var listeners = streamToListenerMap[key]
     if (!listeners) {
         listeners = {}
-        streamToListenerMap[streamId] = listeners
+        streamToListenerMap[key] = listeners
     }
 
     if (state === undefined) {
@@ -230,7 +236,7 @@ function unlisten(clientId, message) {
 
 function insert(clientId, message) {
     var streamId = message.streamId
-    log("insert", clientId, streamId, message.item) // calculateSha256(message.item))
+    log("insert", clientId, streamId, message.item)
     storeMessage(message)
     sendMessageToAllClients(message)
 }
@@ -280,8 +286,8 @@ function getFilePathForData(sha256, createPath) {
 }
 
 function getStorageFileNameForMessage(message, createPath) {
-    var streamId = message.streamId
-    var sha256 = calculateSha256(streamId)
+    var key = keyForStreamId(message.streamId)
+    var sha256 = calculateSha256(key)
     return getFilePathForData(sha256, createPath) + storageExtension
 }
 

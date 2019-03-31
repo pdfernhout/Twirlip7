@@ -11,12 +11,12 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "vendor/mithril
     let chatText = ""
     const messages = []
 
-    let backend = NotebookBackendUsingServer(JSON.stringify({chatRoom}), userID)
+    let backend = NotebookBackendUsingServer({chatRoom}, userID)
 
     function chatRoomChange(event) {
         chatRoom = event.target.value
         messages.splice(0)
-        backend.configure(JSON.stringify({chatRoom}))
+        backend.configure({chatRoom})
     }
 
     function userIDChange(event) {

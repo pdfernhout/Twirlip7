@@ -54,7 +54,7 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
 
             socket.on("twirlip", function(message) {
                 // console.log("twirlip", message)
-                if (message.streamId === streamId) {
+                if (JSON.stringify(message.streamId) === JSON.stringify(streamId)) {
                     messageReceived(message)
                 }
             })
