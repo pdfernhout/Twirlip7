@@ -230,7 +230,7 @@ function unlisten(clientId, message) {
 
 function insert(clientId, message) {
     var streamId = message.streamId
-    log("insert", clientId, streamId, calculateSha256(message.item))
+    log("insert", clientId, streamId, message.item) // calculateSha256(message.item))
     storeMessage(message)
     sendMessageToAllClients(message)
 }
