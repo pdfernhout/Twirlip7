@@ -41,6 +41,17 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "vendor/mithril
         backend.addItem(message)
     }
 
+    function textAreaKeyDown(event) {
+        console.log("onkeydown", event.keyCode, event)
+        if (event.keyCode === 13) {
+            chatText = event.target.value
+            sendChatMessage()
+            return false
+        }
+        event.redraw = false
+        return true
+    }
+
     const TwirlipChat = {
         view: function () {
             return m("div", [
@@ -62,7 +73,7 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "vendor/mithril
                     ])
                 }),
                 m("br"),
-                m("textarea", {value: chatText, onchange: chatTextChange}),
+                m("textarea", {value: chatText, onchange: chatTextChange, onkeydown: textAreaKeyDown}),
                 m("button", {onclick: sendChatMessage}, "Send")
             ])
         }
