@@ -1,7 +1,7 @@
 /* global m */
 /* eslint-disable no-console */
 
-define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "vendor/mithril"], function(io, NotebookBackendUsingServer, HashUtils, mDiscard) {
+define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "vendor/push", "vendor/mithril"], function(io, NotebookBackendUsingServer, HashUtils, Push, mDiscard) {
     "use strict"
 
     console.log("NotebookBackendUsingServer", NotebookBackendUsingServer)
@@ -123,6 +123,9 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
             setTimeout(() => {
                 messagesDiv.scrollTop = messagesDiv.scrollHeight
             }, 0)
+            if (!document.hasFocus()) {
+                Push.create(item.userID + ": " + item.chatText)
+            }
         }
     }
 
