@@ -1,7 +1,7 @@
 /* global m */
 /* eslint-disable no-console */
 
-define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "vendor/mithril"], function(io, NotebookBackendUsingServer, mDiscard) {
+define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "vendor/mithril"], function(io, NotebookBackendUsingServer, HashUtils, mDiscard) {
     "use strict"
 
     console.log("NotebookBackendUsingServer", NotebookBackendUsingServer)
@@ -13,11 +13,38 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "vendor/mithril
 
     let messagesDiv = null
 
-    let backend = NotebookBackendUsingServer({chatRoom}, userID)
+    function startup() {
+        chatRoom = HashUtils.getHashParams()["chatRoom"] || chatRoom
+        window.onhashchange = () => updateChatRoomFromHash()
+        updateHashForChatRoom()
+    }
+
+    function updateTitleForChatRoom() {
+        const title = document.title.split(" -- ")[0]
+        document.title = title + " -- " + chatRoom
+    }
+
+    function updateChatRoomFromHash() {
+        const hashParams = HashUtils.getHashParams()
+        const newChatRoom = hashParams["chatRoom"]
+        if (newChatRoom !== chatRoom) {
+            chatRoom = newChatRoom
+            backend.configure({chatRoom})
+            updateTitleForChatRoom()
+        }
+    }
+
+    function updateHashForChatRoom() {
+        const hashParams = HashUtils.getHashParams()
+        hashParams["chatRoom"] = chatRoom
+        HashUtils.setHashParams(hashParams)
+        updateTitleForChatRoom()
+    }
 
     function chatRoomChange(event) {
         chatRoom = event.target.value
         messages.splice(0)
+        updateHashForChatRoom()
         backend.configure({chatRoom})
     }
 
@@ -39,7 +66,6 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "vendor/mithril
     }
 
     function sendMessage(message) {
-        // messages.push(message)
         backend.addItem(message)
     }
 
@@ -69,7 +95,7 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "vendor/mithril
                 m("div.overflow-auto.flex-auto",
                     {
                         oncreate: (vnode) => {
-                            messagesDiv = (vnode.dom);
+                            messagesDiv = (vnode.dom)
                         },
                     },
                     messages.map(function (message) {
@@ -98,6 +124,10 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "vendor/mithril
             }, 0)
         }
     }
+
+    startup()
+
+    const backend = NotebookBackendUsingServer({chatRoom}, userID)
 
     backend.connect(responder)
     backend.setup(io)
