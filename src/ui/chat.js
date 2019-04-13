@@ -1,7 +1,7 @@
 /* global m */
 /* eslint-disable no-console */
 
-define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "vendor/push", "vendor/mithril"], function(io, NotebookBackendUsingServer, HashUtils, Push, mDiscard) {
+define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "vendor/push", "vendor/marked", "vendor/mithril"], function(io, NotebookBackendUsingServer, HashUtils, Push, marked, mDiscard) {
     "use strict"
 
     console.log("NotebookBackendUsingServer", NotebookBackendUsingServer)
@@ -81,10 +81,15 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
         return true
     }
 
+    function formatChatMessage(text) {
+        return m.trust(marked(text))
+    }
+
     const TwirlipChat = {
         view: function () {
             return m("div..pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
                 m("h4.tc", "Twirlip Chat"),
+                m("a", {href: "https://github.github.com/gfm/"}, "Markdown documentation"),
                 m("div.ma1",
                     m("span.dib.tr.w4", "Chat room:"),
                     m("input", {value: chatRoom, onchange: chatRoomChange})
@@ -101,16 +106,17 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
                     },
                     messages.map(function (message) {
                         var localeTimestamp = new Date(Date.parse(message.timestamp)).toLocaleString()
-                        return m("div", [
-                            m("span", {title: localeTimestamp, style: "font-size: 50%;"}, message.userID + ":"),
-                            " ",
-                            message.chatText
+                        return m("div.pa2", [
+                            m("span", {title: localeTimestamp, style: "font-size: 80%;"}, m("i", message.userID + " @ " + localeTimestamp)),
+                            m(".pl4.pr4", formatChatMessage(message.chatText))
                         ])
                     })
                 ),
                 m("br"),
-                m("textarea", {value: chatText, onchange: chatTextChange, onkeydown: textAreaKeyDown}),
-                m("button", {onclick: sendChatMessage}, "Send")
+                m("div",
+                    m("textarea.h4.w-80", {value: chatText, onchange: chatTextChange, onkeydown: textAreaKeyDown}),
+                    m("button", {onclick: sendChatMessage}, "Send")
+                )
             ])
         }
     }
