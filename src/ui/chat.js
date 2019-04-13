@@ -1,7 +1,9 @@
+/* eslint-disable getter-return */
+/* eslint-disable for-direction */
 /* global m */
 /* eslint-disable no-console */
 
-define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "vendor/push", "vendor/marked", "vendor/mithril"], function(io, NotebookBackendUsingServer, HashUtils, Push, marked, mDiscard) {
+define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "vendor/push", "vendor/marked", "FileUtils", "vendor/mithril"], function(io, NotebookBackendUsingServer, HashUtils, Push, marked, FileUtils, mDiscard) {
     "use strict"
 
     console.log("NotebookBackendUsingServer", NotebookBackendUsingServer)
@@ -85,18 +87,23 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
         return m.trust(marked(text))
     }
 
+    function upload() {
+        FileUtils.loadFromFile(false, (name, contents) => {
+            // console.log("result", name, contents)
+            alert("upload unfinished: " + name)
+        })
+    }
+
     const TwirlipChat = {
         view: function () {
             return m("div..pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
-                m("h4.tc", "Twirlip Chat"),
-                m("a", {href: "https://github.github.com/gfm/"}, "Markdown documentation"),
-                m("div.ma1",
-                    m("span.dib.tr.w4", "Chat room:"),
-                    m("input", {value: chatRoom, onchange: chatRoomChange})
-                ),
-                m("div.ma1",
+                // m("h4.tc", "Twirlip Chat"),
+                m("div.mb3",
+                    m("span.dib.tr.w4", "Twirlip chat room:"),
+                    m("input", {value: chatRoom, onchange: chatRoomChange}),
                     m("span.dib.tr.w4", "User ID:"),
-                    m("input", {value: userID, onchange: userIDChange})
+                    m("input", {value: userID, onchange: userIDChange}),
+                    m("a.pl2", {href: "https://github.github.com/gfm/"}, "Markdown documentation")
                 ),
                 m("div.overflow-auto.flex-auto",
                     {
@@ -115,7 +122,8 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
                 m("br"),
                 m("div",
                     m("textarea.h4.w-80", {value: chatText, onchange: chatTextChange, onkeydown: textAreaKeyDown}),
-                    m("button", {onclick: sendChatMessage}, "Send")
+                    m("button.ml2", {onclick: sendChatMessage}, "Send"),
+                    m("button.ml2", {onclick: upload}, "Upload..."),
                 )
             ])
         }
