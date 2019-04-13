@@ -32,6 +32,8 @@
         "no-console":  "off",
         "no-unused-vars":  "off",
         "no-case-declarations": "off",
-        "no-inner-declarations": "off"
+        "no-inner-declarations": "off",
+        "for-direction": "off",
+        "getter-return": "off"
     }
 }

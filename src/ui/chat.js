@@ -1,5 +1,3 @@
-/* eslint-disable getter-return */
-/* eslint-disable for-direction */
 /* global m */
 /* eslint-disable no-console */
 
