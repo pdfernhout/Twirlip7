@@ -13,6 +13,7 @@
 var fs = require("fs")
 var http = require("http")
 var crypto = require("crypto")
+var url = require("url")
 
 var express = require("express")
 var bodyParser = require("body-parser")
@@ -70,6 +71,43 @@ app.use(express.static(__dirname + "/ui"))
 
 app.post("/api/proxy", function (request, response) {
     proxyRequest(request, response)
+})
+
+// http://localhost:8080/sha256/somesha?content-type=image/png&title=some%20title
+app.get("/sha256/:sha256", function (request, response) {
+    var queryData = url.parse(request.url, true).query
+    console.log("/sha256", request.params)
+    // response.json({params: request.params, queryData: queryData})
+    var sha256 = request.params.sha256
+    var fileName = getFilePathForData(sha256) + storageExtension
+
+    // TODO: stream instead of accumulate
+    var result = ""
+
+    function collectFileContents(messageString) {
+        var message = JSON.parse(messageString)
+        // TODO: fix so only pulls in segments and converts as needed to data from wrapping
+        result += JSON.stringify(message)
+    }
+
+    // TODO: make this asynchronous
+    var fdMessages = null
+    try {
+        fdMessages = fs.openSync(fileName, "r")
+    } catch (e) {
+        // No file, so no saved data to send
+    }
+    if (fdMessages) {
+        try {
+            forEachLine(fdMessages, collectFileContents)
+        } finally {
+            // TODO Check error result
+            fs.closeSync(fdMessages)
+        }
+    }
+
+    response.writeHead(200, {"Content-Type": queryData["content-type"] || "text/plain"})
+    response.end(result)
 })
 
 var io = new SocketIOServer()
