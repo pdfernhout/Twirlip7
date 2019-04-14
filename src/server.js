@@ -78,16 +78,18 @@ app.get("/sha256/:sha256", function (request, response) {
     var queryData = url.parse(request.url, true).query
     console.log("/sha256", request.params)
     // response.json({params: request.params, queryData: queryData})
-    var sha256 = calculateSha256(JSON.stringify({sha256:request.params.sha256}))
-    var fileName = getFilePathForData(sha256) + storageExtension
+    var sha256Requested = request.params.sha256
+    var sha256OfStorageFile = calculateSha256(JSON.stringify({sha256: sha256Requested}))
+    var fileName = getFilePathForData(sha256OfStorageFile) + storageExtension
 
     // TODO: stream instead of accumulate
-    var result = ""
+    var result = {}
 
     function collectFileContents(messageString) {
         var message = JSON.parse(messageString)
-        // TODO: fix so only pulls in segments and converts as needed to data from wrapping
-        result += JSON.stringify(message)
+        if (message.item && message.item.a === "sha256:" + sha256Requested) {
+            result[message.item.b] = message.item.c
+        }
     }
 
     // TODO: make this asynchronous
@@ -106,8 +108,18 @@ app.get("/sha256/:sha256", function (request, response) {
         }
     }
 
+    var reconstruct = ""
+    for (var i = 0; i < result["base64-segment-count"]; i++) {
+        reconstruct += result["base64-segment:" + i]
+    }
+
+    let buffer = new Buffer(reconstruct, "base64")
+
+    console.log("reconstruct.length", reconstruct.length)
+    console.log("binary length", buffer.byteLength)
+
     response.writeHead(200, {"Content-Type": queryData["content-type"] || "text/plain"})
-    response.end(result)
+    response.end(buffer)
 })
 
 var io = new SocketIOServer()
