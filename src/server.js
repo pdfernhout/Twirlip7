@@ -78,7 +78,7 @@ app.get("/sha256/:sha256", function (request, response) {
     var queryData = url.parse(request.url, true).query
     console.log("/sha256", request.params)
     // response.json({params: request.params, queryData: queryData})
-    var sha256 = request.params.sha256
+    var sha256 = calculateSha256(JSON.stringify({sha256:request.params.sha256}))
     var fileName = getFilePathForData(sha256) + storageExtension
 
     // TODO: stream instead of accumulate
@@ -263,7 +263,7 @@ function listen(clientId, message) {
         }
     }
     log("sending loaded", messagesSent)
-    sendMessageToClient(clientId, {command: "loaded", streamId: streamId})
+    sendMessageToClient(clientId, {command: "loaded", streamId: streamId, messagesSentCount: messagesSent})
 }
 
 function unlisten(clientId, message) {

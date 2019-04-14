@@ -17,8 +17,8 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             socket.emit("twirlip", message)
         }
 
-        function sendInsertItemMessage(item) {
-            sendMessage({command: "insert", streamId: streamId, item: item, userId: userId, timestamp: new Date().toISOString()})
+        function sendInsertItemMessage(item, alternateStreamId) {
+            sendMessage({command: "insert", streamId: alternateStreamId || streamId, item: item, userId: userId, timestamp: new Date().toISOString()})
         }
 
         function requestAllMessages() {
@@ -69,6 +69,10 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
             notebook = aNotebook
         }
 
+        function disconnect() {
+            sendMessage({command: "unlisten", streamId: streamId})
+        }
+
         function configure(streamIdNew, userIdNew) {
             if (streamIdNew !== undefined) {
                 sendMessage({command: "unlisten", streamId: streamId})
@@ -81,6 +85,8 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
 
         return {
             addItem,
+            sendMessage,
+            sendInsertItemMessage,
             connect,
             setup,
             configure,

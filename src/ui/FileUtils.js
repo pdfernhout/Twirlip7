@@ -1,15 +1,15 @@
 define([], function() {
     "use strict"
-    
+
     // Conversion function from: http://stackoverflow.com/questions/9267899/arraybuffer-to-base64-encoded-string
     function _arrayBufferToBase64(buffer) {
-        let binary = ""
+        let binaryCharacters = []
         const bytes = new Uint8Array(buffer)
         const len = bytes.byteLength
         for (let i = 0; i < len; i++) {
-            binary += String.fromCharCode(bytes[i])
+            binaryCharacters.push(String.fromCharCode(bytes[i]))
         }
-        return window.btoa(binary)
+        return window.btoa(binaryCharacters.join(""))
     }
 
     const FileUtils = {
@@ -19,6 +19,7 @@ define([], function() {
         callback: null,
 
         loadFromFile(convertToBase64, callback) {
+            // support first argument being either a callback or a flag
             if (typeof convertToBase64 === "function") {
                 callback = convertToBase64
                 convertToBase64 = false
@@ -42,15 +43,15 @@ define([], function() {
                         } else {
                             contents = reader.result
                         }
-                    
-                        if (FileUtils.callback) FileUtils.callback(file.name, contents)
+
+                        if (FileUtils.callback) FileUtils.callback(file.name, contents, reader.result)
                     }
-                    
+
                     reader.onerror = function(event) {
                         console.error("File could not be read! Code " + event.target.error.code)
                         if (FileUtils.callback) FileUtils.callback(null, null)
                     }
-                                
+
                     if (convertToBase64) {
                         reader.readAsArrayBuffer(file)
                     } else {
@@ -72,7 +73,7 @@ define([], function() {
                 fileName = fileName + hiddenExtension
                 addedExtension = true
             }
-            
+
             const downloadLink = document.createElement("a")
             downloadLink.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(fileContents))
             downloadLink.setAttribute("download", fileName)

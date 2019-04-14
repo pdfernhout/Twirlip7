@@ -1,7 +1,7 @@
 /* global m */
 /* eslint-disable no-console */
 
-define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "vendor/push", "vendor/marked", "FileUtils", "vendor/mithril"], function(io, NotebookBackendUsingServer, HashUtils, Push, marked, FileUtils, mDiscard) {
+define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "vendor/push", "vendor/marked", "FileUtils", "vendor/sha256", "vendor/mithril"], function(io, NotebookBackendUsingServer, HashUtils, Push, marked, FileUtils, calculateSHA256, mDiscard) {
     "use strict"
 
     console.log("NotebookBackendUsingServer", NotebookBackendUsingServer)
@@ -85,10 +85,68 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
         return m.trust(marked(text))
     }
 
-    function upload() {
-        FileUtils.loadFromFile(false, (name, contents) => {
+    function uploadClicked() {
+        FileUtils.loadFromFile(true, (name, contents, bytes) => {
             // console.log("result", name, contents)
-            alert("upload unfinished: " + name)
+            // alert("upload unfinished: " + name)
+            const sha256 = calculateSHA256(bytes)
+            // console.log("file info:", name, contents, bytes, sha256)
+            /*
+            const uploadResponder = {
+                onLoaded: () => {},
+                addItem: (item, isAlreadyStored) => {}
+            }
+
+            const upload = NotebookBackendUsingServer({sha256: null}, userID)
+            upload.connect(uploadResponder)
+            upload.setup(io)
+            */
+
+            function chunkSubstr(str, size) {
+                // from: https://stackoverflow.com/questions/7033639/split-large-string-in-n-size-chunks-in-javascript/29202760#29202760
+                const numChunks = Math.ceil(str.length / size)
+                const chunks = new Array(numChunks)
+
+                for (let i = 0, o = 0; i < numChunks; ++i, o += size) {
+                    chunks[i] = str.substr(o, size)
+                }
+
+                return chunks
+            }
+
+            const segmentSize = 100000
+            const segments = chunkSubstr(contents, 100000)
+            const alternateStreamId = {sha256: sha256}
+            // TODO: No error handling
+            // TODO: Does not check if it exists already
+            backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "name", c: name}, alternateStreamId)
+            backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "format", c: "base64-segments"}, alternateStreamId)
+            backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "bytes-byteLength", c: bytes.byteLength}, alternateStreamId)
+            backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "base64-length", c: contents.length}, alternateStreamId)
+            backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "base64-segment-count", c: segments.length}, alternateStreamId)
+            backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "base64-segment-size", c: segmentSize}, alternateStreamId)
+            // let reconstruct = ""
+            for (let i = 0; i < segments.length; i++) {
+                // reconstruct += segments[i]
+                backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "base64-segment:" + i, c: segments[i]}, alternateStreamId)
+            }
+
+            console.log("uploaded")
+
+            /* verification
+            function _base64ToArrayBuffer(base64) {
+                // from: https://stackoverflow.com/questions/21797299/convert-base64-string-to-arraybuffer
+                var binary_string =  window.atob(base64)
+                var len = binary_string.length
+                var bytes = new Uint8Array( len )
+                for (var i = 0; i < len; i++)        {
+                    bytes[i] = binary_string.charCodeAt(i)
+                }
+                return bytes.buffer
+            }
+            console.log("reconstruct.length", reconstruct.length)
+            console.log("binary length", _base64ToArrayBuffer(reconstruct).byteLength)
+            */
         })
     }
 
@@ -121,13 +179,13 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
                 m("div",
                     m("textarea.h4.w-80", {value: chatText, onchange: chatTextChange, onkeydown: textAreaKeyDown}),
                     m("button.ml2", {onclick: sendChatMessage}, "Send"),
-                    m("button.ml2", {onclick: upload}, "Upload..."),
+                    m("button.ml2", {onclick: uploadClicked}, "Upload..."),
                 )
             ])
         }
     }
 
-    const responder = {
+    const chatRoomResponder = {
         onLoaded: () => console.log("onLoaded"),
         addItem: (item, isAlreadyStored) => {
             console.log("addItem", item)
@@ -145,7 +203,7 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
 
     const backend = NotebookBackendUsingServer({chatRoom}, userID)
 
-    backend.connect(responder)
+    backend.connect(chatRoomResponder)
     backend.setup(io)
 
     window.onload = () => m.mount(document.body, TwirlipChat)
