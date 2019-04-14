@@ -208,13 +208,14 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
                         return m("div.pa2", [
                             m("span", {title: localeTimestamp, style: "font-size: 80%;"},
                                 m("i", message.userID + " @ " + localeTimestamp),
+                                message.editedTimestamp ? m("b.ml1", {title: new Date(Date.parse(message.editedTimestamp)).toLocaleString() }, "edited")  : [],
                                 // support editing
                                 (message.userID === userID && message.uuid)
                                     ? m("button.ml1", {
                                         onclick: () => {
                                             editedChatMessageUUID = message.uuid || null
                                             editedChatMessageText = message.chatText
-                                        }}, "edit")
+                                        }}, "✎ edit")
                                     : []),
                             m(".pl4.pr4", formatChatMessage(message.chatText)),
                             // if edited
@@ -248,7 +249,10 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
                 messages.push(item)
             } else {
                 if (messagesByUUID[item.uuid] !== undefined) {
+                    const previousVersion = messages[messagesByUUID[item.uuid]]
                     console.log("message is edited", item, messagesByUUID[item.uuid])
+                    item.editedTimestamp = item.timestamp
+                    item.timestamp = previousVersion.timestamp
                     messages[messagesByUUID[item.uuid]] = item
                 }
             }
