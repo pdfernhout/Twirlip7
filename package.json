@@ -13,6 +13,7 @@
   "dependencies": {
     "body-parser": "1.18.3",
     "express": "4.16.4",
+    "filenamify": "4.0.0",
     "mime-types": "2.1.22",
     "pem": "1.14.2",
     "push.js": "1.0.9",

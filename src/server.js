@@ -14,7 +14,8 @@ var fs = require("fs")
 var http = require("http")
 var crypto = require("crypto")
 var url = require("url")
-var mime = require('mime-types')
+var mime = require("mime-types")
+var filenamify = require("filenamify")
 
 var express = require("express")
 var bodyParser = require("body-parser")
@@ -120,11 +121,15 @@ app.get("/sha256/:sha256", function (request, response) {
     console.log("binary length", buffer.byteLength)
 
     const contentType = queryData["content-type"] || mime.lookup(result["filename"])
-    console.log("contentType", contentType)
+    console.log("contentType", contentType, result["filename"])
+
+    const cleanFileName = filenamify(Buffer.from(queryData["filename"] || result["filename"] || "download.dat").toString("ascii"), {replacement: "_"})
+
+    const disposition = queryData["content-disposition"] === "attachment" ? "attachment" : "inline"
 
     response.writeHead(200, {
         "Content-Type": contentType || "",
-        "Content-Disposition": result["filename"] ? "inline; filename=" + result["filename"] :  "inline"
+        "Content-Disposition": disposition + "; filename=" + cleanFileName
     })
 
     response.end(buffer)
