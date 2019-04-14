@@ -217,15 +217,15 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
                                             editedChatMessageText = message.chatText
                                         }}, "✎ edit")
                                     : []),
-                            m(".pl4.pr4", formatChatMessage(message.chatText)),
-                            // if edited
+
                             editedChatMessageUUID === message.uuid
+                                // if editing
                                 ? m("div.ba.bw1.ml4",
                                     m("textarea.h4.w-80", {value: editedChatMessageText, onchange: (event) => editedChatMessageText = event.target.value}),
                                     m("button.ml2", {onclick: () => sendEditedChatMessage() }, "Update"),
                                     m("button.ml2", {onclick: () => editedChatMessageUUID = null}, "Cancel")
                                 )
-                                : []
+                                : m(".pl4.pr4", formatChatMessage(message.chatText))
                         ])
                     })
                 ),
