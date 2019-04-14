@@ -13,6 +13,7 @@
   "dependencies": {
     "body-parser": "1.18.3",
     "express": "4.16.4",
+    "mime-types": "2.1.22",
     "pem": "1.14.2",
     "push.js": "1.0.9",
     "request": "2.88.0",
@@ -22,7 +23,7 @@
     "dompurify": "0.9.0",
     "eslint": "5.16.0",
     "font-awesome": "4.7.0",
-    "marked": "0.6.1",
+    "marked": "0.6.2",
     "ospec": "1.2.3",
     "tachyons": "4.7.0",
     "text": "requirejs/text",
