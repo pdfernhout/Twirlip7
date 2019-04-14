@@ -58,11 +58,19 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
         chatText = event.target.value
     }
 
+    function uuidv4() {
+        // From: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
+        return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+            (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+        )
+    }
+
     function sendChatMessage() {
         const timestamp = new Date().toISOString()
         const command = "insert"
+        const uuid = "chatMessage:" + uuidv4()
 
-        sendMessage({ chatText, userID, timestamp })
+        sendMessage({ chatText, userID, timestamp, uuid })
         chatText= ""
     }
 
