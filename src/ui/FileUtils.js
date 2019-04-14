@@ -3,13 +3,13 @@ define([], function() {
 
     // Conversion function from: http://stackoverflow.com/questions/9267899/arraybuffer-to-base64-encoded-string
     function _arrayBufferToBase64(buffer) {
-        let binaryCharacters = []
+        let binary = ""
         const bytes = new Uint8Array(buffer)
         const len = bytes.byteLength
         for (let i = 0; i < len; i++) {
-            binaryCharacters.push(String.fromCharCode(bytes[i]))
+            binary += String.fromCharCode(bytes[i])
         }
-        return window.btoa(binaryCharacters.join(""))
+        return window.btoa(binary)
     }
 
     const FileUtils = {
