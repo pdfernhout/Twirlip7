@@ -122,7 +122,11 @@ app.get("/sha256/:sha256", function (request, response) {
     const contentType = queryData["content-type"] || mime.lookup(result["filename"])
     console.log("contentType", contentType)
 
-    if (contentType) response.writeHead(200, {"Content-Type": contentType})
+    if (contentType) response.writeHead(200, {
+        "Content-Type": contentType,
+        "Content-Disposition": result["filename"] ? "inline; filename=" + result["filename"] :  undefined
+    })
+
     response.end(buffer)
 })
 

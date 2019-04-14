@@ -128,6 +128,7 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
             backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "base64-segment-size", c: segmentSize}, alternateStreamId)
             // let reconstruct = ""
             for (let i = 0; i < segments.length; i++) {
+                console.log("sending", i + 1, "of", segments.length)
                 // reconstruct += segments[i]
                 backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "base64-segment:" + i, c: segments[i]}, alternateStreamId)
             }
