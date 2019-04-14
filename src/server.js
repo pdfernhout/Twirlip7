@@ -14,6 +14,7 @@ var fs = require("fs")
 var http = require("http")
 var crypto = require("crypto")
 var url = require("url")
+var mime = require('mime-types')
 
 var express = require("express")
 var bodyParser = require("body-parser")
@@ -118,7 +119,10 @@ app.get("/sha256/:sha256", function (request, response) {
     console.log("reconstruct.length", reconstruct.length)
     console.log("binary length", buffer.byteLength)
 
-    response.writeHead(200, {"Content-Type": queryData["content-type"] || "text/plain"})
+    const contentType = queryData["content-type"] || mime.lookup(result["name"]) || "text/plain"
+    console.log("contentType", contentType)
+
+    response.writeHead(200, {"Content-Type": contentType})
     response.end(buffer)
 })
 
