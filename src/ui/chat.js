@@ -117,6 +117,7 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
             const segmentSize = 100000
             const segments = chunkSubstr(contents, 100000)
             const alternateStreamId = {sha256: sha256}
+
             // TODO: No error handling
             // TODO: Does not check if it exists already
             backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "name", c: name}, alternateStreamId)
@@ -131,7 +132,22 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
                 backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "base64-segment:" + i, c: segments[i]}, alternateStreamId)
             }
 
-            console.log("uploaded")
+            console.log("uploaded", name, sha256)
+
+            const sha256WithFileName = sha256 + "?name=" + name
+
+            let textToAdd = `sha256/${sha256WithFileName}`
+
+            // Format as markdown image if it might be an image
+            const extension = name.substr(name.lastIndexOf(".") + 1)
+            const isImageFile = {ai: true, bmp: true, gif: true, ico: true, jpg: true, jpeg: true, png: true, psd: true, svg: true, tif: true, tiff: true}[extension]
+            if (isImageFile) textToAdd = `![${name}](sha256/${sha256WithFileName} "${name}")`
+
+            if (chatText) chatText += ""
+
+            chatText += textToAdd
+
+            m.redraw()
 
             /* verification
             function _base64ToArrayBuffer(base64) {
@@ -159,7 +175,7 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
                     m("input", {value: chatRoom, onchange: chatRoomChange}),
                     m("span.dib.tr.w4", "User ID:"),
                     m("input", {value: userID, onchange: userIDChange}),
-                    m("a.pl2", {href: "https://github.github.com/gfm/"}, "Markdown documentation")
+                    m("a.pl2", {href: "https://github.github.com/gfm/", target: "_blank"}, "Markdown documentation")
                 ),
                 m("div.overflow-auto.flex-auto",
                     {
