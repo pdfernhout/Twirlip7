@@ -10,8 +10,12 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
     let userID = localStorage.getItem("userID") || "anonymous"
     let chatText = ""
     const messages = []
+    let editedChatMessageUUID = null
+    let editedChatMessageText = ""
 
     let messagesDiv = null
+
+    const messagesByUUID = {}
 
     function startup() {
         chatRoom = HashUtils.getHashParams()["chatRoom"] || chatRoom
@@ -67,7 +71,6 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
 
     function sendChatMessage() {
         const timestamp = new Date().toISOString()
-        const command = "insert"
         const uuid = "chatMessage:" + uuidv4()
 
         sendMessage({ chatText, userID, timestamp, uuid })
@@ -78,8 +81,16 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
         backend.addItem(message)
     }
 
+    function sendEditedChatMessage() {
+        const timestamp = new Date().toISOString()
+        const uuid = editedChatMessageUUID
+
+        sendMessage({ chatText: editedChatMessageText, userID, timestamp, uuid })
+        editedChatMessageUUID = null
+        editedChatMessageText = ""
+    }
+
     function textAreaKeyDown(event) {
-        console.log("onkeydown", event.keyCode, event)
         if (event.keyCode === 13) {
             chatText = event.target.value
             sendChatMessage()
@@ -195,8 +206,25 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
                     messages.map(function (message) {
                         var localeTimestamp = new Date(Date.parse(message.timestamp)).toLocaleString()
                         return m("div.pa2", [
-                            m("span", {title: localeTimestamp, style: "font-size: 80%;"}, m("i", message.userID + " @ " + localeTimestamp)),
-                            m(".pl4.pr4", formatChatMessage(message.chatText))
+                            m("span", {title: localeTimestamp, style: "font-size: 80%;"},
+                                m("i", message.userID + " @ " + localeTimestamp),
+                                // support editing
+                                (message.userID === userID && message.uuid)
+                                    ? m("button.ml1", {
+                                        onclick: () => {
+                                            editedChatMessageUUID = message.uuid || null
+                                            editedChatMessageText = message.chatText
+                                        }}, "edit")
+                                    : []),
+                            m(".pl4.pr4", formatChatMessage(message.chatText)),
+                            // if edited
+                            editedChatMessageUUID === message.uuid
+                                ? m("div.ba.bw1.ml4",
+                                    m("textarea.h4.w-80", {value: editedChatMessageText, onchange: (event) => editedChatMessageText = event.target.value}),
+                                    m("button.ml2", {onclick: () => sendEditedChatMessage() }, "Update"),
+                                    m("button.ml2", {onclick: () => editedChatMessageUUID = null}, "Cancel")
+                                )
+                                : []
                         ])
                     })
                 ),
@@ -214,7 +242,16 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
         onLoaded: () => console.log("onLoaded"),
         addItem: (item, isAlreadyStored) => {
             console.log("addItem", item)
-            messages.push(item)
+            // Complexity needed to support editing
+            if (messagesByUUID[item.uuid] === undefined) {
+                if (item.uuid !== undefined) messagesByUUID[item.uuid] = messages.length
+                messages.push(item)
+            } else {
+                if (messagesByUUID[item.uuid] !== undefined) {
+                    console.log("message is edited", item, messagesByUUID[item.uuid])
+                    messages[messagesByUUID[item.uuid]] = item
+                }
+            }
             setTimeout(() => {
                 messagesDiv.scrollTop = messagesDiv.scrollHeight
             }, 0)
