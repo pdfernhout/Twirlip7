@@ -135,9 +135,9 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
 
             console.log("uploaded", filename, sha256)
 
-            const sha256WithFileName = sha256 + "?filename=" + filename
+            const sha256WithFileName = sha256 + "?filename=" + encodeURIComponent(filename)
 
-            let textToAdd = `sha256/${sha256WithFileName}`
+            let textToAdd = `[${filename}](sha256/${sha256WithFileName})`
 
             // Format as markdown image if it might be an image
             const extension = filename.substr(filename.lastIndexOf(".") + 1)
