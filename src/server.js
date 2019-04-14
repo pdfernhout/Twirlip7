@@ -119,10 +119,10 @@ app.get("/sha256/:sha256", function (request, response) {
     console.log("reconstruct.length", reconstruct.length)
     console.log("binary length", buffer.byteLength)
 
-    const contentType = queryData["content-type"] || mime.lookup(result["name"]) || "text/plain"
+    const contentType = queryData["content-type"] || mime.lookup(result["filename"])
     console.log("contentType", contentType)
 
-    response.writeHead(200, {"Content-Type": contentType})
+    if (contentType) response.writeHead(200, {"Content-Type": contentType})
     response.end(buffer)
 })
 

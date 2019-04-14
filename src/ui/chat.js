@@ -86,11 +86,11 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
     }
 
     function uploadClicked() {
-        FileUtils.loadFromFile(true, (name, contents, bytes) => {
-            // console.log("result", name, contents)
-            // alert("upload unfinished: " + name)
+        FileUtils.loadFromFile(true, (filename, contents, bytes) => {
+            // console.log("result", filename, contents)
+            // alert("upload unfinished: " + filename)
             const sha256 = calculateSHA256(bytes)
-            // console.log("file info:", name, contents, bytes, sha256)
+            // console.log("file info:", filename, contents, bytes, sha256)
             /*
             const uploadResponder = {
                 onLoaded: () => {},
@@ -120,7 +120,7 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
 
             // TODO: No error handling
             // TODO: Does not check if it exists already
-            backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "name", c: name}, alternateStreamId)
+            backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "filename", c: filename}, alternateStreamId)
             backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "format", c: "base64-segments"}, alternateStreamId)
             backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "bytes-byteLength", c: bytes.byteLength}, alternateStreamId)
             backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "base64-length", c: contents.length}, alternateStreamId)
@@ -132,16 +132,16 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
                 backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "base64-segment:" + i, c: segments[i]}, alternateStreamId)
             }
 
-            console.log("uploaded", name, sha256)
+            console.log("uploaded", filename, sha256)
 
-            const sha256WithFileName = sha256 + "?name=" + name
+            const sha256WithFileName = sha256 + "?filename=" + filename
 
             let textToAdd = `sha256/${sha256WithFileName}`
 
             // Format as markdown image if it might be an image
-            const extension = name.substr(name.lastIndexOf(".") + 1)
+            const extension = filename.substr(filename.lastIndexOf(".") + 1)
             const isImageFile = {ai: true, bmp: true, gif: true, ico: true, jpg: true, jpeg: true, png: true, psd: true, svg: true, tif: true, tiff: true}[extension]
-            if (isImageFile) textToAdd = `![${name}](sha256/${sha256WithFileName} "${name}")`
+            if (isImageFile) textToAdd = `![${filename}](sha256/${sha256WithFileName} "${filename}")`
 
             if (chatText) chatText += ""
 
