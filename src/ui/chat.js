@@ -257,7 +257,7 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
                 }
             }
             setTimeout(() => {
-                messagesDiv.scrollTop = messagesDiv.scrollHeight
+                if (messagesDiv) messagesDiv.scrollTop = messagesDiv.scrollHeight
             }, 0)
             if (!document.hasFocus()) {
                 Push.create(item.userID + ": " + item.chatText)
