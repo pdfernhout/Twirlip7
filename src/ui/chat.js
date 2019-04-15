@@ -272,5 +272,5 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
     backend.connect(chatRoomResponder)
     backend.setup(io)
 
-    window.onload = () => m.mount(document.body, TwirlipChat)
+    m.mount(document.body, TwirlipChat)
 })
