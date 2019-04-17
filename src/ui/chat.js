@@ -190,12 +190,12 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
         view: function () {
             return m("div..pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
                 // m("h4.tc", "Twirlip Chat"),
-                m("div.mb3",
-                    m("span.dib.tr.w4", "Twirlip chat room:"),
-                    m("input", {value: chatRoom, onchange: chatRoomChange}),
-                    m("span.dib.tr.w4", "User ID:"),
-                    m("input", {value: userID, onchange: userIDChange}),
-                    m("a.pl2", {href: "https://github.github.com/gfm/", target: "_blank"}, "Markdown documentation")
+                m("div.mb3.f3.f6-l",
+                    m("span.dib.tr", "Twirlip chat room:"),
+                    m("input.w4.ml2", {value: chatRoom, onchange: chatRoomChange}),
+                    m("span.dib.tr.ml2", "User ID:"),
+                    m("input.w4.ml2", {value: userID, onchange: userIDChange}),
+                    m("a.pl2", {href: "https://github.github.com/gfm/", target: "_blank"}, "Markdown")
                 ),
                 m("div.overflow-auto.flex-auto",
                     {
@@ -205,35 +205,43 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
                     },
                     messages.map(function (message) {
                         var localeTimestamp = new Date(Date.parse(message.timestamp)).toLocaleString()
-                        return m("div.pa2", [
-                            m("span", {title: localeTimestamp, style: "font-size: 80%;"},
+                        return m("div.pa2.f2.f5-l", [
+                            m("span.f4.f6-l", {title: localeTimestamp, style: "font-size: 80%;"},
                                 m("i", message.userID + " @ " + localeTimestamp),
                                 message.editedTimestamp ? m("b.ml1", {title: new Date(Date.parse(message.editedTimestamp)).toLocaleString() }, "edited")  : [],
                                 // support editing
                                 (message.userID === userID && message.uuid)
-                                    ? m("button.ml1", {
+                                    ? m("button.ml2", {
                                         onclick: () => {
-                                            editedChatMessageUUID = message.uuid || null
-                                            editedChatMessageText = message.chatText
+                                            if (editedChatMessageUUID === message.uuid) {
+                                                editedChatMessageUUID = null
+                                            } else {
+                                                editedChatMessageUUID = message.uuid || null
+                                                editedChatMessageText = message.chatText
+                                            }
                                         }}, "✎ edit")
                                     : []),
 
                             editedChatMessageUUID === message.uuid
                                 // if editing
-                                ? m("div.ba.bw1.ml4",
-                                    m("textarea.h4.w-80", {value: editedChatMessageText, onchange: (event) => editedChatMessageText = event.target.value}),
-                                    m("button.ml2", {onclick: () => sendEditedChatMessage() }, "Update"),
-                                    m("button.ml2", {onclick: () => editedChatMessageUUID = null}, "Cancel")
+                                ? m("div.ba.bw1.ma3.ml4.pa3",
+                                    m("textarea.h5.w-80.ma2.ml3", {value: editedChatMessageText, onchange: (event) => editedChatMessageText = event.target.value}),
+                                    m("div",
+                                        m("button.ml2.f3.mt2", {onclick: () => sendEditedChatMessage() }, "Update"),
+                                        m("button.ml2.f3.mt2", {onclick: () => editedChatMessageUUID = null}, "Cancel"),
+                                    ),
                                 )
                                 : m(".pl4.pr4", formatChatMessage(message.chatText))
                         ])
                     })
                 ),
                 m("br"),
-                m("div",
-                    m("textarea.h4.w-80", {value: chatText, onchange: chatTextChange, onkeydown: textAreaKeyDown}),
-                    m("button.ml2", {onclick: sendChatMessage}, "Send"),
-                    m("button.ml2", {onclick: uploadClicked}, "Upload..."),
+                m("div.pa3.f2.f5-l" + (editedChatMessageUUID ? ".dn" : ""),
+                    m("textarea.h4.w-80.ma2.ml3", {value: chatText, onchange: chatTextChange, onkeydown: textAreaKeyDown}),
+                    m("div",
+                        m("button.ml2.f3.mt2", {onclick: sendChatMessage}, "Send"),
+                        m("button.ml2.f3.mt2", {onclick: uploadClicked}, "Upload..."),
+                    ),
                 )
             ])
         }
