@@ -429,27 +429,29 @@ function changeDiagramName() {
 
 // { extraStyling: ".bg-blue.br4", title: () => "IBIS Diagram for: " + diagram.diagramName }
 function view() {
-    return m("div.bg-blue.br4.pa3",
-        m("span", "Issue Based Information System (IBIS) for Dialogue Mapping"),
-        " -- ",
-        m("span", { onclick: changeDiagramName, title: "Click to change diagram name" }, diagram.diagramName),
-        " ",
-        m("span", {
-            onclick: () => {
-                diagram.width = prompt("New diagram width?", diagram.width) || diagram.width
-                updateJSONFromDiagram()
-            },
-            title: "Diagram width -- click to change"
-        }, diagram.width),
-        " X ",
-        m("span", {
-            onclick: () => {
-                diagram.height = prompt("New diagram height?", diagram.height) || diagram.height
-                updateJSONFromDiagram()
-            },
-            title: "Diagram height -- click to change"
-        }, diagram.height),
-        m("div.mt1.mb1",
+    return m("div.bg-blue.br4.pa3.h-100.w-100.flex.flex-column.overflow-hidden",
+        m("div.flex-none",
+            m("span", "Issue Based Information System (IBIS) for Dialogue Mapping"),
+            " -- ",
+            m("span", { onclick: changeDiagramName, title: "Click to change diagram name" }, diagram.diagramName),
+            " ",
+            m("span", {
+                onclick: () => {
+                    diagram.width = prompt("New diagram width?", diagram.width) || diagram.width
+                    updateJSONFromDiagram()
+                },
+                title: "Diagram width -- click to change"
+            }, diagram.width),
+            " X ",
+            m("span", {
+                onclick: () => {
+                    diagram.height = prompt("New diagram height?", diagram.height) || diagram.height
+                    updateJSONFromDiagram()
+                },
+                title: "Diagram height -- click to change"
+            }, diagram.height),
+        ),
+        m("div.mt1.mb1.flex-none",
             m("button.ma1.pa1", { onclick: addElement.bind(null, "issue") },
                 m("img.v-mid.mr1", { src: CompendiumIcons.issue_png, style: "width: 16px; height: 16px;" }),
                 "Question"
@@ -470,7 +472,7 @@ function view() {
             m("button.ma1.pa1", { onclick: addLink }, "Link <--*"),
             m("button.ma1.pa1", { onclick: deleteLink }, "Unlink *"),
         ),
-        m("div", { style: "overflow: auto" }, [
+        m("div.flex-auto.overflow-auto", [
             // on keydown does not seem to work here
             m("svg.diagram.ba", {
                 width: diagram.width,
