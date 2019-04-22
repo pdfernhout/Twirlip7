@@ -110,13 +110,14 @@ After pasting, load it using "Update Diagram from JSON" button.
 
 /* eslint-disable no-console */
 /* jshint maxerr: 100000 */
-/* global CompendiumIcons, m, window, prompt, confirm, requirejs */
+/* global FileUtils, CompendiumIcons, m, window, prompt, confirm */
 
 // define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "vendor/push", "vendor/marked", "FileUtils", "vendor/sha256", "examples/ibis_icons", "vendor/mithril"], function(io, NotebookBackendUsingServer, HashUtils, Push, marked, FileUtils, calculateSHA256, iconsDiscard, mDiscard) {
 "use strict"
 
 import "./vendor/mithril.js"
 import "./examples/ibis_icons.js"
+import "./FileUtils.js"
 
 let diagram = {
     width: 800,
@@ -351,7 +352,7 @@ function viewItemPanel() {
 let isJSONPanelDisplayed = false
 
 function importDiagram() {
-    Twirlip7.FileUtils.loadFromFile((fileName, fileContents) => {
+    FileUtils.loadFromFile((fileName, fileContents) => {
         if (fileContents) {
             diagramJSON = fileContents
             updateDiagramFromJSON()
@@ -366,7 +367,7 @@ function importDiagram() {
 
 function exportDiagram() {
     const provisionalFileName = diagram.diagramName
-    Twirlip7.FileUtils.saveToFile(provisionalFileName, diagramJSON, ".json", (fileName) => {
+    FileUtils.saveToFile(provisionalFileName, diagramJSON, ".json", (fileName) => {
         diagram.diagramName = fileName
         updateJSONFromDiagram()
     })

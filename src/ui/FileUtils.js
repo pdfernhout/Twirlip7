@@ -1,3 +1,11 @@
+// stub to load from ES module as global
+if (!window.define) {
+    function define (a, b) {
+        window.FileUtils = b()
+    }
+    window.define = define
+}
+
 define([], function() {
     "use strict"
 
