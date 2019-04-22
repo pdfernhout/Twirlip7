@@ -112,384 +112,386 @@ After pasting, load it using "Update Diagram from JSON" button.
 /* jshint maxerr: 100000 */
 /* global CompendiumIcons, m, window, prompt, confirm, requirejs */
 
-define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "vendor/push", "vendor/marked", "FileUtils", "vendor/sha256", "examples/ibis_icons", "vendor/mithril"], function(io, NotebookBackendUsingServer, HashUtils, Push, marked, FileUtils, calculateSHA256, iconsDiscard, mDiscard) {
-    "use strict"
+// define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "vendor/push", "vendor/marked", "FileUtils", "vendor/sha256", "examples/ibis_icons", "vendor/mithril"], function(io, NotebookBackendUsingServer, HashUtils, Push, marked, FileUtils, calculateSHA256, iconsDiscard, mDiscard) {
+"use strict"
 
-    let diagram = {
-        width: 800,
-        height: 500,
-        diagramName: "Untitled IBIS Diagram",
-        elements: []
+import "./vendor/mithril.js"
+import "./examples/ibis_icons.js"
+
+let diagram = {
+    width: 800,
+    height: 500,
+    diagramName: "Untitled IBIS Diagram",
+    elements: []
+}
+
+let currentItemId = ""
+
+let diagramJSON = JSON.stringify(diagram, null, 4)
+
+// tiny stack for connecting items
+let earlierDraggedItem = null
+let laterDraggedItem = null
+
+let draggedItem = null
+let dragStart = {x: 0, y: 0}
+let objectStart = {x: 0, y: 0}
+
+let lastClickPosition = {x: 50, y: 50}
+
+function onmousedownBackground(event) {
+    event.preventDefault()
+    if (draggedItem) return
+    // TODO: Rubber band selection
+}
+
+function onmousedown(element, event) {
+    event.preventDefault()
+    earlierDraggedItem = laterDraggedItem
+    laterDraggedItem = element
+    draggedItem = element
+    dragStart = { x: event.clientX, y: event.clientY }
+    objectStart = { x: element.x, y: element.y }
+}
+
+function onmousemoveBackground(event) {
+    event.preventDefault()
+    if (draggedItem) {
+        const dx = event.clientX - dragStart.x
+        const dy = event.clientY - dragStart.y
+        const newX = objectStart.x + dx
+        const newY = objectStart.y + dy
+        draggedItem.x = newX
+        draggedItem.y = newY
     }
+}
 
-    let currentItemId = ""
-
-    let diagramJSON = JSON.stringify(diagram, null, 4)
-
-    // tiny stack for connecting items
-    let earlierDraggedItem = null
-    let laterDraggedItem = null
-
-    let draggedItem = null
-    let dragStart = {x: 0, y: 0}
-    let objectStart = {x: 0, y: 0}
-
-    let lastClickPosition = {x: 50, y: 50}
-
-    function onmousedownBackground(event) {
-        event.preventDefault()
-        if (draggedItem) return
-        // TODO: Rubber band selection
-    }
-
-    function onmousedown(element, event) {
-        event.preventDefault()
-        earlierDraggedItem = laterDraggedItem
-        laterDraggedItem = element
-        draggedItem = element
-        dragStart = { x: event.clientX, y: event.clientY }
-        objectStart = { x: element.x, y: element.y }
-    }
-
-    function onmousemoveBackground(event) {
-        event.preventDefault()
-        if (draggedItem) {
-            const dx = event.clientX - dragStart.x
-            const dy = event.clientY - dragStart.y
-            const newX = objectStart.x + dx
-            const newY = objectStart.y + dy
-            draggedItem.x = newX
-            draggedItem.y = newY
-        }
-    }
-
-    function onmouseupBackground(event) {
-        event.preventDefault()
-        const rect = event.target.getBoundingClientRect()
-        if (draggedItem) {
-            lastClickPosition = { x: draggedItem.x, y: draggedItem.y }
-            updateJSONFromDiagram()
-        } else {
-            lastClickPosition = { x: event.clientX - rect.left, y: event.clientY - rect.top }
-        }
-        draggedItem = null
-    }
-
-    function onkeydown(event) {
-        console.log("onkeydown", event)
-    }
-
-    function uuid() {
-        // From: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript#2117523
-        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
-            var r = Math.random()*16|0, v = c == "x" ? r : (r&0x3|0x8)
-            return v.toString(16)
-        })
-    }
-
-    function addElement(type) {
-        const name = prompt(type + " name")
-        if (!name) return
-        const x = lastClickPosition.x + 50
-        const y = lastClickPosition.y + 50
-        const element = { type: type, name: name, x: x, y: y, notes: "", id: uuid() }
-        diagram.elements.unshift(element)
-        if (lastClickPosition) {
-            lastClickPosition.x += 50
-            lastClickPosition.y += 50
-        }
-        earlierDraggedItem = laterDraggedItem
-        laterDraggedItem = element
+function onmouseupBackground(event) {
+    event.preventDefault()
+    const rect = event.target.getBoundingClientRect()
+    if (draggedItem) {
+        lastClickPosition = { x: draggedItem.x, y: draggedItem.y }
         updateJSONFromDiagram()
+    } else {
+        lastClickPosition = { x: event.clientX - rect.left, y: event.clientY - rect.top }
     }
+    draggedItem = null
+}
 
-    function addLink() {
-        if (!earlierDraggedItem) return
-        if (!laterDraggedItem) return
-        if (earlierDraggedItem === laterDraggedItem) return
-        laterDraggedItem.parentId = earlierDraggedItem.id
-        updateJSONFromDiagram()
+function onkeydown(event) {
+    console.log("onkeydown", event)
+}
+
+function uuid() {
+    // From: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript#2117523
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
+        var r = Math.random()*16|0, v = c == "x" ? r : (r&0x3|0x8)
+        return v.toString(16)
+    })
+}
+
+function addElement(type) {
+    const name = prompt(type + " name")
+    if (!name) return
+    const x = lastClickPosition.x + 50
+    const y = lastClickPosition.y + 50
+    const element = { type: type, name: name, x: x, y: y, notes: "", id: uuid() }
+    diagram.elements.unshift(element)
+    if (lastClickPosition) {
+        lastClickPosition.x += 50
+        lastClickPosition.y += 50
     }
+    earlierDraggedItem = laterDraggedItem
+    laterDraggedItem = element
+    updateJSONFromDiagram()
+}
 
-    // Need to add undo
+function addLink() {
+    if (!earlierDraggedItem) return
+    if (!laterDraggedItem) return
+    if (earlierDraggedItem === laterDraggedItem) return
+    laterDraggedItem.parentId = earlierDraggedItem.id
+    updateJSONFromDiagram()
+}
 
-    function deleteLink() {
-        if (!laterDraggedItem) return
-        laterDraggedItem.parentId = undefined
-        updateJSONFromDiagram()
+// Need to add undo
+
+function deleteLink() {
+    if (!laterDraggedItem) return
+    laterDraggedItem.parentId = undefined
+    updateJSONFromDiagram()
+}
+
+function deleteElement() {
+    if (!laterDraggedItem) return
+    const index = diagram.elements.indexOf(laterDraggedItem)
+    if (index > -1) {
+        diagram.elements.splice(index, 1)
     }
+    updateJSONFromDiagram()
+}
 
-    function deleteElement() {
-        if (!laterDraggedItem) return
-        const index = diagram.elements.indexOf(laterDraggedItem)
-        if (index > -1) {
-            diagram.elements.splice(index, 1)
-        }
-        updateJSONFromDiagram()
-    }
+function viewLink(element) {
+    const parentId = element.parentId
+    if (!parentId) return []
+    const parent = diagram.elements.find(element => element.id === parentId)
+    if (!parent) return []
 
-    function viewLink(element) {
-        const parentId = element.parentId
-        if (!parentId) return []
-        const parent = diagram.elements.find(element => element.id === parentId)
-        if (!parent) return []
+    const xA = parent.x
+    const yA = parent.y
+    const xB = element.x
+    const yB = element.y
+    const radius = 24
 
-        const xA = parent.x
-        const yA = parent.y
-        const xB = element.x
-        const yB = element.y
-        const radius = 24
+    const d = Math.sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA))
+    const d2 = d - radius
 
-        const d = Math.sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA))
-        const d2 = d - radius
+    const ratio = d2 / d
 
-        const ratio = d2 / d
+    const dx = (xB - xA) * ratio
+    const dy = (yB - yA) * ratio
 
-        const dx = (xB - xA) * ratio
-        const dy = (yB - yA) * ratio
+    const x = xA + dx
+    const y = yA + dy
 
-        const x = xA + dx
-        const y = yA + dy
+    return m("line", {
+        x1: x,
+        y1: y,
+        x2: element.x - dx,
+        y2: element.y - dy,
+        "marker-end": "url(#arrowhead)",
+        stroke: "black",
+        "stroke-width": 1
+    })
+}
 
-        return m("line", {
-            x1: x,
-            y1: y,
-            x2: element.x - dx,
-            y2: element.y - dy,
-            "marker-end": "url(#arrowhead)",
-            stroke: "black",
-            "stroke-width": 1
-        })
-    }
+function viewElement(element) {
+    return [
+        element === laterDraggedItem ?
+            m("text", {x: element.x, y: element.y - 20, "text-anchor": "middle"}, "*") :
+            element === earlierDraggedItem ?
+                m("text", {x: element.x, y: element.y - 20, "text-anchor": "middle"}, "<") :
+                [],
+        m("image", {
+            "xlink:href": CompendiumIcons[element.type + "_png"],
+            x: element.x - 16,
+            y: element.y - 16,
+            width: 32,
+            height: 32,
+            alt: "question",
+            onmousedown: (event) => onmousedown(element, event),
+        }),
+        m("text", {x: element.x, y: element.y + 34, "text-anchor": "middle"}, element.name)
+    ]
+}
 
-    function viewElement(element) {
-        return [
-            element === laterDraggedItem ?
-                m("text", {x: element.x, y: element.y - 20, "text-anchor": "middle"}, "*") :
-                element === earlierDraggedItem ?
-                    m("text", {x: element.x, y: element.y - 20, "text-anchor": "middle"}, "<") :
-                    [],
-            m("image", {
-                "xlink:href": CompendiumIcons[element.type + "_png"],
-                x: element.x - 16,
-                y: element.y - 16,
-                width: 32,
-                height: 32,
-                alt: "question",
-                onmousedown: (event) => onmousedown(element, event),
+function viewArrowhead() {
+    return m("marker", {
+        id: "arrowhead",
+        orient: "auto",
+        markerWidth: 8,
+        markerHeight: 16,
+        refX: 2,
+        refY: 4,
+    }, m("path", { d: "M0,0 V8 L8,4 Z", fill: "black" }))
+}
+
+function updateJSONFromDiagram() {
+    diagramJSON = JSON.stringify(diagram, null, 4)
+}
+
+function updateDiagramFromJSON() {
+    const newDiagram = JSON.parse(diagramJSON)
+    diagram = newDiagram
+}
+
+let isItemPanelDisplayed = false
+
+function viewItemPanel() {
+    const element = laterDraggedItem
+    const disabled = !element
+
+    return m("div.ma1", [
+        m("input[type=checkbox].ma1", {
+            checked: isItemPanelDisplayed,
+            onchange: event => isItemPanelDisplayed = event.target.checked
+        }),
+        "Edit Item",
+        isItemPanelDisplayed ? [
+            m("br"),
+            "Type",
+            m("br"),
+            m("select.ma1", {onchange: event => element.type = event.target.value, disabled},
+                Object.keys(CompendiumIcons).sort().map(key => {
+                    // remove"_png" at end
+                    const type = key.substring(0, key.length - 4)
+                    return m("option", {value: type, selected: element && element.type === type}, type)
+                })
+            ),
+            m("br"),
+            "Name",
+            m("br"),
+            m("input.w-100", {
+                value: element ? element.name : "",
+                oninput: (event) => { element.name = event.target.value; updateJSONFromDiagram() },
+                disabled
             }),
-            m("text", {x: element.x, y: element.y + 34, "text-anchor": "middle"}, element.name)
-        ]
-    }
-
-    function viewArrowhead() {
-        return m("marker", {
-            id: "arrowhead",
-            orient: "auto",
-            markerWidth: 8,
-            markerHeight: 16,
-            refX: 2,
-            refY: 4,
-        }, m("path", { d: "M0,0 V8 L8,4 Z", fill: "black" }))
-    }
-
-    function updateJSONFromDiagram() {
-        diagramJSON = JSON.stringify(diagram, null, 4)
-    }
-
-    function updateDiagramFromJSON() {
-        const newDiagram = JSON.parse(diagramJSON)
-        diagram = newDiagram
-    }
-
-    let isItemPanelDisplayed = false
-
-    function viewItemPanel() {
-        const element = laterDraggedItem
-        const disabled = !element
-
-        return m("div.ma1", [
-            m("input[type=checkbox].ma1", {
-                checked: isItemPanelDisplayed,
-                onchange: event => isItemPanelDisplayed = event.target.checked
+            m("br.ma2"),
+            "Notes",
+            m("br"),
+            m("textarea.w-100", {
+                value: element ? element.notes : "",
+                oninput: (event) => { element.notes = event.target.value; updateJSONFromDiagram() },
+                disabled
             }),
-            "Edit Item",
-            isItemPanelDisplayed ? [
-                m("br"),
-                "Type",
-                m("br"),
-                m("select.ma1", {onchange: event => element.type = event.target.value, disabled},
-                    Object.keys(CompendiumIcons).sort().map(key => {
-                        // remove"_png" at end
-                        const type = key.substring(0, key.length - 4)
-                        return m("option", {value: type, selected: element && element.type === type}, type)
-                    })
-                ),
-                m("br"),
-                "Name",
-                m("br"),
-                m("input.w-100", {
-                    value: element ? element.name : "",
-                    oninput: (event) => { element.name = event.target.value; updateJSONFromDiagram() },
-                    disabled
-                }),
-                m("br.ma2"),
-                "Notes",
-                m("br"),
-                m("textarea.w-100", {
-                    value: element ? element.notes : "",
-                    oninput: (event) => { element.notes = event.target.value; updateJSONFromDiagram() },
-                    disabled
-                }),
-            ] : []
-        ])
-    }
+        ] : []
+    ])
+}
 
-    let isJSONPanelDisplayed = false
+let isJSONPanelDisplayed = false
 
-    function importDiagram() {
-        Twirlip7.FileUtils.loadFromFile((fileName, fileContents) => {
-            if (fileContents) {
-                diagramJSON = fileContents
-                updateDiagramFromJSON()
-                if (diagram.diagramName.toLowerCase().startsWith("untitled")) {
-                    if (fileName.endsWith(".json")) fileName = fileName.substring(0, fileName.length - ".json".length)
-                    diagram.diagramName = fileName
-                }
-                m.redraw()
+function importDiagram() {
+    Twirlip7.FileUtils.loadFromFile((fileName, fileContents) => {
+        if (fileContents) {
+            diagramJSON = fileContents
+            updateDiagramFromJSON()
+            if (diagram.diagramName.toLowerCase().startsWith("untitled")) {
+                if (fileName.endsWith(".json")) fileName = fileName.substring(0, fileName.length - ".json".length)
+                diagram.diagramName = fileName
             }
-        })
-    }
+            m.redraw()
+        }
+    })
+}
 
-    function exportDiagram() {
-        const provisionalFileName = diagram.diagramName
-        Twirlip7.FileUtils.saveToFile(provisionalFileName, diagramJSON, ".json", (fileName) => {
-            diagram.diagramName = fileName
-            updateJSONFromDiagram()
-        })
-    }
+function exportDiagram() {
+    const provisionalFileName = diagram.diagramName
+    Twirlip7.FileUtils.saveToFile(provisionalFileName, diagramJSON, ".json", (fileName) => {
+        diagram.diagramName = fileName
+        updateJSONFromDiagram()
+    })
+}
 
-    function saveDiagram() {
-        if (diagram.diagramName.toLowerCase().startsWith("untitled")) {
-            alert("Please name the diagram first by clicking on the diagram name")
+function saveDiagram() {
+    if (diagram.diagramName.toLowerCase().startsWith("untitled")) {
+        alert("Please name the diagram first by clicking on the diagram name")
+        return
+    }
+    // Next line is extra conversion in case we missed an update somewhere
+    updateJSONFromDiagram()
+    const saveResult = Twirlip7.saveItem({entity: diagram.diagramName, attribute: "contents", value: diagramJSON, derivedFrom: currentItemId})
+    console.log("save result", saveResult)
+    currentItemId = saveResult.id
+}
+
+function loadDiagram() {
+    const diagramName = prompt("Load which diagram name?", diagram.diagramName)
+    if (!diagramName) return
+
+    Twirlip7.findItem({entity: diagramName, attribute: "contents"}).then((items) => {
+        if (items.length === 0) {
+            console.log("item not found", diagramName)
             return
         }
-        // Next line is extra conversion in case we missed an update somewhere
-        updateJSONFromDiagram()
-        const saveResult = Twirlip7.saveItem({entity: diagram.diagramName, attribute: "contents", value: diagramJSON, derivedFrom: currentItemId})
-        console.log("save result", saveResult)
-        currentItemId = saveResult.id
-    }
+        const item = items[0]
+        diagramJSON = item.value
+        updateDiagramFromJSON()
+        m.redraw()
+    })
+}
 
-    function loadDiagram() {
-        const diagramName = prompt("Load which diagram name?", diagram.diagramName)
-        if (!diagramName) return
-
-        Twirlip7.findItem({entity: diagramName, attribute: "contents"}).then((items) => {
-            if (items.length === 0) {
-                console.log("item not found", diagramName)
-                return
-            }
-            const item = items[0]
-            diagramJSON = item.value
-            updateDiagramFromJSON()
-            m.redraw()
-        })
-    }
-
-    function viewJSONPanel() {
-        return m("div.ma1", [
-            m("button.ma1", { onclick: importDiagram }, "Import Diagram"),
-            m("button.ma1", { onclick: exportDiagram }, "Export Diagram"),
-            m("button.ma1", { onclick: saveDiagram }, "Save"),
-            m("button.ma1", { onclick: loadDiagram }, "Load"),
-            m("input[type=checkbox].ma1", {
-                checked: isJSONPanelDisplayed,
-                onchange: event => isJSONPanelDisplayed = event.target.checked
+function viewJSONPanel() {
+    return m("div.ma1", [
+        m("button.ma1", { onclick: importDiagram }, "Import Diagram"),
+        m("button.ma1", { onclick: exportDiagram }, "Export Diagram"),
+        m("button.ma1", { onclick: saveDiagram }, "Save"),
+        m("button.ma1", { onclick: loadDiagram }, "Load"),
+        m("input[type=checkbox].ma1", {
+            checked: isJSONPanelDisplayed,
+            onchange: event => isJSONPanelDisplayed = event.target.checked
+        }),
+        m("span", "Edit Diagram as JSON"),
+        isJSONPanelDisplayed ? [
+            m("br"),
+            m("textarea.w-100", {
+                height: "20rem", value: diagramJSON,
+                oninput: (event) => diagramJSON = event.target.value
             }),
-            m("span", "Edit Diagram as JSON"),
-            isJSONPanelDisplayed ? [
-                m("br"),
-                m("textarea.w-100", {
-                    height: "20rem", value: diagramJSON,
-                    oninput: (event) => diagramJSON = event.target.value
-                }),
-                m("button", { onclick: updateDiagramFromJSON }, "Update Diagram from JSON"),
-            ] : []
-        ])
-    }
+            m("button", { onclick: updateDiagramFromJSON }, "Update Diagram from JSON"),
+        ] : []
+    ])
+}
 
-    function changeDiagramName() {
-        const newDiagramName = prompt("Diagram name?", diagram.diagramName)
-        if (newDiagramName) diagram.diagramName = newDiagramName
-    }
+function changeDiagramName() {
+    const newDiagramName = prompt("Diagram name?", diagram.diagramName)
+    if (newDiagramName) diagram.diagramName = newDiagramName
+}
 
-    // { extraStyling: ".bg-blue.br4", title: () => "IBIS Diagram for: " + diagram.diagramName }
-    function view() {
-        return m("div.bg-blue.br4.pa3",
-            m("span", "Issue Based Information System (IBIS) for Dialogue Mapping"),
-            " -- ",
-            m("span", { onclick: changeDiagramName, title: "Click to change diagram name" }, diagram.diagramName),
-            " ",
-            m("span", {
-                onclick: () => {
-                    diagram.width = prompt("New diagram width?", diagram.width) || diagram.width
-                    updateJSONFromDiagram()
-                },
-                title: "Diagram width -- click to change"
-            }, diagram.width),
-            " X ",
-            m("span", {
-                onclick: () => {
-                    diagram.height = prompt("New diagram height?", diagram.height) || diagram.height
-                    updateJSONFromDiagram()
-                },
-                title: "Diagram height -- click to change"
-            }, diagram.height),
-            m("div.mt1.mb1",
-                m("button.ma1.pa1", { onclick: addElement.bind(null, "issue") },
-                    m("img.v-mid.mr1", { src: CompendiumIcons.issue_png, style: "width: 16px; height: 16px;" }),
-                    "Question"
-                ),
-                m("button.ma1.pa1", { onclick: addElement.bind(null, "position") },
-                    m("img.v-mid.mr1", { src: CompendiumIcons.position_png, style: "width: 16px; height: 16px;" }),
-                    "Idea"
-                ),
-                m("button.ma1.pa1", { onclick: addElement.bind(null, "plus") },
-                    m("img.v-mid.mr1", { src: CompendiumIcons.plus_png, style: "width: 16px; height: 16px;" }),
-                    "Pro"
-                ),
-                m("button.ma1.pa1", { onclick: addElement.bind(null, "minus") },
-                    m("img.v-mid.mr1", { src: CompendiumIcons.minus_png, style: "width: 16px; height: 16px;" }),
-                    "Con"
-                ),
-                m("button.ma1.pa1", { onclick: deleteElement }, "Delete"),
-                m("button.ma1.pa1", { onclick: addLink }, "Link <--*"),
-                m("button.ma1.pa1", { onclick: deleteLink }, "Unlink *"),
+// { extraStyling: ".bg-blue.br4", title: () => "IBIS Diagram for: " + diagram.diagramName }
+function view() {
+    return m("div.bg-blue.br4.pa3",
+        m("span", "Issue Based Information System (IBIS) for Dialogue Mapping"),
+        " -- ",
+        m("span", { onclick: changeDiagramName, title: "Click to change diagram name" }, diagram.diagramName),
+        " ",
+        m("span", {
+            onclick: () => {
+                diagram.width = prompt("New diagram width?", diagram.width) || diagram.width
+                updateJSONFromDiagram()
+            },
+            title: "Diagram width -- click to change"
+        }, diagram.width),
+        " X ",
+        m("span", {
+            onclick: () => {
+                diagram.height = prompt("New diagram height?", diagram.height) || diagram.height
+                updateJSONFromDiagram()
+            },
+            title: "Diagram height -- click to change"
+        }, diagram.height),
+        m("div.mt1.mb1",
+            m("button.ma1.pa1", { onclick: addElement.bind(null, "issue") },
+                m("img.v-mid.mr1", { src: CompendiumIcons.issue_png, style: "width: 16px; height: 16px;" }),
+                "Question"
             ),
-            m("div", { style: "overflow: auto" }, [
-                // on keydown does not seem to work here
-                m("svg.diagram.ba", {
-                    width: diagram.width,
-                    height: diagram.height,
-                    onmousedown: onmousedownBackground,
-                    onmousemove: onmousemoveBackground,
-                    onmouseup: onmouseupBackground,
-                    onkeydown: onkeydown
-                }, [
-                    viewArrowhead(),
-                    diagram.elements.map(element => viewLink(element)),
-                    diagram.elements.map(element => viewElement(element)),
-                ]),
+            m("button.ma1.pa1", { onclick: addElement.bind(null, "position") },
+                m("img.v-mid.mr1", { src: CompendiumIcons.position_png, style: "width: 16px; height: 16px;" }),
+                "Idea"
+            ),
+            m("button.ma1.pa1", { onclick: addElement.bind(null, "plus") },
+                m("img.v-mid.mr1", { src: CompendiumIcons.plus_png, style: "width: 16px; height: 16px;" }),
+                "Pro"
+            ),
+            m("button.ma1.pa1", { onclick: addElement.bind(null, "minus") },
+                m("img.v-mid.mr1", { src: CompendiumIcons.minus_png, style: "width: 16px; height: 16px;" }),
+                "Con"
+            ),
+            m("button.ma1.pa1", { onclick: deleteElement }, "Delete"),
+            m("button.ma1.pa1", { onclick: addLink }, "Link <--*"),
+            m("button.ma1.pa1", { onclick: deleteLink }, "Unlink *"),
+        ),
+        m("div", { style: "overflow: auto" }, [
+            // on keydown does not seem to work here
+            m("svg.diagram.ba", {
+                width: diagram.width,
+                height: diagram.height,
+                onmousedown: onmousedownBackground,
+                onmousemove: onmousemoveBackground,
+                onmouseup: onmouseupBackground,
+                onkeydown: onkeydown
+            }, [
+                viewArrowhead(),
+                diagram.elements.map(element => viewLink(element)),
+                diagram.elements.map(element => viewElement(element)),
             ]),
-            viewItemPanel(),
-            viewJSONPanel(),
-        )
-    }
+        ]),
+        viewItemPanel(),
+        viewJSONPanel(),
+    )
+}
 
-    const TwirlipIbisApp = {
-        view: view
-    }
+const TwirlipIbisApp = {
+    view: view
+}
 
-    m.mount(document.body, TwirlipIbisApp)
-})
+m.mount(document.body, TwirlipIbisApp)
