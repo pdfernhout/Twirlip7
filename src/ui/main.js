@@ -14,7 +14,7 @@ requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingL
 
     const NotebookUsingMemory = Notebook()
     const NotebookUsingLocalStorage = Notebook(NotebookBackendUsingLocalStorage())
-    const NotebookUsingServer = Notebook(NotebookBackendUsingServer())
+    const NotebookUsingServer = Notebook(NotebookBackendUsingServer(m.redraw))
 
     let workspaceView = WorkspaceView(NotebookUsingLocalStorage)
 

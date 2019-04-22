@@ -1,11 +1,12 @@
-define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
+define(["vendor/sha256"], function(sha256) {
     "use strict"
 
     // returns position + 1 for item reference to avoid first item being "0"
-    function NotebookBackendUsingServer(streamId = "common", userId = "anonymous") {
+    function NotebookBackendUsingServer(aRedrawCallback, streamId = "common", userId = "anonymous") {
         let socket = null
         let messagesReceivedCount = 0
         let notebook = null
+        let redrawCallback = aRedrawCallback
 
         function addItem(item) {
             sendInsertItemMessage(item)
@@ -44,7 +45,7 @@ define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
                 console.log("all server data loaded", messagesReceivedCount, new Date().toISOString())
                 notebook.onLoaded()
             }
-            m.redraw()
+            if (redrawCallback) redrawCallback()
         }
 
         function setup(io) {

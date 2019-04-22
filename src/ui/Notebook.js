@@ -1,4 +1,4 @@
-define(["vendor/sha256", "vendor/mithril"], function(sha256, mDiscard) {
+define(["vendor/sha256"], function(sha256) {
     "use strict"
 
     // This elegant style of defining notebooks is "inefficient" of memory

@@ -116,7 +116,7 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
                 addItem: (item, isAlreadyStored) => {}
             }
 
-            const upload = NotebookBackendUsingServer({sha256: null}, userID)
+            const upload = NotebookBackendUsingServer(m.redraw, {sha256: null}, userID)
             upload.connect(uploadResponder)
             upload.setup(io)
             */
@@ -275,7 +275,7 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
 
     startup()
 
-    const backend = NotebookBackendUsingServer({chatRoom}, userID)
+    const backend = NotebookBackendUsingServer(m.redraw, {chatRoom}, userID)
 
     backend.connect(chatRoomResponder)
     backend.setup(io)
