@@ -122,8 +122,6 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
         elements: []
     }
 
-    let currentItemId = ""
-
     let diagramJSON = JSON.stringify(diagram, null, 4)
 
     // tiny stack for connecting items
@@ -133,6 +131,61 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
     let draggedItem = null
     let dragStart = {x: 0, y: 0}
     let objectStart = {x: 0, y: 0}
+
+    let diagramUUID = uuidv4()
+    let userID = localStorage.getItem("userID") || "anonymous"
+
+    const messages = []
+
+    let unsaved = false
+
+    function uuidv4() {
+        // From: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
+        return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+            (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+        )
+    }
+
+    function startup() {
+        diagramUUID = HashUtils.getHashParams()["diagramUUID"] || diagramUUID
+        window.onhashchange = () => updateDiagramUUIDFromHash()
+        updateHashForDiagramUUID()
+    }
+
+    function updateTitleForDiagramUUID() {
+        const title = document.title.split(" -- ")[0]
+        document.title = title + " -- " + diagramUUID
+    }
+
+    function updateDiagramUUIDFromHash() {
+        const hashParams = HashUtils.getHashParams()
+        const newDiagramUUID = hashParams["diagramUUID"]
+        if (newDiagramUUID !== diagramUUID) {
+            diagramUUID = newDiagramUUID
+            backend.configure({ibisDiagram: diagramUUID})
+            updateTitleForDiagramUUID()
+        }
+    }
+
+    function updateHashForDiagramUUID() {
+        const hashParams = HashUtils.getHashParams()
+        hashParams["diagramUUID"] = diagramUUID
+        HashUtils.setHashParams(hashParams)
+        updateTitleForDiagramUUID()
+    }
+
+    function diagramUUIDChange(event) {
+        diagramUUID = event.target.value
+        messages.splice(0)
+        updateHashForDiagramUUID()
+        backend.configure({ibisDiagram: diagramUUID})
+    }
+
+    function userIDChange(event) {
+        userID = event.target.value
+        backend.configure(undefined, userID)
+        localStorage.setItem("userID", userID)
+    }
 
     let lastClickPosition = {x: 50, y: 50}
 
@@ -295,6 +348,7 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
 
     function updateJSONFromDiagram() {
         diagramJSON = JSON.stringify(diagram, null, 4)
+        unsaved = true
     }
 
     function updateDiagramFromJSON() {
@@ -366,6 +420,7 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
         FileUtils.saveToFile(provisionalFileName, diagramJSON, ".json", (fileName) => {
             diagram.diagramName = fileName
             updateJSONFromDiagram()
+            unsaved = false
         })
     }
 
@@ -374,14 +429,13 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
             alert("Please name the diagram first by clicking on the diagram name")
             return
         }
-        // Next line is extra conversion in case we missed an update somewhere
-        updateJSONFromDiagram()
-        const saveResult = Twirlip7.saveItem({entity: diagram.diagramName, attribute: "contents", value: diagramJSON, derivedFrom: currentItemId})
-        console.log("save result", saveResult)
-        currentItemId = saveResult.id
+        const timestamp = new Date().toISOString()
+        backend.addItem({ diagramUUID, diagram, userID, timestamp })
+        unsaved = false
+        console.log("sent to server", diagram)
     }
 
-    function loadDiagram() {
+    /*function loadDiagram() {
         const diagramName = prompt("Load which diagram name?", diagram.diagramName)
         if (!diagramName) return
 
@@ -396,13 +450,14 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
             m.redraw()
         })
     }
+    */
 
     function viewJSONPanel() {
         return m("div.ma1", [
             m("button.ma1", { onclick: importDiagram }, "Import Diagram"),
             m("button.ma1", { onclick: exportDiagram }, "Export Diagram"),
-            m("button.ma1", { onclick: saveDiagram }, "Save"),
-            m("button.ma1", { onclick: loadDiagram }, "Load"),
+            m("button.ma1", { onclick: saveDiagram }, "Save to server"),
+            // m("button.ma1", { onclick: loadDiagram }, "Load"),
             m("input[type=checkbox].ma1", {
                 checked: isJSONPanelDisplayed,
                 onchange: event => isJSONPanelDisplayed = event.target.checked
@@ -447,6 +502,7 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
                     },
                     title: "Diagram height -- click to change"
                 }, diagram.height),
+                unsaved ? " [UNSAVED]" : []
             ),
             m("div.mt1.mb1.flex-none",
                 m("button.ma1.pa1", { onclick: addElement.bind(null, "issue") },
@@ -492,6 +548,28 @@ define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "v
     const TwirlipIbisApp = {
         view: view
     }
+
+    const diagramResponder = {
+        onLoaded: () => console.log("onLoaded"),
+        addItem: (item, isAlreadyStored) => {
+            console.log("addItem", item)
+            messages.push(item)
+            if (unsaved) {
+                const result = confirm("The diagram has been changed elsewhere but there are unsaved changes here.\nDiscard local changes and use the new version from the server?")
+                if (!result) return
+            }
+            diagram = item.diagram
+            diagramJSON = JSON.stringify(diagram, null, 4)
+            unsaved = false
+        }
+    }
+
+    startup()
+
+    const backend = NotebookBackendUsingServer(m.redraw, {ibisDiagram: diagramUUID}, userID)
+
+    backend.connect(diagramResponder)
+    backend.setup(io)
 
     m.mount(document.body, TwirlipIbisApp)
 
