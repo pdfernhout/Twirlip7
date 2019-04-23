@@ -109,468 +109,476 @@ After pasting, load it using "Update Diagram from JSON" button.
 **************************************/
 
 /* eslint-disable no-console */
-/* jshint maxerr: 100000 */
-/* global CompendiumIcons, m, window, prompt, confirm */
+/* global CompendiumIcons, m, window, prompt, confirm, io */
 
-define(["/socket.io/socket.io.js", "NotebookBackendUsingServer", "HashUtils", "vendor/push", "vendor/marked", "FileUtils", "vendor/sha256", "examples/ibis_icons", "vendor/mithril"], function(io, NotebookBackendUsingServer, HashUtils, Push, marked, FileUtils, calculateSHA256, iconsDiscard, mDiscard) {
-    "use strict"
+"use strict"
 
-    let diagram = {
-        width: 800,
-        height: 500,
-        diagramName: "Untitled IBIS Diagram",
-        elements: []
-    }
+// Assumes socket.io loaded from script tag to define io
 
-    let diagramJSON = JSON.stringify(diagram, null, 4)
+import { NotebookBackendUsingServer } from "./NotebookBackendUsingServer.js"
+import { HashUtils } from "./HashUtils.js"
+import { FileUtils } from "./FileUtils.js"
 
-    // tiny stack for connecting items
-    let earlierDraggedItem = null
-    let laterDraggedItem = null
+// defines CompendiumIcons
+import "./examples/ibis_icons.js"
 
-    let draggedItem = null
-    let dragStart = {x: 0, y: 0}
-    let objectStart = {x: 0, y: 0}
+// defines m
+import "./vendor/mithril.js"
 
-    let diagramUUID = uuidv4()
-    let userID = localStorage.getItem("userID") || "anonymous"
+let diagram = {
+    width: 800,
+    height: 500,
+    diagramName: "Untitled IBIS Diagram",
+    elements: []
+}
 
-    const messages = []
+let diagramJSON = JSON.stringify(diagram, null, 4)
 
-    let unsaved = false
+// tiny stack for connecting items
+let earlierDraggedItem = null
+let laterDraggedItem = null
 
-    function uuidv4() {
-        // From: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
-        return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-            (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
-        )
-    }
+let draggedItem = null
+let dragStart = {x: 0, y: 0}
+let objectStart = {x: 0, y: 0}
 
-    function startup() {
-        diagramUUID = HashUtils.getHashParams()["diagramUUID"] || diagramUUID
-        window.onhashchange = () => updateDiagramUUIDFromHash()
-        updateHashForDiagramUUID()
-    }
+let diagramUUID = uuidv4()
+let userID = localStorage.getItem("userID") || "anonymous"
 
-    function updateTitleForDiagramUUID() {
-        const title = document.title.split(" -- ")[0]
-        document.title = title + " -- " + diagramUUID
-    }
+const messages = []
 
-    function updateDiagramUUIDFromHash() {
-        const hashParams = HashUtils.getHashParams()
-        const newDiagramUUID = hashParams["diagramUUID"]
-        if (newDiagramUUID !== diagramUUID) {
-            diagramUUID = newDiagramUUID
-            backend.configure({ibisDiagram: diagramUUID})
-            updateTitleForDiagramUUID()
-        }
-    }
+let unsaved = false
 
-    function updateHashForDiagramUUID() {
-        const hashParams = HashUtils.getHashParams()
-        hashParams["diagramUUID"] = diagramUUID
-        HashUtils.setHashParams(hashParams)
+function uuidv4() {
+    // From: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
+    return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+        (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+    )
+}
+
+function startup() {
+    diagramUUID = HashUtils.getHashParams()["diagramUUID"] || diagramUUID
+    window.onhashchange = () => updateDiagramUUIDFromHash()
+    updateHashForDiagramUUID()
+}
+
+function updateTitleForDiagramUUID() {
+    const title = document.title.split(" -- ")[0]
+    document.title = title + " -- " + diagramUUID
+}
+
+function updateDiagramUUIDFromHash() {
+    const hashParams = HashUtils.getHashParams()
+    const newDiagramUUID = hashParams["diagramUUID"]
+    if (newDiagramUUID !== diagramUUID) {
+        diagramUUID = newDiagramUUID
+        backend.configure({ibisDiagram: diagramUUID})
         updateTitleForDiagramUUID()
     }
+}
 
-    function diagramUUIDChange(event) {
-        diagramUUID = event.target.value
-        messages.splice(0)
-        updateHashForDiagramUUID()
-        backend.configure({ibisDiagram: diagramUUID})
+function updateHashForDiagramUUID() {
+    const hashParams = HashUtils.getHashParams()
+    hashParams["diagramUUID"] = diagramUUID
+    HashUtils.setHashParams(hashParams)
+    updateTitleForDiagramUUID()
+}
+
+function diagramUUIDChange(event) {
+    diagramUUID = event.target.value
+    messages.splice(0)
+    updateHashForDiagramUUID()
+    backend.configure({ibisDiagram: diagramUUID})
+}
+
+function userIDChange(event) {
+    userID = event.target.value
+    backend.configure(undefined, userID)
+    localStorage.setItem("userID", userID)
+}
+
+let lastClickPosition = {x: 50, y: 50}
+
+function onmousedownBackground(event) {
+    event.preventDefault()
+    if (draggedItem) return
+    // TODO: Rubber band selection
+}
+
+function onmousedown(element, event) {
+    event.preventDefault()
+    earlierDraggedItem = laterDraggedItem
+    laterDraggedItem = element
+    draggedItem = element
+    dragStart = { x: event.clientX, y: event.clientY }
+    objectStart = { x: element.x, y: element.y }
+}
+
+function onmousemoveBackground(event) {
+    event.preventDefault()
+    if (draggedItem) {
+        const dx = event.clientX - dragStart.x
+        const dy = event.clientY - dragStart.y
+        const newX = objectStart.x + dx
+        const newY = objectStart.y + dy
+        draggedItem.x = newX
+        draggedItem.y = newY
     }
+}
 
-    function userIDChange(event) {
-        userID = event.target.value
-        backend.configure(undefined, userID)
-        localStorage.setItem("userID", userID)
-    }
-
-    let lastClickPosition = {x: 50, y: 50}
-
-    function onmousedownBackground(event) {
-        event.preventDefault()
-        if (draggedItem) return
-        // TODO: Rubber band selection
-    }
-
-    function onmousedown(element, event) {
-        event.preventDefault()
-        earlierDraggedItem = laterDraggedItem
-        laterDraggedItem = element
-        draggedItem = element
-        dragStart = { x: event.clientX, y: event.clientY }
-        objectStart = { x: element.x, y: element.y }
-    }
-
-    function onmousemoveBackground(event) {
-        event.preventDefault()
-        if (draggedItem) {
-            const dx = event.clientX - dragStart.x
-            const dy = event.clientY - dragStart.y
-            const newX = objectStart.x + dx
-            const newY = objectStart.y + dy
-            draggedItem.x = newX
-            draggedItem.y = newY
-        }
-    }
-
-    function onmouseupBackground(event) {
-        event.preventDefault()
-        const rect = event.target.getBoundingClientRect()
-        if (draggedItem) {
-            lastClickPosition = { x: draggedItem.x, y: draggedItem.y }
-            updateJSONFromDiagram()
-        } else {
-            lastClickPosition = { x: event.clientX - rect.left, y: event.clientY - rect.top }
-        }
-        draggedItem = null
-    }
-
-    function onkeydown(event) {
-        console.log("onkeydown", event)
-    }
-
-    function uuid() {
-        // From: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript#2117523
-        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
-            var r = Math.random()*16|0, v = c == "x" ? r : (r&0x3|0x8)
-            return v.toString(16)
-        })
-    }
-
-    function addElement(type) {
-        const name = prompt(type + " name")
-        if (!name) return
-        const x = lastClickPosition.x + 50
-        const y = lastClickPosition.y + 50
-        const element = { type: type, name: name, x: x, y: y, notes: "", id: uuid() }
-        diagram.elements.unshift(element)
-        if (lastClickPosition) {
-            lastClickPosition.x += 50
-            lastClickPosition.y += 50
-        }
-        earlierDraggedItem = laterDraggedItem
-        laterDraggedItem = element
+function onmouseupBackground(event) {
+    event.preventDefault()
+    const rect = event.target.getBoundingClientRect()
+    if (draggedItem) {
+        lastClickPosition = { x: draggedItem.x, y: draggedItem.y }
         updateJSONFromDiagram()
+    } else {
+        lastClickPosition = { x: event.clientX - rect.left, y: event.clientY - rect.top }
     }
+    draggedItem = null
+}
 
-    function addLink() {
-        if (!earlierDraggedItem) return
-        if (!laterDraggedItem) return
-        if (earlierDraggedItem === laterDraggedItem) return
-        laterDraggedItem.parentId = earlierDraggedItem.id
-        updateJSONFromDiagram()
+function onkeydown(event) {
+    console.log("onkeydown", event)
+}
+
+function uuid() {
+    // From: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript#2117523
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
+        var r = Math.random()*16|0, v = c == "x" ? r : (r&0x3|0x8)
+        return v.toString(16)
+    })
+}
+
+function addElement(type) {
+    const name = prompt(type + " name")
+    if (!name) return
+    const x = lastClickPosition.x + 50
+    const y = lastClickPosition.y + 50
+    const element = { type: type, name: name, x: x, y: y, notes: "", id: uuid() }
+    diagram.elements.unshift(element)
+    if (lastClickPosition) {
+        lastClickPosition.x += 50
+        lastClickPosition.y += 50
     }
+    earlierDraggedItem = laterDraggedItem
+    laterDraggedItem = element
+    updateJSONFromDiagram()
+}
 
-    // Need to add undo
+function addLink() {
+    if (!earlierDraggedItem) return
+    if (!laterDraggedItem) return
+    if (earlierDraggedItem === laterDraggedItem) return
+    laterDraggedItem.parentId = earlierDraggedItem.id
+    updateJSONFromDiagram()
+}
 
-    function deleteLink() {
-        if (!laterDraggedItem) return
-        laterDraggedItem.parentId = undefined
-        updateJSONFromDiagram()
+// Need to add undo
+
+function deleteLink() {
+    if (!laterDraggedItem) return
+    laterDraggedItem.parentId = undefined
+    updateJSONFromDiagram()
+}
+
+function deleteElement() {
+    if (!laterDraggedItem) return
+    const index = diagram.elements.indexOf(laterDraggedItem)
+    if (index > -1) {
+        diagram.elements.splice(index, 1)
     }
+    updateJSONFromDiagram()
+}
 
-    function deleteElement() {
-        if (!laterDraggedItem) return
-        const index = diagram.elements.indexOf(laterDraggedItem)
-        if (index > -1) {
-            diagram.elements.splice(index, 1)
-        }
-        updateJSONFromDiagram()
-    }
+function viewLink(element) {
+    const parentId = element.parentId
+    if (!parentId) return []
+    const parent = diagram.elements.find(element => element.id === parentId)
+    if (!parent) return []
 
-    function viewLink(element) {
-        const parentId = element.parentId
-        if (!parentId) return []
-        const parent = diagram.elements.find(element => element.id === parentId)
-        if (!parent) return []
+    const xA = parent.x
+    const yA = parent.y
+    const xB = element.x
+    const yB = element.y
+    const radius = 24
 
-        const xA = parent.x
-        const yA = parent.y
-        const xB = element.x
-        const yB = element.y
-        const radius = 24
+    const d = Math.sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA))
+    const d2 = d - radius
 
-        const d = Math.sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA))
-        const d2 = d - radius
+    const ratio = d2 / d
 
-        const ratio = d2 / d
+    const dx = (xB - xA) * ratio
+    const dy = (yB - yA) * ratio
 
-        const dx = (xB - xA) * ratio
-        const dy = (yB - yA) * ratio
+    const x = xA + dx
+    const y = yA + dy
 
-        const x = xA + dx
-        const y = yA + dy
+    return m("line", {
+        x1: x,
+        y1: y,
+        x2: element.x - dx,
+        y2: element.y - dy,
+        "marker-end": "url(#arrowhead)",
+        stroke: "black",
+        "stroke-width": 1
+    })
+}
 
-        return m("line", {
-            x1: x,
-            y1: y,
-            x2: element.x - dx,
-            y2: element.y - dy,
-            "marker-end": "url(#arrowhead)",
-            stroke: "black",
-            "stroke-width": 1
-        })
-    }
+function viewElement(element) {
+    return [
+        element === laterDraggedItem ?
+            m("text", {x: element.x, y: element.y - 20, "text-anchor": "middle"}, "*") :
+            element === earlierDraggedItem ?
+                m("text", {x: element.x, y: element.y - 20, "text-anchor": "middle"}, "<") :
+                [],
+        m("image", {
+            "xlink:href": CompendiumIcons[element.type + "_png"],
+            x: element.x - 16,
+            y: element.y - 16,
+            width: 32,
+            height: 32,
+            alt: "question",
+            onmousedown: (event) => onmousedown(element, event),
+        }),
+        m("text", {x: element.x, y: element.y + 34, "text-anchor": "middle"}, element.name)
+    ]
+}
 
-    function viewElement(element) {
-        return [
-            element === laterDraggedItem ?
-                m("text", {x: element.x, y: element.y - 20, "text-anchor": "middle"}, "*") :
-                element === earlierDraggedItem ?
-                    m("text", {x: element.x, y: element.y - 20, "text-anchor": "middle"}, "<") :
-                    [],
-            m("image", {
-                "xlink:href": CompendiumIcons[element.type + "_png"],
-                x: element.x - 16,
-                y: element.y - 16,
-                width: 32,
-                height: 32,
-                alt: "question",
-                onmousedown: (event) => onmousedown(element, event),
+function viewArrowhead() {
+    return m("marker", {
+        id: "arrowhead",
+        orient: "auto",
+        markerWidth: 8,
+        markerHeight: 16,
+        refX: 2,
+        refY: 4,
+    }, m("path", { d: "M0,0 V8 L8,4 Z", fill: "black" }))
+}
+
+function updateJSONFromDiagram() {
+    diagramJSON = JSON.stringify(diagram, null, 4)
+    unsaved = true
+}
+
+function updateDiagramFromJSON() {
+    const newDiagram = JSON.parse(diagramJSON)
+    diagram = newDiagram
+}
+
+let isItemPanelDisplayed = false
+
+function viewItemPanel() {
+    const element = laterDraggedItem
+    const disabled = !element
+
+    return m("div.ma1", [
+        m("input[type=checkbox].ma1", {
+            checked: isItemPanelDisplayed,
+            onchange: event => isItemPanelDisplayed = event.target.checked
+        }),
+        "Edit Item",
+        isItemPanelDisplayed ? [
+            m("br"),
+            "Type",
+            m("br"),
+            m("select.ma1", {onchange: event => element.type = event.target.value, disabled},
+                Object.keys(CompendiumIcons).sort().map(key => {
+                    // remove"_png" at end
+                    const type = key.substring(0, key.length - 4)
+                    return m("option", {value: type, selected: element && element.type === type}, type)
+                })
+            ),
+            m("br"),
+            "Name",
+            m("br"),
+            m("input.w-100", {
+                value: element ? element.name : "",
+                oninput: (event) => { element.name = event.target.value; updateJSONFromDiagram() },
+                disabled
             }),
-            m("text", {x: element.x, y: element.y + 34, "text-anchor": "middle"}, element.name)
-        ]
-    }
-
-    function viewArrowhead() {
-        return m("marker", {
-            id: "arrowhead",
-            orient: "auto",
-            markerWidth: 8,
-            markerHeight: 16,
-            refX: 2,
-            refY: 4,
-        }, m("path", { d: "M0,0 V8 L8,4 Z", fill: "black" }))
-    }
-
-    function updateJSONFromDiagram() {
-        diagramJSON = JSON.stringify(diagram, null, 4)
-        unsaved = true
-    }
-
-    function updateDiagramFromJSON() {
-        const newDiagram = JSON.parse(diagramJSON)
-        diagram = newDiagram
-    }
-
-    let isItemPanelDisplayed = false
-
-    function viewItemPanel() {
-        const element = laterDraggedItem
-        const disabled = !element
-
-        return m("div.ma1", [
-            m("input[type=checkbox].ma1", {
-                checked: isItemPanelDisplayed,
-                onchange: event => isItemPanelDisplayed = event.target.checked
+            m("br.ma2"),
+            "Notes",
+            m("br"),
+            m("textarea.w-100", {
+                value: element ? element.notes : "",
+                oninput: (event) => { element.notes = event.target.value; updateJSONFromDiagram() },
+                disabled
             }),
-            "Edit Item",
-            isItemPanelDisplayed ? [
-                m("br"),
-                "Type",
-                m("br"),
-                m("select.ma1", {onchange: event => element.type = event.target.value, disabled},
-                    Object.keys(CompendiumIcons).sort().map(key => {
-                        // remove"_png" at end
-                        const type = key.substring(0, key.length - 4)
-                        return m("option", {value: type, selected: element && element.type === type}, type)
-                    })
-                ),
-                m("br"),
-                "Name",
-                m("br"),
-                m("input.w-100", {
-                    value: element ? element.name : "",
-                    oninput: (event) => { element.name = event.target.value; updateJSONFromDiagram() },
-                    disabled
-                }),
-                m("br.ma2"),
-                "Notes",
-                m("br"),
-                m("textarea.w-100", {
-                    value: element ? element.notes : "",
-                    oninput: (event) => { element.notes = event.target.value; updateJSONFromDiagram() },
-                    disabled
-                }),
-            ] : []
-        ])
-    }
+        ] : []
+    ])
+}
 
-    let isJSONPanelDisplayed = false
+let isJSONPanelDisplayed = false
 
-    function importDiagram() {
-        FileUtils.loadFromFile((fileName, fileContents) => {
-            if (fileContents) {
-                diagramJSON = fileContents
-                updateDiagramFromJSON()
-                if (diagram.diagramName.toLowerCase().startsWith("untitled")) {
-                    if (fileName.endsWith(".json")) fileName = fileName.substring(0, fileName.length - ".json".length)
-                    diagram.diagramName = fileName
-                }
-                m.redraw()
+function importDiagram() {
+    FileUtils.loadFromFile((fileName, fileContents) => {
+        if (fileContents) {
+            diagramJSON = fileContents
+            updateDiagramFromJSON()
+            if (diagram.diagramName.toLowerCase().startsWith("untitled")) {
+                if (fileName.endsWith(".json")) fileName = fileName.substring(0, fileName.length - ".json".length)
+                diagram.diagramName = fileName
             }
-        })
-    }
+            m.redraw()
+        }
+    })
+}
 
-    function exportDiagram() {
-        const provisionalFileName = diagram.diagramName
-        FileUtils.saveToFile(provisionalFileName, diagramJSON, ".json", (fileName) => {
-            diagram.diagramName = fileName
-            updateJSONFromDiagram()
-            unsaved = false
-        })
-    }
+function exportDiagram() {
+    const provisionalFileName = diagram.diagramName
+    FileUtils.saveToFile(provisionalFileName, diagramJSON, ".json", (fileName) => {
+        diagram.diagramName = fileName
+        updateJSONFromDiagram()
+        unsaved = false
+    })
+}
 
-    function saveDiagram() {
-        if (diagram.diagramName.toLowerCase().startsWith("untitled")) {
-            alert("Please name the diagram first by clicking on the diagram name")
+function saveDiagram() {
+    if (diagram.diagramName.toLowerCase().startsWith("untitled")) {
+        alert("Please name the diagram first by clicking on the diagram name")
+        return
+    }
+    const timestamp = new Date().toISOString()
+    backend.addItem({ diagramUUID, diagram, userID, timestamp })
+    unsaved = false
+    console.log("sent to server", diagram)
+}
+
+/*function loadDiagram() {
+    const diagramName = prompt("Load which diagram name?", diagram.diagramName)
+    if (!diagramName) return
+
+    Twirlip7.findItem({entity: diagramName, attribute: "contents"}).then((items) => {
+        if (items.length === 0) {
+            console.log("item not found", diagramName)
             return
         }
-        const timestamp = new Date().toISOString()
-        backend.addItem({ diagramUUID, diagram, userID, timestamp })
-        unsaved = false
-        console.log("sent to server", diagram)
-    }
+        const item = items[0]
+        diagramJSON = item.value
+        updateDiagramFromJSON()
+        m.redraw()
+    })
+}
+*/
 
-    /*function loadDiagram() {
-        const diagramName = prompt("Load which diagram name?", diagram.diagramName)
-        if (!diagramName) return
-
-        Twirlip7.findItem({entity: diagramName, attribute: "contents"}).then((items) => {
-            if (items.length === 0) {
-                console.log("item not found", diagramName)
-                return
-            }
-            const item = items[0]
-            diagramJSON = item.value
-            updateDiagramFromJSON()
-            m.redraw()
-        })
-    }
-    */
-
-    function viewJSONPanel() {
-        return m("div.ma1", [
-            m("button.ma1", { onclick: importDiagram }, "Import Diagram"),
-            m("button.ma1", { onclick: exportDiagram }, "Export Diagram"),
-            m("button.ma1", { onclick: saveDiagram }, "Save to server"),
-            // m("button.ma1", { onclick: loadDiagram }, "Load"),
-            m("input[type=checkbox].ma1", {
-                checked: isJSONPanelDisplayed,
-                onchange: event => isJSONPanelDisplayed = event.target.checked
+function viewJSONPanel() {
+    return m("div.ma1", [
+        m("button.ma1", { onclick: importDiagram }, "Import Diagram"),
+        m("button.ma1", { onclick: exportDiagram }, "Export Diagram"),
+        m("button.ma1", { onclick: saveDiagram }, "Save to server"),
+        // m("button.ma1", { onclick: loadDiagram }, "Load"),
+        m("input[type=checkbox].ma1", {
+            checked: isJSONPanelDisplayed,
+            onchange: event => isJSONPanelDisplayed = event.target.checked
+        }),
+        m("span", "Edit Diagram as JSON"),
+        isJSONPanelDisplayed ? [
+            m("br"),
+            m("textarea.w-100", {
+                height: "20rem", value: diagramJSON,
+                oninput: (event) => diagramJSON = event.target.value
             }),
-            m("span", "Edit Diagram as JSON"),
-            isJSONPanelDisplayed ? [
-                m("br"),
-                m("textarea.w-100", {
-                    height: "20rem", value: diagramJSON,
-                    oninput: (event) => diagramJSON = event.target.value
-                }),
-                m("button", { onclick: updateDiagramFromJSON }, "Update Diagram from JSON"),
-            ] : []
-        ])
-    }
+            m("button", { onclick: updateDiagramFromJSON }, "Update Diagram from JSON"),
+        ] : []
+    ])
+}
 
-    function changeDiagramName() {
-        const newDiagramName = prompt("Diagram name?", diagram.diagramName)
-        if (newDiagramName) diagram.diagramName = newDiagramName
-    }
+function changeDiagramName() {
+    const newDiagramName = prompt("Diagram name?", diagram.diagramName)
+    if (newDiagramName) diagram.diagramName = newDiagramName
+}
 
-    // { extraStyling: ".bg-blue.br4", title: () => "IBIS Diagram for: " + diagram.diagramName }
-    function view() {
-        return m("div.bg-blue.br4.pa3.h-100.w-100.flex.flex-column.overflow-hidden",
-            m("div.flex-none",
-                m("span", "Issue Based Information System (IBIS) for Dialogue Mapping"),
-                " -- ",
-                m("span", { onclick: changeDiagramName, title: "Click to change diagram name" }, diagram.diagramName),
-                " ",
-                m("span", {
-                    onclick: () => {
-                        diagram.width = prompt("New diagram width?", diagram.width) || diagram.width
-                        updateJSONFromDiagram()
-                    },
-                    title: "Diagram width -- click to change"
-                }, diagram.width),
-                " X ",
-                m("span", {
-                    onclick: () => {
-                        diagram.height = prompt("New diagram height?", diagram.height) || diagram.height
-                        updateJSONFromDiagram()
-                    },
-                    title: "Diagram height -- click to change"
-                }, diagram.height),
-                unsaved ? " [UNSAVED]" : []
+// { extraStyling: ".bg-blue.br4", title: () => "IBIS Diagram for: " + diagram.diagramName }
+function view() {
+    return m("div.bg-blue.br4.pa3.h-100.w-100.flex.flex-column.overflow-hidden",
+        m("div.flex-none",
+            m("span", "Issue Based Information System (IBIS) for Dialogue Mapping"),
+            " -- ",
+            m("span", { onclick: changeDiagramName, title: "Click to change diagram name" }, diagram.diagramName),
+            " ",
+            m("span", {
+                onclick: () => {
+                    diagram.width = prompt("New diagram width?", diagram.width) || diagram.width
+                    updateJSONFromDiagram()
+                },
+                title: "Diagram width -- click to change"
+            }, diagram.width),
+            " X ",
+            m("span", {
+                onclick: () => {
+                    diagram.height = prompt("New diagram height?", diagram.height) || diagram.height
+                    updateJSONFromDiagram()
+                },
+                title: "Diagram height -- click to change"
+            }, diagram.height),
+            unsaved ? " [UNSAVED]" : []
+        ),
+        m("div.mt1.mb1.flex-none",
+            m("button.ma1.pa1", { onclick: addElement.bind(null, "issue") },
+                m("img.v-mid.mr1", { src: CompendiumIcons.issue_png, style: "width: 16px; height: 16px;" }),
+                "Question"
             ),
-            m("div.mt1.mb1.flex-none",
-                m("button.ma1.pa1", { onclick: addElement.bind(null, "issue") },
-                    m("img.v-mid.mr1", { src: CompendiumIcons.issue_png, style: "width: 16px; height: 16px;" }),
-                    "Question"
-                ),
-                m("button.ma1.pa1", { onclick: addElement.bind(null, "position") },
-                    m("img.v-mid.mr1", { src: CompendiumIcons.position_png, style: "width: 16px; height: 16px;" }),
-                    "Idea"
-                ),
-                m("button.ma1.pa1", { onclick: addElement.bind(null, "plus") },
-                    m("img.v-mid.mr1", { src: CompendiumIcons.plus_png, style: "width: 16px; height: 16px;" }),
-                    "Pro"
-                ),
-                m("button.ma1.pa1", { onclick: addElement.bind(null, "minus") },
-                    m("img.v-mid.mr1", { src: CompendiumIcons.minus_png, style: "width: 16px; height: 16px;" }),
-                    "Con"
-                ),
-                m("button.ma1.pa1", { onclick: deleteElement }, "Delete"),
-                m("button.ma1.pa1", { onclick: addLink }, "Link <--*"),
-                m("button.ma1.pa1", { onclick: deleteLink }, "Unlink *"),
+            m("button.ma1.pa1", { onclick: addElement.bind(null, "position") },
+                m("img.v-mid.mr1", { src: CompendiumIcons.position_png, style: "width: 16px; height: 16px;" }),
+                "Idea"
             ),
-            m("div.flex-auto.overflow-auto", [
-                // on keydown does not seem to work here
-                m("svg.diagram.ba", {
-                    width: diagram.width,
-                    height: diagram.height,
-                    onmousedown: onmousedownBackground,
-                    onmousemove: onmousemoveBackground,
-                    onmouseup: onmouseupBackground,
-                    onkeydown: onkeydown
-                }, [
-                    viewArrowhead(),
-                    diagram.elements.map(element => viewLink(element)),
-                    diagram.elements.map(element => viewElement(element)),
-                ]),
+            m("button.ma1.pa1", { onclick: addElement.bind(null, "plus") },
+                m("img.v-mid.mr1", { src: CompendiumIcons.plus_png, style: "width: 16px; height: 16px;" }),
+                "Pro"
+            ),
+            m("button.ma1.pa1", { onclick: addElement.bind(null, "minus") },
+                m("img.v-mid.mr1", { src: CompendiumIcons.minus_png, style: "width: 16px; height: 16px;" }),
+                "Con"
+            ),
+            m("button.ma1.pa1", { onclick: deleteElement }, "Delete"),
+            m("button.ma1.pa1", { onclick: addLink }, "Link <--*"),
+            m("button.ma1.pa1", { onclick: deleteLink }, "Unlink *"),
+        ),
+        m("div.flex-auto.overflow-auto", [
+            // on keydown does not seem to work here
+            m("svg.diagram.ba", {
+                width: diagram.width,
+                height: diagram.height,
+                onmousedown: onmousedownBackground,
+                onmousemove: onmousemoveBackground,
+                onmouseup: onmouseupBackground,
+                onkeydown: onkeydown
+            }, [
+                viewArrowhead(),
+                diagram.elements.map(element => viewLink(element)),
+                diagram.elements.map(element => viewElement(element)),
             ]),
-            viewItemPanel(),
-            viewJSONPanel(),
-        )
-    }
+        ]),
+        viewItemPanel(),
+        viewJSONPanel(),
+    )
+}
 
-    const TwirlipIbisApp = {
-        view: view
-    }
+const TwirlipIbisApp = {
+    view: view
+}
 
-    const diagramResponder = {
-        onLoaded: () => console.log("onLoaded"),
-        addItem: (item, isAlreadyStored) => {
-            console.log("addItem", item)
-            messages.push(item)
-            if (unsaved) {
-                const result = confirm("The diagram has been changed elsewhere but there are unsaved changes here.\nDiscard local changes and use the new version from the server?")
-                if (!result) return
-            }
-            diagram = item.diagram
-            diagramJSON = JSON.stringify(diagram, null, 4)
-            unsaved = false
+const diagramResponder = {
+    onLoaded: () => console.log("onLoaded"),
+    addItem: (item, isAlreadyStored) => {
+        console.log("addItem", item)
+        messages.push(item)
+        if (unsaved) {
+            const result = confirm("The diagram has been changed elsewhere but there are unsaved changes here.\nDiscard local changes and use the new version from the server?")
+            if (!result) return
         }
+        diagram = item.diagram
+        diagramJSON = JSON.stringify(diagram, null, 4)
+        unsaved = false
     }
+}
 
-    startup()
+startup()
 
-    const backend = NotebookBackendUsingServer(m.redraw, {ibisDiagram: diagramUUID}, userID)
+const backend = NotebookBackendUsingServer(m.redraw, {ibisDiagram: diagramUUID}, userID)
 
-    backend.connect(diagramResponder)
-    backend.setup(io)
+backend.connect(diagramResponder)
+backend.setup(io)
 
-    m.mount(document.body, TwirlipIbisApp)
-
-})
+m.mount(document.body, TwirlipIbisApp)

@@ -1,22 +1,34 @@
-requirejs.config({
-    paths: { ace: ["vendor/ace"] },
-    bundles: {
-        "vendor/ace/ext-modelist": ["ace/ext/modelist"]
-    }
-})
+"use strict"
 
-requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingLocalStorage", "NotebookBackendUsingServer", "FileUtils", "CanonicalJSON"], function(mDiscardAsMadeGlobal, WorkspaceView, Notebook, NotebookBackendUsingLocalStorage, NotebookBackendUsingServer, FileUtils, CanonicalJSON) {
-    "use strict"
+/* global location, ace, io */
 
-    /* global location */
+// Assumes ace is imported from script tag with noconflict version
 
-    let initialKeyToGoTo = null
+// Assumes io is imported from socket.io
 
-    const NotebookUsingMemory = Notebook()
-    const NotebookUsingLocalStorage = Notebook(NotebookBackendUsingLocalStorage())
-    const NotebookUsingServer = Notebook(NotebookBackendUsingServer(m.redraw))
+// Mithril only needs to be imported once in the application as it sets a global "m"
+import "./vendor/mithril.js"
 
-    let workspaceView = WorkspaceView(NotebookUsingLocalStorage)
+// sha256 only needs to be imported once in the application as it sets a global sha256
+import "./vendor/sha256.js"
+
+import { WorkspaceView } from "./WorkspaceView.js"
+import { Notebook } from "./Notebook.js"
+import { NotebookBackendUsingLocalStorage } from "./NotebookBackendUsingLocalStorage.js"
+import { NotebookBackendUsingServer } from "./NotebookBackendUsingServer.js"
+import { FileUtils } from "./FileUtils.js"
+import { CanonicalJSON } from "./CanonicalJSON.js"
+
+let initialKeyToGoTo = null
+
+const NotebookUsingMemory = Notebook()
+const NotebookUsingLocalStorage = Notebook(NotebookBackendUsingLocalStorage())
+const NotebookUsingServer = Notebook(NotebookBackendUsingServer(m.redraw))
+
+// TODO: improve import for ace somehow via ES6 probably by getting a new version of ace
+ace.require(["ace/ext/modelist"], function(modelist) {
+
+    let workspaceView = WorkspaceView(NotebookUsingLocalStorage, ace, modelist)
 
     function getItemForJSON(itemJSON) {
         if (itemJSON === null) return null
@@ -167,23 +179,25 @@ requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingL
         }
 
         // Try to load socket.io, which may fail
-        requirejs(["/socket.io/socket.io.js"], function(io) {
-            NotebookUsingServer.setOnLoadedCallback(function() {
-                // assuming callback will always be done before get here to go to initialKeyToGoTo
-                if (initialKeyToGoTo && workspaceView.getNotebookChoice() === "server") {
-                    workspaceView.goToKey(initialKeyToGoTo)
-                } else {
-                    m.redraw()
-                }
-            })
-            NotebookUsingServer.setup(io)
-            callback()
-            m.redraw()
-        }, function() {
+        // requirejs(["/socket.io/socket.io.js"], function(io) {
+        NotebookUsingServer.setOnLoadedCallback(function() {
+            // assuming callback will always be done before get here to go to initialKeyToGoTo
+            if (initialKeyToGoTo && workspaceView.getNotebookChoice() === "server") {
+                workspaceView.goToKey(initialKeyToGoTo)
+            } else {
+                m.redraw()
+            }
+        })
+        NotebookUsingServer.setup(io)
+        callback()
+        m.redraw()
+        /*
+        }).catch(error => {
             console.log("No socket.io available -- server function disabled")
             callback()
             m.redraw()
         })
+        */
     }
 
     // returns promise
@@ -294,14 +308,14 @@ requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingL
                 const startupSelection = hash.substring("#eval=".length)
                 const startupFileNames = startupSelection.split(";")
                 for (let startupFileName of startupFileNames) {
-                    requirejs(["vendor/text!" + startupFileName], function (startupFileContents) {
+                    m.request({method: "GET", url: startupFileName, deserialize: value => value}).then(function (startupFileContents) {
                         eval(startupFileContents)
                     })
                 }
             } else if (hash && hash.startsWith("#edit=")) {
                 // TODO: Not sure whether to restore notebook choice here
                 const startupSelection = hash.substring("#edit=".length)
-                requirejs(["vendor/text!" + startupSelection], function (startupFileContents) {
+                m.request({method: "GET", url: startupSelection, deserialize: value => value}).then(function (startupFileContents) {
                     startEditor(() => {
                         const currentItem = workspaceView.getCurrentItem()
                         currentItem.entity = startupSelection
@@ -321,4 +335,6 @@ requirejs(["vendor/mithril", "WorkspaceView", "Notebook", "NotebookBackendUsingL
     }
 
     startup()
+
+    console.log("called startup")
 })

@@ -1,24 +1,31 @@
-define([], function() {
-    "use strict"
+"use strict"
 
-    const EvalUtils = {
+export const EvalUtils = {
 
-        evalOrError(text) {
-            let result
-            try {
-                // object definitions produce syntax error unless within parens
-                if (text.match(/^\s*{/)) text = "(" + text + ")"
-                result = EvalUtils.eval(text)
-            } catch (error) {
-                result = error
-            }
-            return result
-        },
+    triedRequire: false,
 
-        eval(text) {
-            return eval(text)
+    evalOrError(text) {
+        let result
+        try {
+            // object definitions produce syntax error unless within parens
+            if (text.match(/^\s*{/)) text = "(" + text + ")"
+            result = EvalUtils.eval(text)
+        } catch (error) {
+            result = error
         }
-    }
+        return result
+    },
 
-    return EvalUtils
-})
+    eval(text) {
+        if (!EvalUtils.triedRequire) {
+            // hides an error the first time try using requirejs
+            EvalUtils.triedRequire = true
+            try {
+                eval("requirejs([], function() {})")
+            } catch (error) {
+                // console.log("triedRequire error", error)
+            }
+        }
+        return eval(text)
+    }
+}
