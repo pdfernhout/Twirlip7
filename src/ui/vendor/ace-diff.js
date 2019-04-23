@@ -9,7 +9,7 @@
 }(this, function() {
   'use strict';
 
-  var Range = require('ace/range').Range;
+  var Range = ace.require('ace/range').Range;
 
   var C = {
     DIFF_EQUAL: 0,
@@ -93,7 +93,7 @@
     this.editors.right.ace.setReadOnly(!this.options.right.editable);
     this.editors.left.ace.setTheme(getTheme(this, C.EDITOR_LEFT));
     this.editors.right.ace.setTheme(getTheme(this, C.EDITOR_RIGHT));
-    
+
     // Twirlip7 added to disable warning for: "Automatically scrolling cursor into view after selection change this will be disabled in the next version"
     this.editors.left.ace.$blockScrolling = Infinity
     this.editors.right.ace.$blockScrolling = Infinity
