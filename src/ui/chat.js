@@ -90,7 +90,7 @@ function sendChatMessage() {
     const uuid = "chatMessage:" + uuidv4()
 
     sendMessage({ chatText, userID, timestamp, uuid })
-    chatText= ""
+    chatText = ""
 }
 
 function sendMessage(message) {
@@ -106,14 +106,21 @@ function sendEditedChatMessage() {
     editedChatMessageText = ""
 }
 
-function textAreaKeyDown(event) {
-    if (event.keyCode === 13) {
-        chatText = event.target.value
-        sendChatMessage()
+function sendIfCtrlEnter(event, text, callbackToSendMessage) {
+    if (text.trim() && event.key === "Enter" && event.ctrlKey ) {
+        callbackToSendMessage()
         return false
     }
     event.redraw = false
     return true
+}
+
+function editedChatMessageKeyDown(event) {
+    return sendIfCtrlEnter(event, editedChatMessageText, sendEditedChatMessage)
+}
+
+function textAreaKeyDown(event) {
+    return sendIfCtrlEnter(event, chatText, sendChatMessage)
 }
 
 function formatChatMessage(text) {
@@ -241,9 +248,9 @@ const TwirlipChat = {
                         editedChatMessageUUID === message.uuid
                             // if editing
                             ? m("div.ba.bw1.ma3.ml4.pa3",
-                                m("textarea.h5.w-80.ma2.ml3", {value: editedChatMessageText, onchange: (event) => editedChatMessageText = event.target.value}),
+                                m("textarea.h5.w-80.ma2.ml3", {value: editedChatMessageText, onkeydown: editedChatMessageKeyDown, oninput: (event) => editedChatMessageText = event.target.value}),
                                 m("div",
-                                    m("button.ml2.f3.mt2", {onclick: () => sendEditedChatMessage() }, "Update"),
+                                    m("button.ml2.f3.mt2", {onclick: () => sendEditedChatMessage() }, "Update (ctrl-enter)"),
                                     m("button.ml2.f3.mt2", {onclick: () => editedChatMessageUUID = null}, "Cancel"),
                                 ),
                             )
@@ -253,9 +260,9 @@ const TwirlipChat = {
             ),
             m("br"),
             m("div.pa3.f2.f5-l" + (editedChatMessageUUID ? ".dn" : ""),
-                m("textarea.h4.w-80.ma2.ml3", {value: chatText, onchange: chatTextChange, onkeydown: textAreaKeyDown}),
+                m("textarea.h4.w-80.ma2.ml3", {value: chatText, oninput: chatTextChange, onkeydown: textAreaKeyDown}),
                 m("div",
-                    m("button.ml2.f3.mt2", {onclick: sendChatMessage}, "Send"),
+                    m("button.ml2.f3.mt2", {onclick: sendChatMessage}, "Send (ctrl-enter)"),
                     m("button.ml2.f3.mt2", {onclick: uploadClicked}, "Upload..."),
                 ),
             )
