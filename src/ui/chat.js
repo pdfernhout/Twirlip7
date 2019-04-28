@@ -20,8 +20,6 @@ const calculateSHA256 = sha256
 // defines m
 import "./vendor/mithril.js"
 
-console.log("NotebookBackendUsingServer", NotebookBackendUsingServer)
-
 let chatRoom = "test"
 let userID = localStorage.getItem("userID") || "anonymous"
 let chatText = ""
@@ -29,8 +27,11 @@ const messages = []
 let editedChatMessageUUID = null
 let editedChatMessageText = ""
 
-// filterText is split into tags by spaces and used to filter by a logical "and" to limit displayed items
+// filterText is split into tags by spaces and used to filter by a logical "and" to include displayed items
 let filterText = ""
+
+// hideText is split into tags by spaces and used to filter by a logical "OR" to hide displayed items
+let hideText = ""
 
 let messagesDiv = null
 
@@ -95,6 +96,7 @@ function sendChatMessage() {
     sendMessage({ chatText, userID, timestamp, uuid })
     chatText = ""
     filterText = ""
+    // hideText = ""
     setTimeout(() => {
         // Scroll to bottom always when sending -- but defer it just in case was filtering
         if (messagesDiv) {
@@ -205,10 +207,10 @@ function uploadClicked() {
         /* verification
         function _base64ToArrayBuffer(base64) {
             // from: https://stackoverflow.com/questions/21797299/convert-base64-string-to-arraybuffer
-            var binary_string =  window.atob(base64)
-            var len = binary_string.length
-            var bytes = new Uint8Array( len )
-            for (var i = 0; i < len; i++)        {
+            const binary_string =  window.atob(base64)
+            const len = binary_string.length
+            const bytes = new Uint8Array( len )
+            for (let i = 0; i < len; i++)        {
                 bytes[i] = binary_string.charCodeAt(i)
             }
             return bytes.buffer
@@ -221,7 +223,7 @@ function uploadClicked() {
 
 const TwirlipChat = {
     view: function () {
-        return m("div..pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
+        return m("div.pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
             // m("h4.tc", "Twirlip Chat"),
             m("div.mb3.f3.f6-l",
                 m("span.dib.tr", "Twirlip chat room:"),
@@ -229,8 +231,12 @@ const TwirlipChat = {
                 m("span.dib.tr.ml2", "User ID:"),
                 m("input.w4.ml2", {value: userID, onchange: userIDChange, title: "Your user id or handle"}),
                 m("a.pl2", {href: "https://github.github.com/gfm/", target: "_blank"}, "Markdown"),
-                m("span.ml2" + (filterText ? ".orange" : ""), "Filter:"),
-                m("input.ml2" + (filterText ? ".orange" : ""), {value: filterText, oninput: (event) => filterText = event.target.value, title: "Only display messages with all entered words"})
+                m("div.dib",
+                    m("span.ml2" + (filterText ? ".green" : ""), "Show:"),
+                    m("input.ml2" + (filterText ? ".green" : ""), {value: filterText, oninput: (event) => { filterText = event.target.value; scrollToBottomLater() }, title: "Only display messages with all entered words"}),
+                    m("span.ml2" + (hideText ? ".orange" : ""), "Hide:"),
+                    m("input.ml2" + (hideText ? ".orange" : ""), {value: hideText, oninput: (event) => { hideText = event.target.value; scrollToBottomLater() }, title: "Hide messages with any entered words"})
+                )
             ),
             m("div.overflow-auto.flex-auto",
                 {
@@ -239,7 +245,6 @@ const TwirlipChat = {
                     },
                 },
                 messages.map(function (message, index) {
-                    var localeTimestamp = new Date(Date.parse(message.timestamp)).toLocaleString()
                     if (filterText && typeof message.chatText === "string") {
                         const lowerCaseText = message.chatText.toLowerCase()
                         const tags = filterText.split(" ")
@@ -247,7 +252,15 @@ const TwirlipChat = {
                             if (tag && !lowerCaseText.includes(tag.toLowerCase())) return []
                         }
                     }
-                    return m("div.pa2.f2.f5-l", {key: message.uuid || ("" + index)}, [
+                    if (hideText && typeof message.chatText === "string") {
+                        const lowerCaseText = message.chatText.toLowerCase()
+                        const tags = hideText.split(" ")
+                        for (let tag of tags) {
+                            if (tag && lowerCaseText.includes(tag.toLowerCase())) return []
+                        }
+                    }
+                    const localeTimestamp = new Date(Date.parse(message.timestamp)).toLocaleString()
+                    return m("div.pa2.f2.f5-l", /* Causes ordering issue: {key: message.uuid || ("" + index)}, */ [
                         m("span.f4.f6-l", {title: localeTimestamp, style: "font-size: 80%;"},
                             m("i", message.userID + " @ " + localeTimestamp),
                             message.editedTimestamp ? m("b.ml1", {title: new Date(Date.parse(message.editedTimestamp)).toLocaleString() }, "edited")  : [],
@@ -291,14 +304,18 @@ const TwirlipChat = {
 
 let isLoaded = false
 
+function scrollToBottomLater() {
+    setTimeout(() => {
+        // Scroll to bottom when loaded everything
+        if (messagesDiv) messagesDiv.scrollTop = messagesDiv.scrollHeight
+    }, 0)
+}
+
 const chatRoomResponder = {
     onLoaded: () => {
         isLoaded = true
         console.log("onLoaded")
-        setTimeout(() => {
-            // Scroll to bottom when loaded everything
-            if (messagesDiv) messagesDiv.scrollTop = messagesDiv.scrollHeight
-        }, 0)
+        scrollToBottomLater()
     },
     addItem: (item, isAlreadyStored) => {
         console.log("addItem", item)
