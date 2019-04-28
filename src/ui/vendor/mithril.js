@@ -17,6 +17,10 @@
     var selectorParser = /(?:(^|#|\.)([^#\.\[\]]+))|(\[(.+?)(?:\s*=\s*("|'|)((?:\\["'\]]|.)*?)\5)?\])/g
     var selectorCache = {}
     var hasOwn = {}.hasOwnProperty
+    function isEmpty(object) {
+        for (var key in object) if (hasOwn.call(object, key)) return false
+        return true
+    }
     function compileSelector(selector) {
         var match, tag = "div", classes = [], attrs = {}
         while (match = selectorParser.exec(selector)) {
@@ -37,6 +41,15 @@
     function execSelector(state, attrs, children) {
         var hasAttrs = false, childList, text
         var className = attrs.className || attrs.class
+        if (!isEmpty(state.attrs) && !isEmpty(attrs)) {
+            var newAttrs = {}
+            for(var key in attrs) {
+                if (hasOwn.call(attrs, key)) {
+                    newAttrs[key] = attrs[key]
+                }
+            }
+            attrs = newAttrs
+        }
         for (var key in state.attrs) {
             if (hasOwn.call(state.attrs, key)) {
                 attrs[key] = state.attrs[key]
@@ -274,10 +287,10 @@
                     _abort.call(xhr)
                 }
                 xhr.open(args.method, args.url, typeof args.async === "boolean" ? args.async : true, typeof args.user === "string" ? args.user : undefined, typeof args.password === "string" ? args.password : undefined)
-                if (args.serialize === JSON.stringify && useBody) {
+                if (args.serialize === JSON.stringify && useBody && !(args.headers && args.headers.hasOwnProperty("Content-Type"))) {
                     xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8")
                 }
-                if (args.deserialize === deserialize) {
+                if (args.deserialize === deserialize && !(args.headers && args.headers.hasOwnProperty("Accept"))) {
                     xhr.setRequestHeader("Accept", "application/json, text/*")
                 }
                 if (args.withCredentials) xhr.withCredentials = args.withCredentials
@@ -805,9 +818,10 @@
         }
         function onremove(vnode) {
             if (vnode.attrs && typeof vnode.attrs.onremove === "function") vnode.attrs.onremove.call(vnode.state, vnode)
-            if (typeof vnode.tag !== "string" && typeof vnode._state.onremove === "function") vnode._state.onremove.call(vnode.state, vnode)
-            if (vnode.instance != null) onremove(vnode.instance)
-            else {
+            if (typeof vnode.tag !== "string") {
+                if (typeof vnode._state.onremove === "function") vnode._state.onremove.call(vnode.state, vnode)
+                if (vnode.instance != null) onremove(vnode.instance)
+            } else {
                 var children = vnode.children
                 if (Array.isArray(children)) {
                     for (var i = 0; i < children.length; i++) {
@@ -968,9 +982,9 @@
             if (!Array.isArray(vnodes)) vnodes = [vnodes]
             updateNodes(dom, dom.vnodes, Vnode.normalizeChildren(vnodes), false, hooks, null, namespace === "http://www.w3.org/1999/xhtml" ? undefined : namespace)
             dom.vnodes = vnodes
-            for (var i = 0; i < hooks.length; i++) hooks[i]()
             // document.activeElement can return null in IE https://developer.mozilla.org/en-US/docs/Web/API/Document/activeElement
             if (active != null && $doc.activeElement !== active) active.focus()
+            for (var i = 0; i < hooks.length; i++) hooks[i]()
         }
         return {render: render, setEventCallback: setEventCallback}
     }
@@ -1025,9 +1039,9 @@
                 redrawService0.unsubscribe(root)
                 return
             }
-            
+
             if (component.view == null && typeof component !== "function") throw new Error("m.mount(element, component) expects a component, not a vnode")
-            
+
             var run0 = function() {
                 redrawService0.render(root, Vnode(component))
             }
@@ -1236,7 +1250,7 @@
     m.jsonp = requestService.jsonp
     m.parseQueryString = parseQueryString
     m.buildQueryString = buildQueryString
-    m.version = "1.1.4"
+    m.version = "1.1.6"
     m.vnode = Vnode
     if (typeof module !== "undefined") module["exports"] = m
     else window.m = m
