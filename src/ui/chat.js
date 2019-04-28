@@ -221,6 +221,25 @@ function uploadClicked() {
     })
 }
 
+function makeLocalMessageTimestamp(timestamp) {
+    // Derived from: https://stackoverflow.com/questions/17415579/how-to-iso-8601-format-a-date-with-timezone-offset-in-javascript
+    const date = new Date(Date.parse(timestamp))
+    // const tzo = -date.getTimezoneOffset()
+    // const dif = tzo >= 0 ? "+" : "-"
+    const pad = function(num) {
+        var norm = Math.floor(Math.abs(num))
+        return (norm < 10 ? "0" : "") + norm
+    }
+    return date.getFullYear() +
+        "-" + pad(date.getMonth() + 1) +
+        "-" + pad(date.getDate()) +
+        " " + pad(date.getHours()) +
+        ":" + pad(date.getMinutes()) +
+        ":" + pad(date.getSeconds())
+    // + dif + pad(tzo / 60) +
+    // ":" + pad(tzo % 60)
+}
+
 const TwirlipChat = {
     view: function () {
         return m("div.pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
@@ -245,25 +264,27 @@ const TwirlipChat = {
                     },
                 },
                 messages.map(function (message, index) {
-                    if (filterText && typeof message.chatText === "string") {
-                        const lowerCaseText = message.chatText.toLowerCase()
-                        const tags = filterText.split(" ")
-                        for (let tag of tags) {
-                            if (tag && !lowerCaseText.includes(tag.toLowerCase())) return []
+                    const localMessageTimestamp = makeLocalMessageTimestamp(message.timestamp)
+                    if ((filterText || hideText) && typeof message.chatText === "string") {
+                        let lowerCaseText = message.chatText.toLowerCase() + " " + ("" + message.userID).toLowerCase() + " " + localMessageTimestamp.toLowerCase()
+
+                        if (filterText) {
+                            const tags = filterText.split(" ")
+                            for (let tag of tags) {
+                                if (tag && !lowerCaseText.includes(tag.toLowerCase())) return []
+                            }
+                        }
+                        if (hideText) {
+                            const tags = hideText.split(" ")
+                            for (let tag of tags) {
+                                if (tag && lowerCaseText.includes(tag.toLowerCase())) return []
+                            }
                         }
                     }
-                    if (hideText && typeof message.chatText === "string") {
-                        const lowerCaseText = message.chatText.toLowerCase()
-                        const tags = hideText.split(" ")
-                        for (let tag of tags) {
-                            if (tag && lowerCaseText.includes(tag.toLowerCase())) return []
-                        }
-                    }
-                    const localeTimestamp = new Date(Date.parse(message.timestamp)).toLocaleString()
                     return m("div.pa2.f2.f5-l", /* Causes ordering issue: {key: message.uuid || ("" + index)}, */ [
-                        m("span.f4.f6-l", {title: localeTimestamp, style: "font-size: 80%;"},
-                            m("i", message.userID + " @ " + localeTimestamp),
-                            message.editedTimestamp ? m("b.ml1", {title: new Date(Date.parse(message.editedTimestamp)).toLocaleString() }, "edited")  : [],
+                        m("span.f4.f6-l",
+                            m("i", message.userID + " @ " + localMessageTimestamp),
+                            message.editedTimestamp ? m("b.ml1", {title: makeLocalMessageTimestamp(message.editedTimestamp) }, "edited")  : [],
                             // support editing
                             (message.userID === userID && message.uuid)
                                 ? m("button.ml2", {
