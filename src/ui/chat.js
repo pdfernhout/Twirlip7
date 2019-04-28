@@ -29,6 +29,9 @@ const messages = []
 let editedChatMessageUUID = null
 let editedChatMessageText = ""
 
+// filterText is split into tags by spaces and used to filter by a logical "and" to limit displayed items
+let filterText = ""
+
 let messagesDiv = null
 
 const messagesByUUID = {}
@@ -91,6 +94,13 @@ function sendChatMessage() {
 
     sendMessage({ chatText, userID, timestamp, uuid })
     chatText = ""
+    filterText = ""
+    setTimeout(() => {
+        // Scroll to bottom always when sending -- but defer it just in case was filtering
+        if (messagesDiv) {
+            messagesDiv.scrollTop = messagesDiv.scrollHeight
+        }
+    }, 0)
 }
 
 function sendMessage(message) {
@@ -217,8 +227,10 @@ const TwirlipChat = {
                 m("span.dib.tr", "Twirlip chat room:"),
                 m("input.w4.ml2", {value: chatRoom, onchange: chatRoomChange}),
                 m("span.dib.tr.ml2", "User ID:"),
-                m("input.w4.ml2", {value: userID, onchange: userIDChange}),
-                m("a.pl2", {href: "https://github.github.com/gfm/", target: "_blank"}, "Markdown")
+                m("input.w4.ml2", {value: userID, onchange: userIDChange, title: "Your user id or handle"}),
+                m("a.pl2", {href: "https://github.github.com/gfm/", target: "_blank"}, "Markdown"),
+                m("span.ml2" + (filterText ? ".orange" : ""), "Filter:"),
+                m("input.ml2" + (filterText ? ".orange" : ""), {value: filterText, oninput: (event) => filterText = event.target.value, title: "Only display messages with all entered words"})
             ),
             m("div.overflow-auto.flex-auto",
                 {
@@ -226,9 +238,16 @@ const TwirlipChat = {
                         messagesDiv = (vnode.dom)
                     },
                 },
-                messages.map(function (message) {
+                messages.map(function (message, index) {
                     var localeTimestamp = new Date(Date.parse(message.timestamp)).toLocaleString()
-                    return m("div.pa2.f2.f5-l", [
+                    if (filterText && typeof message.chatText === "string") {
+                        const lowerCaseText = message.chatText.toLowerCase()
+                        const tags = filterText.split(" ")
+                        for (let tag of tags) {
+                            if (tag && !lowerCaseText.includes(tag.toLowerCase())) return []
+                        }
+                    }
+                    return m("div.pa2.f2.f5-l", {key: message.uuid || ("" + index)}, [
                         m("span.f4.f6-l", {title: localeTimestamp, style: "font-size: 80%;"},
                             m("i", message.userID + " @ " + localeTimestamp),
                             message.editedTimestamp ? m("b.ml1", {title: new Date(Date.parse(message.editedTimestamp)).toLocaleString() }, "edited")  : [],
@@ -298,9 +317,10 @@ const chatRoomResponder = {
         }
         if (isLoaded) {
             setTimeout(() => {
-                // Only scroll if scroll is already near bottom to avoid messing up editing or browsing previous items
-                console.log("messagesDiv.scrollTop", messagesDiv.scrollTop, "messagesDiv.scrollHeight",  messagesDiv.scrollHeight)
-                if (messagesDiv && messagesDiv.scrollTop >= messagesDiv.scrollHeight - messagesDiv.clientHeight - 300) messagesDiv.scrollTop = messagesDiv.scrollHeight
+                // Only scroll if scroll is already near bottom and not filtering to avoid messing up editing or browsing previous items
+                if (!filterText && messagesDiv && messagesDiv.scrollTop >= messagesDiv.scrollHeight - messagesDiv.clientHeight - 300) {
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight
+                }
             }, 0)
             if (!document.hasFocus()) {
                 // Notify the user about a new message in this window
