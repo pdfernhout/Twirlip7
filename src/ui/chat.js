@@ -270,8 +270,17 @@ const TwirlipChat = {
     }
 }
 
+let isLoaded = false
+
 const chatRoomResponder = {
-    onLoaded: () => console.log("onLoaded"),
+    onLoaded: () => {
+        isLoaded = true
+        console.log("onLoaded")
+        setTimeout(() => {
+            // Scroll to bottom when loaded everything
+            if (messagesDiv) messagesDiv.scrollTop = messagesDiv.scrollHeight
+        }, 0)
+    },
     addItem: (item, isAlreadyStored) => {
         console.log("addItem", item)
         // Complexity needed to support editing
@@ -287,11 +296,16 @@ const chatRoomResponder = {
                 messages[messagesByUUID[item.uuid]] = item
             }
         }
-        setTimeout(() => {
-            if (messagesDiv) messagesDiv.scrollTop = messagesDiv.scrollHeight
-        }, 0)
-        if (!document.hasFocus()) {
-            Push.create(item.userID + ": " + item.chatText)
+        if (isLoaded) {
+            setTimeout(() => {
+                // Only scroll if scroll is already near bottom to avoid messing up editing or browsing previous items
+                console.log("messagesDiv.scrollTop", messagesDiv.scrollTop, "messagesDiv.scrollHeight",  messagesDiv.scrollHeight)
+                if (messagesDiv && messagesDiv.scrollTop >= messagesDiv.scrollHeight - messagesDiv.clientHeight - 300) messagesDiv.scrollTop = messagesDiv.scrollHeight
+            }, 0)
+            if (!document.hasFocus()) {
+                // Notify the user about a new message in this window
+                Push.create(item.userID + ": " + item.chatText, {timeout: 4000})
+            }
         }
     }
 }
