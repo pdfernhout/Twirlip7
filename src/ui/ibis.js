@@ -336,8 +336,13 @@ function viewLink(element) {
     })
 }
 
+const findURLRegex = /(http[s]?:\/\/)([\da-z.-]+)\.([a-z.]{2,6})([/\w.-]*)*\/?/
+
 function viewElement(element) {
     const textLocation = diagram.textLocation || "bottom"
+    const hasURL = findURLRegex.exec(element.name || "")
+    const followLink = hasURL ? () => window.open(hasURL[0]) : undefined
+    const extraStyling = hasURL ? ".underline-hover" : ""
     return [
         element === laterDraggedItem ?
             m("text", {x: element.x, y: element.y - 20, "text-anchor": "middle"}, "*") :
@@ -354,8 +359,8 @@ function viewElement(element) {
             onmousedown: (event) => onmousedown(element, event),
         }),
         textLocation === "right"
-            ? m("text", {x: element.x + 24, y: element.y + 8, "text-anchor": "left"}, element.name)
-            : m("text", {x: element.x, y: element.y + 34, "text-anchor": "middle"}, element.name)
+            ? m("text" + extraStyling, {x: element.x + 24, y: element.y + 8, "text-anchor": "left", onclick: followLink}, element.name)
+            : m("text" + extraStyling, {x: element.x, y: element.y + 34, "text-anchor": "middle", onclick: followLink}, element.name)
     ]
 }
 
