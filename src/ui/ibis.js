@@ -380,9 +380,6 @@ function updateDiagramFromJSON() {
     diagram = newDiagram
 }
 
-
-const debugOutlineParsing = false
-
 /* Example to test outline parsing:
 
 Q: Top Question
@@ -416,7 +413,6 @@ function updateDiagramFromOutline() {
     let nodes = []
     let indents = []
     const lines = outlineText.split("\n")
-    if (debugOutlineParsing) console.log("lines", lines)
     for (let line of lines) {
         if (line.trim() === "") {
             continue
@@ -427,24 +423,18 @@ function updateDiagramFromOutline() {
             console.log("Problem parsing line", "'" + line + "'")
             continue
         }
-        if (debugOutlineParsing) console.log("match", match)
         const lastIndent = indents[indents.length - 1]
         const indent = match[1]
         if (indent === "") {
-            if (debugOutlineParsing) console.log("baseline before", nodes.length, line)
             nodes = []
             indents = []
             lastClickPosition.x = delta
-            if (debugOutlineParsing) console.log("baseline after", nodes.length, line)
         } else if (indent.length === lastIndent.length) {
-            if (debugOutlineParsing) console.log("same before", nodes.length, line)
             // same level
             nodes.pop()
             indents.pop()
             lastClickPosition.x -= delta
-            if (debugOutlineParsing) console.log("same after", nodes.length, line)
         } else if (indent.length < lastIndent.length) {
-            if (debugOutlineParsing) console.log("dedent before", nodes.length, line)
             // dedenting
             let oldIndent = lastIndent
             while (oldIndent && oldIndent.length > indent.length) {
@@ -460,11 +450,8 @@ function updateDiagramFromOutline() {
             indents.pop()
             nodes.pop()
             lastClickPosition.x -= delta
-            if (debugOutlineParsing) console.log("dedent after", nodes.length, line)
         } else { // (indent.length > lastIndent.length)
-            if (debugOutlineParsing) console.log("indent before", nodes.length, line)
-            // indenting
-            if (debugOutlineParsing) console.log("indent after", nodes.length, line)
+            // indenting -- do nothing as added later
         }
         let parentId = null
         if (nodes.length) parentId = nodes[nodes.length - 1].id
@@ -474,7 +461,6 @@ function updateDiagramFromOutline() {
             const element = addElement(nodeType, text, parentId)
             nodes.push(element)
             indents.push(indent)
-            if (debugOutlineParsing) console.log("After adding node", nodes.length, line)
         } else {
             console.log("Problem parsing line", line)
         }
