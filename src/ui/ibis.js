@@ -129,10 +129,17 @@ let diagram = {
     width: 800,
     height: 500,
     diagramName: "Untitled IBIS Diagram",
-    elements: []
+    elements: [],
+    textLocation: "right"
 }
 
+let isItemPanelDisplayed = false
+
 let diagramJSON = JSON.stringify(diagram, null, 4)
+let isJSONPanelDisplayed = false
+
+let outlineText = ""
+let isImportOutlinePanelDisplayed = false
 
 // tiny stack for connecting items
 let earlierDraggedItem = null
@@ -148,6 +155,10 @@ let userID = localStorage.getItem("userID") || "anonymous"
 const messages = []
 
 let unsaved = false
+
+const delta = 60
+
+let lastClickPosition = {x: delta, y: delta}
 
 function uuidv4() {
     // From: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
@@ -196,8 +207,6 @@ function userIDChange(event) {
     backend.configure(undefined, userID)
     localStorage.setItem("userID", userID)
 }
-
-let lastClickPosition = {x: 50, y: 50}
 
 function onmousedownBackground(event) {
     event.preventDefault()
@@ -250,20 +259,22 @@ function uuid() {
     })
 }
 
-function addElement(type) {
-    const name = prompt(type + " name")
+function addElement(type, name, parentId) {
+    if (!name) name = prompt(type + " name")
     if (!name) return
-    const x = lastClickPosition.x + 50
-    const y = lastClickPosition.y + 50
+    const x = lastClickPosition.x + delta
+    const y = lastClickPosition.y + delta
     const element = { type: type, name: name, x: x, y: y, notes: "", id: uuid() }
+    if (parentId) element.parentId = parentId
     diagram.elements.unshift(element)
     if (lastClickPosition) {
-        lastClickPosition.x += 50
-        lastClickPosition.y += 50
+        lastClickPosition.x += delta
+        lastClickPosition.y += delta
     }
     earlierDraggedItem = laterDraggedItem
     laterDraggedItem = element
     updateJSONFromDiagram()
+    return element
 }
 
 function addLink() {
@@ -326,6 +337,7 @@ function viewLink(element) {
 }
 
 function viewElement(element) {
+    const textLocation = diagram.textLocation || "bottom"
     return [
         element === laterDraggedItem ?
             m("text", {x: element.x, y: element.y - 20, "text-anchor": "middle"}, "*") :
@@ -341,7 +353,9 @@ function viewElement(element) {
             alt: "question",
             onmousedown: (event) => onmousedown(element, event),
         }),
-        m("text", {x: element.x, y: element.y + 34, "text-anchor": "middle"}, element.name)
+        textLocation === "right"
+            ? m("text", {x: element.x + 24, y: element.y + 8, "text-anchor": "left"}, element.name)
+            : m("text", {x: element.x, y: element.y + 34, "text-anchor": "middle"}, element.name)
     ]
 }
 
@@ -366,7 +380,106 @@ function updateDiagramFromJSON() {
     diagram = newDiagram
 }
 
-let isItemPanelDisplayed = false
+
+const debugOutlineParsing = false
+
+/* Example to test outline parsing:
+
+Q: Top Question
+
+    A: First Answer
+
+        Q: Another Question
+            A: Answer A1
+            A: Answer A2
+            A: Answer A3
+                Pro: A point for A3
+                Con: A point against A3
+            A: Answer A4
+
+    Q: Yet Another Question
+
+        Q: And also another question
+            A: Answer B1
+            A: Answer B2
+
+*/
+
+function updateDiagramFromOutline() {
+    const nodeTypeMap = {
+        "Q: " : "issue",
+        "A: " : "position",
+        "Pro: " : "plus",
+        "Con: " : "minus"
+    }
+
+    let nodes = []
+    let indents = []
+    const lines = outlineText.split("\n")
+    if (debugOutlineParsing) console.log("lines", lines)
+    for (let line of lines) {
+        if (line.trim() === "") {
+            continue
+        }
+        const parseLineRegex = /(^[ ]*)(Q: |A: |Pro: |Con: )(.*)$/
+        const match = parseLineRegex.exec(line)
+        if (!match) {
+            console.log("Problem parsing line", "'" + line + "'")
+            continue
+        }
+        if (debugOutlineParsing) console.log("match", match)
+        const lastIndent = indents[indents.length - 1]
+        const indent = match[1]
+        if (indent === "") {
+            if (debugOutlineParsing) console.log("baseline before", nodes.length, line)
+            nodes = []
+            indents = []
+            lastClickPosition.x = delta
+            if (debugOutlineParsing) console.log("baseline after", nodes.length, line)
+        } else if (indent.length === lastIndent.length) {
+            if (debugOutlineParsing) console.log("same before", nodes.length, line)
+            // same level
+            nodes.pop()
+            indents.pop()
+            lastClickPosition.x -= delta
+            if (debugOutlineParsing) console.log("same after", nodes.length, line)
+        } else if (indent.length < lastIndent.length) {
+            if (debugOutlineParsing) console.log("dedent before", nodes.length, line)
+            // dedenting
+            let oldIndent = lastIndent
+            while (oldIndent && oldIndent.length > indent.length) {
+                indents.pop()
+                nodes.pop()
+                lastClickPosition.x -= delta
+                oldIndent = indents[indents.length - 1]
+            }
+            if (oldIndent && oldIndent !== indent) {
+                console.log("indentation issue for: ", line, oldIndent.length, indent.length)
+                break
+            }
+            indents.pop()
+            nodes.pop()
+            lastClickPosition.x -= delta
+            if (debugOutlineParsing) console.log("dedent after", nodes.length, line)
+        } else { // (indent.length > lastIndent.length)
+            if (debugOutlineParsing) console.log("indent before", nodes.length, line)
+            // indenting
+            if (debugOutlineParsing) console.log("indent after", nodes.length, line)
+        }
+        let parentId = null
+        if (nodes.length) parentId = nodes[nodes.length - 1].id
+        const nodeType = nodeTypeMap[match[2]]
+        const text = match[3]
+        if (nodeType && text) {
+            const element = addElement(nodeType, text, parentId)
+            nodes.push(element)
+            indents.push(indent)
+            if (debugOutlineParsing) console.log("After adding node", nodes.length, line)
+        } else {
+            console.log("Problem parsing line", line)
+        }
+    }
+}
 
 function viewItemPanel() {
     const element = laterDraggedItem
@@ -409,8 +522,6 @@ function viewItemPanel() {
     ])
 }
 
-let isJSONPanelDisplayed = false
-
 function importDiagram() {
     FileUtils.loadFromFile((fileName, fileContents) => {
         if (fileContents) {
@@ -445,6 +556,13 @@ function saveDiagram() {
     console.log("sent to server", diagram)
 }
 
+function clearDiagram() {
+    if (!confirm("Clear diagram?")) return
+    diagram.elements = []
+    updateJSONFromDiagram()
+    lastClickPosition = {x: delta, y: delta}
+}
+
 /*function loadDiagram() {
     const diagramName = prompt("Load which diagram name?", diagram.diagramName)
     if (!diagramName) return
@@ -473,14 +591,32 @@ function viewJSONPanel() {
             onchange: event => isJSONPanelDisplayed = event.target.checked
         }),
         m("span", "Edit Diagram as JSON"),
-        isJSONPanelDisplayed ? [
-            m("br"),
-            m("textarea.w-100", {
-                height: "20rem", value: diagramJSON,
-                oninput: (event) => diagramJSON = event.target.value
-            }),
-            m("button", { onclick: updateDiagramFromJSON }, "Update Diagram from JSON"),
-        ] : []
+        m("input[type=checkbox].ma1.ml3", {
+            checked: isImportOutlinePanelDisplayed,
+            onchange: event => isImportOutlinePanelDisplayed = event.target.checked
+        }),
+        m("span", "Import outline"),
+        m("div",
+            isJSONPanelDisplayed ? [
+                m("div", "JSON:"),
+                m("textarea.w-100", {
+                    height: "20rem", value: diagramJSON,
+                    oninput: (event) => diagramJSON = event.target.value
+                }),
+                m("button.ma1", { onclick: updateDiagramFromJSON }, "Update Diagram from JSON"),
+            ] : [],
+        ),
+        m("div",
+            isImportOutlinePanelDisplayed ? [
+                m("div", "Outline:"),
+                m("textarea.w-100", {
+                    height: "20rem", value: outlineText,
+                    oninput: (event) => outlineText = event.target.value
+                }),
+                m("button.ma1", { onclick: updateDiagramFromOutline }, "Parse outline"),
+                m("button.ma1", { onclick: clearDiagram }, "Clear diagram"),
+            ] : []
+        )
     ])
 }
 
@@ -512,28 +648,32 @@ function view() {
                 },
                 title: "Diagram height -- click to change"
             }, diagram.height),
-            unsaved ? " [UNSAVED]" : []
+            unsaved ? " [UNSAVED]" : ""
         ),
         m("div.mt1.mb1.flex-none",
-            m("button.ma1.pa1", { onclick: addElement.bind(null, "issue") },
+            m("button.ma1.pa1", { onclick: addElement.bind(null, "issue", null, null) },
                 m("img.v-mid.mr1", { src: CompendiumIcons.issue_png, style: "width: 16px; height: 16px;" }),
                 "Question"
             ),
-            m("button.ma1.pa1", { onclick: addElement.bind(null, "position") },
+            m("button.ma1.pa1", { onclick: addElement.bind(null, "position", null, null) },
                 m("img.v-mid.mr1", { src: CompendiumIcons.position_png, style: "width: 16px; height: 16px;" }),
                 "Idea"
             ),
-            m("button.ma1.pa1", { onclick: addElement.bind(null, "plus") },
+            m("button.ma1.pa1", { onclick: addElement.bind(null, "plus", null, null) },
                 m("img.v-mid.mr1", { src: CompendiumIcons.plus_png, style: "width: 16px; height: 16px;" }),
                 "Pro"
             ),
-            m("button.ma1.pa1", { onclick: addElement.bind(null, "minus") },
+            m("button.ma1.pa1", { onclick: addElement.bind(null, "minus", null, null) },
                 m("img.v-mid.mr1", { src: CompendiumIcons.minus_png, style: "width: 16px; height: 16px;" }),
                 "Con"
             ),
             m("button.ma1.pa1", { onclick: deleteElement }, "Delete"),
             m("button.ma1.pa1", { onclick: addLink }, "Link <--*"),
             m("button.ma1.pa1", { onclick: deleteLink }, "Unlink *"),
+            m("select.ma1.pa1", { onchange: (event) => diagram.textLocation = event.target.value },
+                m("option", { value: "right", selected: diagram.textLocation === "right" }, "text at right"),
+                m("option", { value: "bottom", selected: diagram.textLocation === "bottom" || !diagram.textLocation }, "text at bottom"),
+            )
         ),
         m("div.flex-auto.overflow-auto", [
             // on keydown does not seem to work here
