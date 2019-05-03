@@ -472,15 +472,8 @@ function viewItemPanel() {
     const disabled = !element
 
     return m("div.ma1", [
-        m("input[type=checkbox].ma1", {
-            checked: isItemPanelDisplayed,
-            onchange: event => isItemPanelDisplayed = event.target.checked
-        }),
-        "Edit Item",
         isItemPanelDisplayed ? [
-            m("br"),
-            "Type",
-            m("br"),
+            m("div", "Type"),
             m("select.ma1", {onchange: event => element.type = event.target.value, disabled},
                 Object.keys(CompendiumIcons).sort().map(key => {
                     // remove"_png" at end
@@ -566,13 +559,23 @@ function clearDiagram() {
 }
 */
 
-function viewJSONPanel() {
-    return m("div.ma1", [
+function viewImportExportPanel() {
+    return m("div.ma1",
         m("button.ma1", { onclick: importDiagram }, "Import Diagram"),
         m("button.ma1", { onclick: exportDiagram }, "Export Diagram"),
         m("button.ma1", { onclick: saveDiagram }, "Save to server"),
         // m("button.ma1", { onclick: loadDiagram }, "Load"),
+    )
+}
+
+function viewCheckboxesPanel() {
+    return m("div.ma1",
         m("input[type=checkbox].ma1", {
+            checked: isItemPanelDisplayed,
+            onchange: event => isItemPanelDisplayed = event.target.checked
+        }),
+        "Edit Item",
+        m("input[type=checkbox].ma1.ml3", {
             checked: isJSONPanelDisplayed,
             onchange: event => isJSONPanelDisplayed = event.target.checked
         }),
@@ -582,28 +585,34 @@ function viewJSONPanel() {
             onchange: event => isImportOutlinePanelDisplayed = event.target.checked
         }),
         m("span", "Import outline"),
-        m("div",
-            isJSONPanelDisplayed ? [
-                m("div", "JSON:"),
-                m("textarea.w-100", {
-                    height: "20rem", value: diagramJSON,
-                    oninput: (event) => diagramJSON = event.target.value
-                }),
-                m("button.ma1", { onclick: updateDiagramFromJSON }, "Update Diagram from JSON"),
-            ] : [],
-        ),
-        m("div",
-            isImportOutlinePanelDisplayed ? [
-                m("div", "Outline:"),
-                m("textarea.w-100", {
-                    height: "20rem", value: outlineText,
-                    oninput: (event) => outlineText = event.target.value
-                }),
-                m("button.ma1", { onclick: updateDiagramFromOutline }, "Parse outline"),
-                m("button.ma1", { onclick: clearDiagram }, "Clear diagram"),
-            ] : []
-        )
-    ])
+    )
+}
+
+function viewJSONPanel() {
+    return m("div",
+        isJSONPanelDisplayed ? [
+            m("div", "JSON:"),
+            m("textarea.w-100", {
+                height: "20rem", value: diagramJSON,
+                oninput: (event) => diagramJSON = event.target.value
+            }),
+            m("button.ma1", { onclick: updateDiagramFromJSON }, "Update Diagram from JSON"),
+        ] : [],
+    )
+}
+
+function viewOutlinePanel() {
+    return  m("div",
+        isImportOutlinePanelDisplayed ? [
+            m("div", "Outline:"),
+            m("textarea.w-100", {
+                height: "20rem", value: outlineText,
+                oninput: (event) => outlineText = event.target.value
+            }),
+            m("button.ma1", { onclick: updateDiagramFromOutline }, "Parse outline"),
+            m("button.ma1", { onclick: clearDiagram }, "Clear diagram"),
+        ] : []
+    )
 }
 
 function changeDiagramName() {
@@ -676,8 +685,11 @@ function view() {
                 diagram.elements.map(element => viewElement(element)),
             ]),
         ]),
+        viewImportExportPanel(),
+        viewCheckboxesPanel(),
         viewItemPanel(),
         viewJSONPanel(),
+        viewOutlinePanel()
     )
 }
 
