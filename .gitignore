@@ -1,3 +1,4 @@
 node_modules
 server-data
 proxyKey.txt
+test-local/**
