@@ -21,9 +21,11 @@ import { CanonicalJSON } from "./CanonicalJSON.js"
 
 let initialKeyToGoTo = null
 
+let notebookId = "common"
+
 const NotebookUsingMemory = Notebook()
 const NotebookUsingLocalStorage = Notebook(NotebookBackendUsingLocalStorage())
-const NotebookUsingServer = Notebook(NotebookBackendUsingServer(m.redraw))
+const NotebookUsingServer = Notebook(NotebookBackendUsingServer(m.redraw, notebookId))
 
 // TODO: improve import for ace somehow via ES6 probably by getting a new version of ace
 ace.require(["ace/ext/modelist"], function(modelist) {
