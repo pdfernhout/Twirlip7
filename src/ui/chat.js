@@ -340,6 +340,7 @@ const chatRoomResponder = {
     },
     addItem: (item, isAlreadyStored) => {
         console.log("addItem", item)
+        let edited = false
         // Complexity needed to support editing
         if (messagesByUUID[item.uuid] === undefined) {
             if (item.uuid !== undefined) messagesByUUID[item.uuid] = messages.length
@@ -351,15 +352,16 @@ const chatRoomResponder = {
                 item.editedTimestamp = item.timestamp
                 item.timestamp = previousVersion.timestamp
                 messages[messagesByUUID[item.uuid]] = item
+                edited = true
             }
         }
         if (isLoaded) {
-            setTimeout(() => {
-                // Only scroll if scroll is already near bottom and not filtering to avoid messing up editing or browsing previous items
-                if (!filterText && messagesDiv && messagesDiv.scrollTop >= messagesDiv.scrollHeight - messagesDiv.clientHeight - 300) {
+            // Only scroll if scroll is already near bottom and not filtering or editing to avoid messing up editing or browsing previous items
+            if (!filterText && !edited && messagesDiv && (messagesDiv.scrollTop >= (messagesDiv.scrollHeight - messagesDiv.clientHeight - 300))) {
+                setTimeout(() => {
                     messagesDiv.scrollTop = messagesDiv.scrollHeight
-                }
-            }, 0)
+                }, 0)
+            }
             if (!document.hasFocus()) {
                 // Notify the user about a new message in this window
                 Push.create(item.userID + ": " + item.chatText, {timeout: 4000})
