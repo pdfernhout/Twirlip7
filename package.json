@@ -25,7 +25,7 @@
     "dompurify": "0.9.0",
     "eslint": "5.16.0",
     "font-awesome": "4.7.0",
-    "marked": "0.6.2",
+    "marked": "0.7.0",
     "ospec": "1.2.3",
     "tachyons": "4.7.0",
     "text": "requirejs/text",
