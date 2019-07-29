@@ -407,7 +407,7 @@ Q: Top Question
 
 */
 
-function updateDiagramFromOutline() {
+function updateDiagramFromLabeledOutline() {
     const nodeTypeMap = {
         "Q: " : "issue",
         "A: " : "position",
@@ -462,6 +462,82 @@ function updateDiagramFromOutline() {
         if (nodes.length) parentId = nodes[nodes.length - 1].id
         const nodeType = nodeTypeMap[match[2]]
         const text = match[3]
+        if (nodeType && text) {
+            const element = addElement(nodeType, text, parentId)
+            nodes.push(element)
+            indents.push(indent)
+        } else {
+            console.log("Problem parsing line", line)
+        }
+    }
+}
+
+function updateDiagramFromIndentedTextOutline() {
+    let nodes = []
+    let indents = []
+    const lines = outlineText.split("\n")
+    for (let line of lines) {
+        if (line.trim() === "") {
+            continue
+        }
+        const parseLineRegex = /(^[ ]*)(.*)$/
+        const match = parseLineRegex.exec(line)
+        if (!match) {
+            console.log("Problem parsing line", "'" + line + "'")
+            continue
+        }
+        const lastIndent = indents[indents.length - 1]
+        const indent = match[1]
+        if (indent === "") {
+            nodes = []
+            indents = []
+            lastClickPosition.x = delta
+        } else if (indent.length === lastIndent.length) {
+            // same level
+            nodes.pop()
+            indents.pop()
+            lastClickPosition.x -= delta
+        } else if (indent.length < lastIndent.length) {
+            // dedenting
+            let oldIndent = lastIndent
+            while (oldIndent && oldIndent.length > indent.length) {
+                indents.pop()
+                nodes.pop()
+                lastClickPosition.x -= delta
+                oldIndent = indents[indents.length - 1]
+            }
+            if (oldIndent && oldIndent !== indent) {
+                console.log("indentation issue for: ", line, oldIndent.length, indent.length)
+                break
+            }
+            indents.pop()
+            nodes.pop()
+            lastClickPosition.x -= delta
+        } else { // (indent.length > lastIndent.length)
+            // indenting -- do nothing as added later
+        }
+        let parentId = null
+        if (nodes.length) parentId = nodes[nodes.length - 1].id
+        let text = match[2].trim()
+        let nodeType = ""
+        if (text.startsWith("+")) {
+            text = text.substring(1).trim()
+            nodeType = "plus"
+        } else if (text.startsWith("-")) {
+            text = text.substring(1).trim()
+            nodeType = "minus"
+        } else if (text.endsWith("?")) {
+            nodeType = "issue"
+        } else {
+            /*
+            if (text[0] && text[0].match(/[a-z]/)) {
+                console.log("Problem parsing line with intial lowercase", line)
+                throw new Error("Parse error")
+            }
+            */
+            nodeType = "position"
+        }
+
         if (nodeType && text) {
             const element = addElement(nodeType, text, parentId)
             nodes.push(element)
@@ -614,7 +690,9 @@ function viewOutlinePanel() {
                 height: "20rem", value: outlineText,
                 oninput: (event) => outlineText = event.target.value
             }),
-            m("button.ma1", { onclick: updateDiagramFromOutline }, "Parse outline"),
+            m("br"),
+            m("button.ma1", { onclick: updateDiagramFromIndentedTextOutline }, "Parse itIBIS outline"),
+            m("button.ma1", { onclick: updateDiagramFromLabeledOutline }, "Parse labeled outline"),
             m("button.ma1", { onclick: clearDiagram }, "Clear diagram"),
         ] : []
     )
