@@ -138,8 +138,38 @@ function textAreaKeyDown(event) {
 function formatChatMessage(text) {
     return m.trust(marked(text))
 }
+function downloadChatClicked() {
+    let text = ""
 
-function uploadClicked() {
+    messages.map(function (message, index) {
+        const localMessageTimestamp = makeLocalMessageTimestamp(message.timestamp)
+        if ((filterText || hideText) && typeof message.chatText === "string") {
+            let lowerCaseText = message.chatText.toLowerCase() + " " + ("" + message.userID).toLowerCase() + " " + localMessageTimestamp.toLowerCase()
+
+            if (filterText) {
+                const tags = filterText.split(" ")
+                for (let tag of tags) {
+                    if (tag && !lowerCaseText.includes(tag.toLowerCase())) return []
+                }
+            }
+            if (hideText) {
+                const tags = hideText.split(" ")
+                for (let tag of tags) {
+                    if (tag && lowerCaseText.includes(tag.toLowerCase())) return []
+                }
+            }
+        }
+        text += "\n----\n"
+        text += "author: " + message.userID + " @ " + localMessageTimestamp + "\n"
+        text += message.editedTimestamp ? "last edited: " + makeLocalMessageTimestamp(message.editedTimestamp) + "\n": ""
+        text += "\n"
+        text += message.chatText
+    })
+
+    FileUtils.saveToFile(chatRoom + " " + new Date().toISOString(), text, ".md")
+}
+
+function uploadDocumentClicked() {
     FileUtils.loadFromFile(true, (filename, contents, bytes) => {
         // console.log("result", filename, contents)
         // alert("upload unfinished: " + filename)
@@ -250,6 +280,7 @@ const TwirlipChat = {
                 m("span.dib.tr.ml2", "User ID:"),
                 m("input.w4.ml2", {value: userID, onchange: userIDChange, title: "Your user id or handle"}),
                 m("a.pl2", {href: "https://github.github.com/gfm/", target: "_blank"}, "Markdown"),
+                m("a.pl2", {href: "https://svg-edit.github.io/svgedit/releases/latest/editor/svg-editor.html", target: "_blank"}, "SVGEdit"),
                 m("div.dib",
                     m("span.ml2" + (filterText ? ".green" : ""), "Show:"),
                     m("input.ml2" + (filterText ? ".green" : ""), {value: filterText, oninput: (event) => { filterText = event.target.value; scrollToBottomLater() }, title: "Only display messages with all entered words"}),
@@ -316,7 +347,8 @@ const TwirlipChat = {
                 m("textarea.h4.w-80.ma2.ml3", {value: chatText, oninput: chatTextChange, onkeydown: textAreaKeyDown}),
                 m("div",
                     m("button.ml2.f3.mt2", {onclick: sendChatMessage}, "Send (ctrl-enter)"),
-                    m("button.ml2.f3.mt2", {onclick: uploadClicked}, "Upload..."),
+                    m("button.ml2.f3.mt2", {onclick: uploadDocumentClicked}, "Upload document..."),
+                    m("button.ml2.f3.mt2", {onclick: downloadChatClicked}, "Download filtered chat..."),
                 ),
             )
         ])
