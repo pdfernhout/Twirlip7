@@ -161,6 +161,7 @@ function getSortedMessages() {
 }
 
 function hasFilterText(message) {
+    if (message.chatText === "DELETED" && filterText !== "DELETED") return false
     const localMessageTimestamp = makeLocalMessageTimestamp(message.timestamp)
     if ((filterText || hideText) && typeof message.chatText === "string") {
         let lowerCaseText = message.chatText.toLowerCase() + " " + ("" + message.userID).toLowerCase() + " " + localMessageTimestamp.toLowerCase()
