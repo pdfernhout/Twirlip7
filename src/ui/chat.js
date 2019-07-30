@@ -33,6 +33,8 @@ let filterText = ""
 // hideText is split into tags by spaces and used to filter by a logical "OR" to hide displayed items
 let hideText = ""
 
+let sortMessagesByContent = false
+
 let messagesDiv = null
 
 const messagesByUUID = {}
@@ -93,10 +95,17 @@ function sendChatMessage() {
     const timestamp = new Date().toISOString()
     const uuid = "chatMessage:" + uuidv4()
 
+    const newMessage = { chatText, userID, timestamp, uuid }
+
     sendMessage({ chatText, userID, timestamp, uuid })
     chatText = ""
-    filterText = ""
-    // hideText = ""
+    if (!hasFilterText(newMessage)) {
+        setTimeout(() => alert("The message you just added is currently\nnot displayed due to show/hide filtering."))
+        /*
+        filterText = ""
+        hideText = "
+        */
+    }
     setTimeout(() => {
         // Scroll to bottom always when sending -- but defer it just in case was filtering
         if (messagesDiv) {
@@ -138,27 +147,46 @@ function textAreaKeyDown(event) {
 function formatChatMessage(text) {
     return m.trust(marked(text))
 }
+
+function getSortedMessages() {
+    if (!sortMessagesByContent) return messages
+    console.log("sorting messages")
+    const sortedMessages = messages.slice()
+    sortedMessages.sort((a, b) => {
+        if (a.chatText < b.chatText) return -1
+        if (a.chatText > b.chatText) return 1
+        return 0
+    })
+    return sortedMessages
+}
+
+function hasFilterText(message) {
+    const localMessageTimestamp = makeLocalMessageTimestamp(message.timestamp)
+    if ((filterText || hideText) && typeof message.chatText === "string") {
+        let lowerCaseText = message.chatText.toLowerCase() + " " + ("" + message.userID).toLowerCase() + " " + localMessageTimestamp.toLowerCase()
+
+        if (filterText) {
+            const tags = filterText.split(" ")
+            for (let tag of tags) {
+                if (tag && !lowerCaseText.includes(tag.toLowerCase())) return false
+            }
+        }
+        if (hideText) {
+            const tags = hideText.split(" ")
+            for (let tag of tags) {
+                if (tag && lowerCaseText.includes(tag.toLowerCase())) return false
+            }
+        }
+    }
+
+    return true
+}
+
 function downloadChatClicked() {
     let text = ""
 
-    messages.map(function (message, index) {
-        const localMessageTimestamp = makeLocalMessageTimestamp(message.timestamp)
-        if ((filterText || hideText) && typeof message.chatText === "string") {
-            let lowerCaseText = message.chatText.toLowerCase() + " " + ("" + message.userID).toLowerCase() + " " + localMessageTimestamp.toLowerCase()
-
-            if (filterText) {
-                const tags = filterText.split(" ")
-                for (let tag of tags) {
-                    if (tag && !lowerCaseText.includes(tag.toLowerCase())) return []
-                }
-            }
-            if (hideText) {
-                const tags = hideText.split(" ")
-                for (let tag of tags) {
-                    if (tag && lowerCaseText.includes(tag.toLowerCase())) return []
-                }
-            }
-        }
+    getSortedMessages().forEach(function (message, index) {
+        if (!hasFilterText(message)) return
         text += "\n----\n"
         text += "author: " + message.userID + " @ " + localMessageTimestamp + "\n"
         text += message.editedTimestamp ? "last edited: " + makeLocalMessageTimestamp(message.editedTimestamp) + "\n": ""
@@ -285,7 +313,11 @@ const TwirlipChat = {
                     m("span.ml2" + (filterText ? ".green" : ""), "Show:"),
                     m("input.ml2" + (filterText ? ".green" : ""), {value: filterText, oninput: (event) => { filterText = event.target.value; scrollToBottomLater() }, title: "Only display messages with all entered words"}),
                     m("span.ml2" + (hideText ? ".orange" : ""), "Hide:"),
-                    m("input.ml2" + (hideText ? ".orange" : ""), {value: hideText, oninput: (event) => { hideText = event.target.value; scrollToBottomLater() }, title: "Hide messages with any entered words"})
+                    m("input.ml2" + (hideText ? ".orange" : ""), {value: hideText, oninput: (event) => { hideText = event.target.value; scrollToBottomLater() }, title: "Hide messages with any entered words"}),
+                    m("span.ml2",  { title: "Sort alphabetically by chat message text" },
+                        m("input[type=checkbox].ma1", { checked: sortMessagesByContent, onchange: (event) => sortMessagesByContent = event.target.checked }),
+                        "sort"
+                    )
                 )
             ),
             m("div.overflow-auto.flex-auto",
@@ -294,27 +326,11 @@ const TwirlipChat = {
                         messagesDiv = (vnode.dom)
                     },
                 },
-                messages.map(function (message, index) {
-                    const localMessageTimestamp = makeLocalMessageTimestamp(message.timestamp)
-                    if ((filterText || hideText) && typeof message.chatText === "string") {
-                        let lowerCaseText = message.chatText.toLowerCase() + " " + ("" + message.userID).toLowerCase() + " " + localMessageTimestamp.toLowerCase()
-
-                        if (filterText) {
-                            const tags = filterText.split(" ")
-                            for (let tag of tags) {
-                                if (tag && !lowerCaseText.includes(tag.toLowerCase())) return []
-                            }
-                        }
-                        if (hideText) {
-                            const tags = hideText.split(" ")
-                            for (let tag of tags) {
-                                if (tag && lowerCaseText.includes(tag.toLowerCase())) return []
-                            }
-                        }
-                    }
+                getSortedMessages().map(function (message, index) {
+                    if (!hasFilterText(message)) return []
                     return m("div.pa2.f2.f5-l", /* Causes ordering issue: {key: message.uuid || ("" + index)}, */ [
                         m("span.f4.f6-l",
-                            m("i", message.userID + " @ " + localMessageTimestamp),
+                            m("i", message.userID + " @ " + makeLocalMessageTimestamp(message.timestamp)),
                             message.editedTimestamp ? m("b.ml1", {title: makeLocalMessageTimestamp(message.editedTimestamp) }, "edited")  : [],
                             // support editing
                             (message.userID === userID && message.uuid)
