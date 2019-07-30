@@ -183,13 +183,13 @@ function hasFilterText(message) {
     return true
 }
 
-function downloadChatClicked() {
+function exportChatClicked() {
     let text = ""
 
     getSortedMessages().forEach(function (message, index) {
         if (!hasFilterText(message)) return
         text += "\n----\n"
-        text += "author: " + message.userID + " @ " + localMessageTimestamp + "\n"
+        text += "author: " + message.userID + " @ " + makeLocalMessageTimestamp(message.timestamp) + "\n"
         text += message.editedTimestamp ? "last edited: " + makeLocalMessageTimestamp(message.editedTimestamp) + "\n": ""
         text += "\n"
         text += message.chatText
@@ -365,7 +365,7 @@ const TwirlipChat = {
                 m("div",
                     m("button.ml2.f3.mt2", {onclick: sendChatMessage}, "Send (ctrl-enter)"),
                     m("button.ml2.f3.mt2", {onclick: uploadDocumentClicked}, "Upload document..."),
-                    m("button.ml2.f3.mt2", {onclick: downloadChatClicked}, "Download filtered chat..."),
+                    m("button.ml2.f3.mt2", {onclick: exportChatClicked}, "Export filtered chat as markdown..."),
                 ),
             )
         ])
