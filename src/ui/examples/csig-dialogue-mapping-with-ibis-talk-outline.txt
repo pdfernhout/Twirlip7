@@ -1,0 +1,310 @@
+What is the topic of this CSIG talk for 2019-07-25?
+
+    Dialogue Mapping using IBIS for more productive and fun meetings
+
+        What is Dialogue Mapping(TM)?
+            A radically inclusive facilitation process that creates a diagram or "map" on a shared display that captures and connects participants' comments as a meeting conversation unfold (typically using "IBIS" notation).
+            Who created Dialogue Mapping?
+                Jeff Conklin (mainly), KC Burgess Yakemovic (both with CogNexus Group), others
+            When was Dialogue Mapping created?
+                1990s, especially as part of the QuestMap software and a related small company
+
+        What is IBIS?
+            Issue-Based Information System -- a simple "grammar" for outlining complex challenges
+                What are the main parts of the IBIS grammar?
+                    Issues/Questions (anything can be questioned)
+                    Options/Answers (under questions)
+                    Arguments (Pros/Cons under Options)
+            Who created IBIS?
+                Horst Rittel (mainly), Werner Kunz 
+            When was IBIS created?
+                1960s
+            Why was IBIS created?
+                To help groups deal with "Wicked" problems with ill-defined boundaries and many stakeholders
+
+        What are Key characteristics of "Wicked" problems?
+            (from Horst Rittel and Melvin M. Webber, 1973, summarized: https://nnsi.northwestern.edu/social-impact/wicked-problems-what-are-they-and-why-are-they-of-interest-to-nnsi-researchers/ )
+            Lack of definitive formulation.
+            No stopping rule that determines when a solution has been found.
+            Good or bad solutions rather than true or false solutions.
+            Lack of immediate and ultimate tests of solutions.
+            Solutions are "one-shot" operations rather than trial and error.
+            Lack of criteria that indicate all solutions have been identified.
+            The uniqueness of every wicked problem.
+            Any wicked problem could be viewed as a symptom of another problem.
+            Any discrepancies in wicked problem can be explained in multiple ways.
+            Planners have no right to be wrong in that they are responsible for outcomes that result from the actions they take.
+
+        Who is the presenter?
+            Paul Fernhout <pdfernhout@kurtz-fernhout.com>
+                Occupation?
+                    Software Developer -- and sometimes author on technology, society, and health topics
+                Any related IBIS software developer by him?
+                    Work in progress: https://github.com/pdfernhout/Twirlip7/blob/master/src/ui/ibis.js
+                Any examples of public IBIS diagrams you made?
+                    http://barcamp.org/w/page/47222818/Tools%20for%20Collective%20Sensemaking%20and%20Civic%20Engagement
+                    http://barcamp.org/w/page/47221410/Desktop%20or%20Mobile%20or%20Web
+
+        What is important to know about Dialogue Mapping and IBIS?
+
+            Where does IBIS fit in context of examples of cognitive assistants (broadly construed)?
+                Documents / Hypertext
+                Chat / Email
+                2D and 3D drawing tools
+                Catalogs / Encyclopedias / Spreadsheets / Databases / Indexes
+                Optimization and Consistency tools
+                Log analysis and visualization tools
+                Simulations
+                UIs for automation
+                Speech-to-text / Video understanding
+                Genoa II / RAHS -- techno-social systems for processing semi-structured security-related information and making related decisions
+                Rakontu / NarraFirma / Narratopia -- narrative sensemaking tools for groups
+                Outlines (e.g. Engelbart NLS demo in 1968) / Schemas (e.g. XSL-FO) / IBIS -- Knowledge Cartography
+
+            Why is it important to improve meetings like through using Dialogue Mapping?
+
+                Summary of findings of HBR ( https://hbr.org/2017/07/stop-the-meeting-madness ) "Stop the Meeting Madness"?
+                    Authors?
+                        Leslie A. Perlow, Constance Noonan Hadley, and Eunice Eun (July-August 2017)
+                    Key finding?
+                        "executives spend an average of nearly 23 hours a week in [scheduled meetings], up from less than 10 hours in the 1960s." (not including adhoc meetings)
+                    Result of 182 senior managers in a range of industries were surveyed?
+                        Finding: 65% said meetings keep them from completing their own work.
+                        Finding: 71% said meetings are unproductive and inefficient. 
+                        Finding: 64% said meetings come at the expense of deep thinking.
+                        Finding: 62% said meetings miss opportunities to bring the team closer together.
+                    Result of survey of nearly 200 senior executives from diverse industries?
+                        Only 17% reported that their meetings are generally productive uses of group and individual time.
+
+                Size of meeting market?
+                    Hundreds of billions of US dollars globally per year (conservatively) -- likely over a trillion US$ annually
+                        Sources?
+                            Key ideas of: http://attentiv.com/america-meets-a-lot/ ?
+                                The average salary cost per meeting is US$338.
+                                Hour-long meetings with CEOs and other business leaders can cost upwards of US$20,000 per event.
+                                11 million meetings are held in the United States each day on average.
+                                The meeting total is well over a billion meetings in the USA per year.
+                            Key idea of: https://www.atlassian.com/time-wasting-at-work-infographic ?
+                                $37 Billion salary cost of unnecessary meetings for U.S. businesses
+                            More?
+                                "The true cost of Meetings - Infographic" https://www.readytalk.com/meeting-resources/infographics/true-cost-meetings-infographic
+
+            Are there any fundamental evolutionary psychology roots of this meeting challenge?
+                Humans are adapted to discuss/argue together in small groups (e.g. groups for hunting, gathering, and childcare)
+                    Source?
+                        "Why do humans reason? Arguments for an argumentative theory" (2011) by Hugo Mercier and Dan Sperber
+                Hunter/Gatherer mind in world of information overload
+                    Difficulties?
+                        Don't know all participants from birth -- limited trust
+                        Cultural differences -- limited mutual understanding
+                        Complex challenges
+                        No shared tribal ownership at start
+                        Conflicting agendas
+                    Environmental changes?
+                        Rapidly changing technology circumstances
+                        Captivating "web" of lies, half-truths, and truths
+                        Ubiquitous Smartphones
+                        Spam sales pitches, clickbait, and game-ification
+                            More details?
+                                Cuckoo-like mental parasites; see book "Supernormal Stimuli"
+
+            Possible ways to make meetings more productive given modern circumstances?
+                Agenda
+                Document meeting outcomes
+                Right number of right people
+                Start on time
+                Limit slides
+                Shorter meetings
+                Avoid meetings
+                Face-to-face meeting replacements (email, chat, wikis & issue tracking as stigmergy, teleconferencing)
+                Better meetings (Dialogue Mapping with IBIS, other)
+                    How to have better meetings?
+                        Automatic transcripts
+                            + Save time of organizer after meeting
+                            - Reticence about recording
+                            - A lot to look through
+                        Automatic summary
+                            + Save time of anyone reviewing meeting
+                            - Technological challenge
+                            - Does not address meeting process
+                        Robert's Rules of Order
+                            + Works well for formal decisions in some circumstances
+                            - Heavyweight for small meetings exploring topics
+                            - Does not address many psychological issues of participation
+                        Shared display (whiteboards, projectors, screenshares) to visualize thinking
+                            + Helps with limited group working memory
+                            + Helps those with auditory impairments
+                            + Keeps group focused
+                            - Requires technology (which can go wrong)
+                            - Accessibility of visually impaired
+                            - May prevent pursuing important new ideas without fancy graphics
+                            Possible uses of shared display?
+                                Charts and graphs
+                                2D and 3D representations
+                                Videos
+                                Simulations and what/if spreadsheets
+                                Graphic Facilitation (cartooning)
+                                Dialogue Mapping with IBIS
+
+            Key books on Dialogue Mapping with IBIS?
+                Dialogue Mapping: Building Shared Understanding of Wicked Problems (2006) by Jeff Conklin
+                The Heretic's Guide to Best Practices: The Reality of Managing Complex Problems in Organisations (2013) by Paul Culmsee and Kailash Awati
+                Constructing Knowledge Art: An Experiential Perspective on Crafting Participatory Representations (2014) by Al Selvin and Simon Buckingham Shum 
+                Help! I have to think!: An approach to working through life’s big challenges (2015) by KC Burgess Yakemovic
+
+            Key needs of individuals in organizations (according to Dan Pink and others) that IBIS might help with?
+                Autonomy
+                Mastery
+                Purpose
+                Community
+                Fun (from all of the above)
+                Related Books?
+                    "Drive: The Surprising Truth About What Motivates Us" by Dan Pink
+                    "The Depression Cure" by Stephen Ilardi on Hunter/Gatherer-inspired Therapeutic Lifestyle Change
+                    "Lost Connections" by Johann Hari
+                    "The Original Affluent Society" by Marshall Sahlins
+
+            Key needs of groups in organizations that IBIS can help with?
+                Shared understanding (diversity)
+                Shared commitment
+                Psychologically safe place for interaction
+                Minimize clutter, distraction, and inflexibility/inagility (from problematical frameworks and "best practices": e.g. see Sidney Dekker's writings)
+
+            Key aspects of IBIS?
+                Questions (?) -- something that needs an answer
+                Answers / Options / Ideas (.) -- possible responses to a question (may not be mutually exclusive)
+                Supporting arguments for Ideas as Pros (+) and/or Cons (-)
+                How do the three types of items fit together as a grammar?
+                    Answers go under Questions
+                    Pro and Con Arguments go under Answers
+                    Questions can go under anything
+
+            Benefits of IBIS?
+                Showing all options
+                Highlighting missing information
+                Finding better ideas
+                Information available for persuasion or to present to other decision makers
+                Increased understanding of all participants
+                Engagement of all stakeholders so they do not sabotage decision
+                Can be extended for future needs
+                More efficient focus
+                Helps with improving critical thinking skills
+                Not associating names to items can decrease fear of being seen as too critical
+                Supports creativity in the sense that there is always room for more questions or more ideas
+                Collaborative in the sense of people working together to build a shared artifact even if they disagree
+
+            Example of a success story for Dialogue Mapping?
+                http://www.customers.com/articles/tackling-wicked-problem-water-issues/
+                "How the Delta Dialogues Project Is Using Dialogue Mapping to Build Shared Understanding [about the "wicked" problem of CA water supply]"
+                "The six-month pilot was successful in building a shared understanding and forging ties among a group of unlikely collaborators (people who had been at each others’ throats for decades)."
+
+            Different types of IBIS representations?
+                gIBIS -- graphical (QuestMap -> Compendium (Java, Desktop) -> Cohere for web -> OVA: Online Visualisation of Argument)
+                itIBIS -- indented textual outline (the form used for this talk)
+
+            Why is IBIS so simple to read?
+                A goal is to be usable without training in public meetings (e.g. above examples are understandable)
+                Avoiding clutter not needed for key objective of shared understanding/commitment
+                Easier for Dialogue Mapper (facilitator) to use in a live meeting
+
+            Why is IBIS and Dialogue Mapping hard to use sometimes?
+                Working in real-time in live meeting (so, like performing Jazz music on a piano)
+                    Why do we expect professional musicians to have years of practice but expect anyone can facilitate a meeting with no training?
+                        What training does someone doing Dialogue mapping need?
+                            Asking clarifying questions
+                            Knowing about different categories of questions
+                            Listening for implied question (a bit like Jeopardy)
+                            Need for practice
+                            How to get started?
+                                Many people naturally make outlines and list pros and cons -- start now with your next meeting with your own private notes
+                                Read a book by Jeff Conklin (organizationally-focused with gIBIS) or KC Burgess Yakemovic (simpler, individually-oriented with itIBIS)
+                            How good do you have to be to facilitate with Dialogue Mapping?
+                                "The woods would be pretty quiet if no bird sang there but the best."
+                                People can still gain benefits from playing live music for themselves and others even if they are not the best -- same with Dialogue Mapping
+                                May depend on the situation and the stakes
+                Technology can go wrong (especially multi-user stuff)
+                Facilitator needs a good memory of diagram so can relate new or repeated information back to previously mapped 
+                Subject matter may be unfamiliar to facilitator
+                Trusting to group intelligence
+
+            Why is Dialogue Mapping with IBIS so hard to put in practice?
+                Can seem to slow groups down?
+                    Does it really slow them down?
+                        "Sometimes need to go slower to go faster."
+                It's "new" (compared to printed agendas etc.)
+                It's "old" (1960s, bygone moonshot era)
+                Competes with mindshare of fancier more expensive better-marketed "solutions" (David Thomas on Agile vs. Agility)
+                Need for trained facilitator
+                Need for technology support of shared display (with visible pointer)
+                Complexity of some issues can become overwhelming even with software like Compendium for multiple nested maps with shared items
+                Fundamentally democratic and participatory aspect can be seen as threatening in some groups
+                    How so?
+                        Personal agendas in groups (turf, power, control, secrecy, etc.)
+                        Jeff Conklin example: power company executives preferred million dollar fines over documenting decisions
+                Knowing when to stop mapping (maybe ask later is there anything to put down)
+                    Examples (from Conklin)?
+                        Meeting process like when to take a break
+                        Some interpersonal conflicts
+                        Off-the-record conversations
+                        Highly open-ended conversations (like at startup, maybe just capture questions)
+                        Emotional issues
+                        True Dialog (transcendental state of grace)
+
+            How and when are decisions made?
+                Run out of time
+                Group senses it is ready
+                Are numerical weightings of pros and cons used to make choices?
+                    Usually not
+                        Why not?
+                            People rarely agree on exact weightings or how to aggregate them
+                        What is an alternative to abstract weighting?
+                            Endorsement of ideas by named individuals or show of hands and count
+
+            What are major categories of IBIS questions?
+                "What needs to be done?"
+                "How can we do it?"
+                "How do we decide? (criterion)"
+                "Who are the stakeholders?"
+                "What are the facts? (e.g. How many widgets do we have on hand right now?)"
+                "What is the meaning of a term? (e.g. What is a `participant`?)"
+                "What background that lead to this point?"
+                "What about the future? (e.g. What if we don't decide by some date?)"
+
+            What are the "three moves of discourse"?
+                Making a case for an idea
+                Making a case against an idea
+                Challenging the context/frame of the conversation
+
+            What are some common Dialogue Mapping social issues in practice?
+                Someone questions focus of discussion -- "left hand move" of adding a question to the left and shifting everything else to the right
+                Someone repeats a point important to them -- point to where already on diagram and ask them if they have anythign to adding
+                People afraid to be critical -- point to idea and ask are there any cons?
+
+            Why would creating a cognitive assistant to support Dialogue Mapping with IBIS make a good IBM Watson Grand Challenge?
+                Trillion dollar market annually for improving meetings
+                Personal value to IBM employees and academic researchers to have more fun meetings that are more productive
+                Aligns with idea of cognitive systems providing intelligence augmentation
+                Past IBM challenges have been human vs. machine (Chess, Jeopardy, Debate) -- not cooperation/assistance/dialog
+                What would other alternatives be for a grand challenge about human-machine cooperation?
+
+            Related prior work?
+                IBM Watson for Jeopardy -- finding the implicit question
+                IBM Debater (Noam Slonim) -- parsing arguments
+                ARG-tech (Centre for Argument Technology in UK) -- graphing debates like "The Moral Maze"
+                RPI’s Cognitive and Immersive Systems Lab (CISL) directed by Hui Su (IBM) on "Situations Room"
+
+            New work needed?
+                Human-Machine UI for supporting a human dialogue mapper including suggesting items for placement on dialogue map
+                Training humans interested in developing Dialogue Mapping skill
+                A deep learning framework bootstrapping itself across a network of users over millions of meetings
+                Mapping discussion to IBIS structures and seven types of questions and three moves of discourse
+                Asking clarifying questions and interpreting responses (e.g. "Did you mean X? Does Y capture what you meant?)
+                Thinking through privacy / security issues especially if use all meetings for training data
+
+            Credits?
+                IBIS mentions at Engelbart UnrevII colloquium circa 2000 by various participants
+                Books mentioned above, especially writings by Jeff Conklin
+                Meeting Al Selvin and using the FOSS Compendium software he co-wrote
+                Talking with Melisa Bok of UMass Amherst about the possibility of using IBIS for peer review in OpenReview and her suggestion of data mining past peer review discussions to make IBIS diagrams.
+
+            Can you provide a live demo of Dialogue Mapping with IBIS on some controversial issue related to Cognitive Systems?
