@@ -352,7 +352,8 @@ const TwirlipChat = {
                             message.editedTimestamp ? m("b.ml1", {title: makeLocalMessageTimestamp(message.editedTimestamp) }, "edited")  : [],
                             // support editing
                             (message.userID === userID && message.uuid)
-                                ? m("button.ml2", {
+                                ? m("span.ml2", {
+                                    title: "edit",
                                     onclick: () => {
                                         if (editedChatMessageUUID === message.uuid) {
                                             editedChatMessageUUID = null
@@ -360,7 +361,7 @@ const TwirlipChat = {
                                             editedChatMessageUUID = message.uuid || null
                                             editedChatMessageText = message.chatText
                                         }
-                                    }}, "✎ edit")
+                                    }}, "✎")
                                 : []),
 
                         editedChatMessageUUID === message.uuid
@@ -423,12 +424,14 @@ const chatRoomResponder = {
                 edited = true
             }
         }
+        const itemIsNotFiltered = hasFilterText(item)
         if (isLoaded) {
             // Only scroll if scroll is already near bottom and not filtering or editing to avoid messing up editing or browsing previous items
-            if (!filterText && !edited && messagesDiv && (messagesDiv.scrollTop >= (messagesDiv.scrollHeight - messagesDiv.clientHeight - 300))) {
+            if (itemIsNotFiltered && !edited && messagesDiv && (item.userID === userID || messagesDiv.scrollTop >= (messagesDiv.scrollHeight - messagesDiv.clientHeight - 300))) {
                 setTimeout(() => {
-                    messagesDiv.scrollTop = messagesDiv.scrollHeight
-                }, 0)
+                    // Add some because height may not include new item
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight + 10000
+                }, 100)
             }
             if (!document.hasFocus()) {
                 // Notify the user about a new message in this window
