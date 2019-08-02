@@ -183,7 +183,7 @@ function hasFilterText(message) {
     return true
 }
 
-function exportChatClicked() {
+function exportChatAsMarkdownClicked() {
     let text = ""
 
     getSortedMessages().forEach(function (message, index) {
@@ -196,6 +196,23 @@ function exportChatClicked() {
     })
 
     FileUtils.saveToFile(chatRoom + " " + new Date().toISOString(), text, ".md")
+}
+
+function exportChatAsJSONClicked() {
+    const messagesToExport = []
+
+    getSortedMessages().forEach(function (message, index) {
+        if (!hasFilterText(message)) return
+        messagesToExport.push(message)
+    })
+
+    FileUtils.saveToFile(chatRoom + " " + new Date().toISOString(), JSON.stringify(messagesToExport, null, 4), ".json")
+}
+
+function importChatFromJSONClicked() {
+    FileUtils.loadFromFile(false, (filename, contents, bytes) => {
+        console.log("JSON filename, contents", filename, bytes, contents)
+    })
 }
 
 function uploadDocumentClicked() {
@@ -365,7 +382,9 @@ const TwirlipChat = {
                 m("div",
                     m("button.ml2.f3.mt2", {onclick: sendChatMessage}, "Send (ctrl-enter)"),
                     m("button.ml2.f3.mt2", {onclick: uploadDocumentClicked}, "Upload document..."),
-                    m("button.ml2.f3.mt2", {onclick: exportChatClicked}, "Export filtered chat as markdown..."),
+                    m("button.ml2.f3.mt2", {onclick: exportChatAsMarkdownClicked, title: "Export filtered chat as Markdown"}, "Export Markdown..."),
+                    m("button.ml2.f3.mt2", {onclick: exportChatAsJSONClicked, title: "Export filtered chat as JSON"}, "Export JSON..."),
+                    m("button.ml2.f3.mt2", {onclick: importChatFromJSONClicked, title: "Import chat messages from JSON"}, "Import JSON..."),                    
                 ),
             )
         ])
