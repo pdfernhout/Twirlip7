@@ -378,8 +378,8 @@ const TwirlipChat = {
                 })
             ),
             m("br"),
-            m("div.pa3.f2.f5-l" + (editedChatMessageUUID ? ".dn" : ""),
-                m("textarea.h4.w-80.ma2.ml3", {value: chatText, oninput: chatTextChange, onkeydown: textAreaKeyDown}),
+            m("div.pb1.f2.f5-l" + (editedChatMessageUUID ? ".dn" : ""),
+                m("textarea.h4.w-80.ma1.ml3", {value: chatText, oninput: chatTextChange, onkeydown: textAreaKeyDown}),
                 m("div",
                     m("button.ml2.f3.mt2", {onclick: sendChatMessage}, "Send (ctrl-enter)"),
                     m("button.ml2.f3.mt2", {onclick: uploadDocumentClicked}, "Upload document..."),
