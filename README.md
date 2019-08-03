@@ -1,17 +1,27 @@
-### Twirlip7 Programmable Notebook
+### Twirlip7 Information Organizer
 
 Try it here: http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/twirlip7.html
 
-Right now, this is just a simple IDE for playing with JavaScript and Mithril.js which stores snippets of code or text in a local journal.
+The Twirlip project helps you organize information you find interesting and make it accessible and useful to yourself or others you want to share with.
+
+Right now, there are a few experimental applications to play with:
+
+* a programmable notebook (with some examples including plugins)
+* an IBIS diagramming tool for Dialogoue Mapping
+* a chat application
+
+### About the notebook application
+
+The notebook app is an IDE for playing with JavaScript and Mithril.js which stores snippets of code or text in a local notebook with a collection of items.
 
 As an experiment, questions include how could these snippets be stored, retrieved, visualized, referenced, annotated, shared, versioned, or discussed?
 
 The goal of the experiment is to explore such ideas as another step towards a social semantic desktop.
 
-The journal is stored in local storage by default.
-You can click on the "Journal" dropdown to switch from using local storage to memory storage or server storage for new items.
+The notebook items are stored in local storage by default.
+You can click on the "Notebook" dropdown to switch from using local storage to memory storage or server storage for new items.
 
-And entire journal of snippets can be exported or imported as JSON.
+And entire notebook of snippets can be exported or imported as JSON.
 You can also copy and paste individual items (including their history) between Twirlip7 journals via data URLs using the clipboard.
 
 However, all that may change as the experiment progresses in new directions.
@@ -31,12 +41,12 @@ you need to add a proxyKey.txt file with a proxyKey passphrase which must be sup
 You don't need to install and run the server to do some simple tests.
 You can just load the UI files directly into your browser (like with the rawgit example).
 If you run without the server, however, you can only store data in memory or local storage;
-the server journal option will be greyed out in the UI.
+the server storage option will be greyed out in the UI.
 Also, proxy support is not available without the server, so the proxying examples won't work.
 
 No required build step (yet).
 
-### Controlling editor startup to edit or run examples
+### Controlling notebook startup to edit or run examples
 
 You can edit a simple example canvas app here: https://rawgit.com/pdfernhout/Twirlip7/master/src/ui/twirlip7.html#edit=examples/canvas-example.js
 
@@ -46,7 +56,7 @@ You can edit a complex example IBIS app -- written using Twirlip7 -- here: https
 
 You can run the complex example IBIS application: http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/twirlip7.html#eval=examples/ibis_icons.js;examples/ibis_application.js
 
-### Using the editor to edit and run any JavaScript on GitHub
+### Using the notebook to edit and run any JavaScript on GitHub
 
 This edit and run functionality is mostly for demo purposes, but you can also edit or run any JavaScript on GitHub with relative path navigation on rawgit.
 For example: https://rawgit.com/pdfernhout/Twirlip7/master/src/ui/twirlip7.html#edit=../../../../../MithrilJS/mithril.js/next/examples/todomvc/todomvc.js
@@ -66,9 +76,9 @@ Using the Mithril router in an app is also problematical if other apps you run i
 
 ### Screenshots
 
-Note: The IDE screenshot here is significantly out-of-date as more features have been added since it was made.
+Note: The IDE screenshots here are significantly out-of-date as more features have been added since it was made.
 
-Screenshot of Twirlip7 editor showing a code snippet with a simple temperature convertor in Mithril (after having pressed "Do it"):
+Screenshot of Twirlip7 notebook showing a code snippet with a simple temperature convertor in Mithril (after having pressed "Do it"):
 
 ![Twirlip7 Screenshot showing F-to-C snippet in editor](screenshots/Twirlip7_Screenshot_showing_F-to-C_snippet_2017-05-19.png?raw=true "Twirlip7 Screenshot showing F-to-C snippet in editor after pressing Do it")
 
