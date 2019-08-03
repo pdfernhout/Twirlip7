@@ -200,17 +200,11 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
     function restoreCurrentItemId() {
         let storedItemId = fetchStoredItemId()
         // Memory is transient on reload, so don't try to go to missing keys to avoid a warning
-        Promise.resolve().then(() => {
-            if (notebookChoice === "memory") {
-                return currentNotebook.getItem(storedItemId).then(item => {
-                    if (item === null) storedItemId = null
-                    return Promise.resolve(true)
-                })
-            }
-            return Promise.resolve(true)
-        }).then(() => {
-            goToKey(storedItemId, {ignoreDirty: true})
-        })
+        if (notebookChoice === "memory") {
+            const item = currentNotebook.getItem(storedItemId)
+            if (item === null) storedItemId = null
+        }
+        goToKey(storedItemId, {ignoreDirty: true})
     }
 
     function saveNotebookChoice() {
@@ -297,38 +291,33 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
         return CanonicalJSON.stringify(currentItem)
     }
 
-    // Returns a Promise
     function save() {
         if (!isEditorDirty()) {
-            if (!confirm("There are no changes.\nSave a new item anyway with a later timestamp?")) return Promise.resolve(false)
+            if (!confirm("There are no changes.\nSave a new item anyway with a later timestamp?")) return false
         }
         if (!currentContributor) {
-            if (!promptForContributor()) return Promise.resolve(false)
+            if (!promptForContributor()) return false
         }
         const newContents = getEditorContents()
         const itemJSON = prepareCurrentItemForSaving(newContents)
-        return currentNotebook.addItem(itemJSON).then((addResult) => {
-            if (addResult.error) {
-                alert("save failed -- maybe too many localStorage items?\n" + addResult.error)
-                return
-            }
-            if (addResult.existed) {
-                toast("Item already saved", 1000)
-            } else {
-                toast("Saved item as:\n" + addResult.id, 2000)
-            }
-            updateLastLoadedItemFromCurrentItem()
-            wasEditorDirty = false
-            currentItemId = addResult.id
-            currentItemIndex = addResult.location
-            saveCurrentItemId()
-            updateIsLastMatch(true)
-            setDocumentTitleForCurrentItem()
-            return Promise.resolve(true)
-        }).catch((error) => {
-            console.log("Problem in save", error)
-            return Promise.reject(error)
-        })
+        const addResult = currentNotebook.addItem(itemJSON)
+        if (addResult.error) {
+            alert("save failed -- maybe too many localStorage items?\n" + addResult.error)
+            return false
+        }
+        if (addResult.existed) {
+            toast("Item already saved", 1000)
+        } else {
+            toast("Saved item as:\n" + addResult.id, 2000)
+        }
+        updateLastLoadedItemFromCurrentItem()
+        wasEditorDirty = false
+        currentItemId = addResult.id
+        currentItemIndex = addResult.location
+        saveCurrentItemId()
+        updateIsLastMatch(true)
+        setDocumentTitleForCurrentItem()
+        return true
     }
 
     function interceptSaveKey(evt) {
@@ -475,29 +464,27 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
         FileUtils.saveToFile(provisionalFileName, fileContents)
     }
 
-    // Returns Promise
     function makeDataURLForItemId(itemId) {
-        return currentNotebook.getItem(itemId).then((itemText => {
-            const encodedText = encodeURIComponent(itemText)
-            const dataURL = twirlip7DataUrlPrefix + itemId + "/" + itemText.length + "/" + encodedText.length + "/" + encodedText
-            const result = { itemId, itemText, dataURL }
-            return Promise.resolve(result)
-        }))
+        const itemText = currentNotebook.getItem(itemId)
+        const encodedText = encodeURIComponent(itemText)
+        const dataURL = twirlip7DataUrlPrefix + itemId + "/" + itemText.length + "/" + encodedText.length + "/" + encodedText
+        const result = { itemId, itemText, dataURL }
+        return result
     }
 
     function displayDataURLForCurrentNote() {
         if (currentItemId) {
             if (!confirmClear()) return
-            makeDataURLForItemId(currentItemId).then((dataURLConversionResult) => {
+            try {
+                const dataURLConversionResult = makeDataURLForItemId(currentItemId)
                 const dataURL = dataURLConversionResult.dataURL
                 showText(dataURL, "text/plain")
                 editor.selection.selectAll()
                 editor.focus()
                 m.redraw()
-            }).catch((error) => {
+            } catch(error) {
                 console.log("Problem in displayDataURLForCurrentNote", error)
-                return Promise.reject(error)
-            })
+            }
         } else {
             alert("Please select a saved item first")
         }
@@ -508,45 +495,44 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
             if (!confirmClear()) return
             let dataURLs = []
 
+            // Recursive function
             function followDerivedFrom(itemId) {
                 if (itemId) {
-                    return makeDataURLForItemId(itemId).then((dataURLConversionResult) => {
-                        dataURLs.unshift(dataURLConversionResult.dataURL)
-                        const item = Twirlip7.getItemForJSON(dataURLConversionResult.itemText)
-                        return followDerivedFrom(item.derivedFrom)
-                    })
+                    const dataURLConversionResult = makeDataURLForItemId(itemId)
+                    dataURLs.unshift(dataURLConversionResult.dataURL)
+                    const item = Twirlip7.getItemForJSON(dataURLConversionResult.itemText)
+                    return followDerivedFrom(item.derivedFrom)
                 } else {
-                    return Promise.resolve(null)
+                    return null
                 }
             }
 
-            followDerivedFrom(currentItemId).then(() => {
+            try {
+                followDerivedFrom(currentItemId)
                 const textForAllItems = dataURLs.join("\n")
                 showText(textForAllItems, "text/plain")
                 editor.selection.selectAll()
                 editor.focus()
                 m.redraw()
-            }).catch((error) => {
+            } catch(error) {
                 console.log("Problem in displayDataURLForCurrentNoteAndHistory", error)
-                return Promise.reject(error)
-            })
+            }
         } else {
             alert("Please select a saved item first")
         }
     }
 
-    // Returns Promise
     function makeNoteForDataURL(dataURL) {
         if (dataURL) {
             if (!dataURL.startsWith(twirlip7DataUrlPrefix)) {
                 alert("Twirlip7 data URL should start with: " + twirlip7DataUrlPrefix)
-                return Promise.resolve(null)
+                return null
             }
 
             const subparts = dataURL.substring(twirlip7DataUrlPrefix.length).split("/")
             if (subparts.length != 4) {
                 alert("Twirlip7 data URL should have exactly four subparts: key/itemLength/contentsLength/contents")
-                return Promise.resolve(null)
+                return null
             }
 
             const key = subparts[0]
@@ -556,39 +542,39 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
 
             if (encodedText.length !== contentsLength) {
                 alert("Twirlip7 data URL contents length of " + encodedText.length + " does not match expected length of " + contentsLength)
-                return Promise.resolve(null)
+                return null
             }
 
             const itemText = decodeURIComponent(encodedText)
             if (itemText.length !== itemLength) {
                 alert("Twirlip7 data URL decoded item length of " + itemText.length + " does not match expected length of " + itemLength)
-                return Promise.resolve(null)
+                return null
             }
 
             const itemSHA256 = "" + sha256(itemText)
             if (itemSHA256 !== key) {
                 alert("Twirlip7 data URL decoded item sha256 of " + itemSHA256 + " does not match expected sha256 of " + key)
-                return Promise.resolve(null)
+                return null
             }
 
             // TODO: Consolidate the copy/paste adding of item with where this is copied from
-            return currentNotebook.addItem(itemText).then((addResult) => {
+            try {
+                const addResult = currentNotebook.addItem(itemText)
                 if (addResult.error) {
                     alert("save failed -- maybe too many localStorage items?\n" + addResult.error)
-                    return Promise.resolve(null)
+                    return null
                 }
-                return Promise.resolve(key)
-            }).catch((error) => {
+                return key
+            } catch(error) {
                 console.log("Problem in makeNoteForDataURL", error)
-                return Promise.reject(error)
-            })
+                return null
+            }
         } else {
             alert("Please enter a Twirlip 7 data url starting with " + twirlip7DataUrlPrefix)
-            return Promise.resolve(null)
+            return null
         }
     }
 
-    // Returns a Promise
     // Also does a redraw when needed
     function readNotesFromDataURLs() {
         const textForAllItems = getSelectedEditorText().text.trim()
@@ -596,27 +582,28 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
         const keys = []
 
         const dataURLStack = dataURLs.slice()
+
+        // Recursive function
         function recursivelyMakeNotes() {
-            if (!dataURLStack.length) return Promise.resolve(true)
+            if (!dataURLStack.length) return true
             const dataURL = dataURLStack.shift()
-            return makeNoteForDataURL(dataURL).then((key) => {
-                if (key) {
-                    keys.push(key)
-                    return recursivelyMakeNotes()
-                } else {
-                    Promise.resolve(false)
-                }
-            })
+            const key = makeNoteForDataURL(dataURL)
+            if (key) {
+                keys.push(key)
+                return recursivelyMakeNotes()
+            } else {
+                return false
+            }
         }
 
-        return recursivelyMakeNotes().then(() => {
+        try {
+            recursivelyMakeNotes()
             if (keys.length && keys.length === dataURLs.length) {
                 goToKey(keys[keys.length - 1], {ignoreDirty: true})
             }
-        }).catch((error) => {
+        } catch(error) {
             console.log("Problem in readNotesFromDataURLs", error)
-            return Promise.reject(error)
-        })
+        }
     }
 
     function skip(delta, wrap) {
@@ -624,19 +611,21 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
             toast("No items to display. Try saving one first -- or show the example notebook in the editor and then load it.")
             return
         }
-        return currentNotebook.skip(currentItemIndex, delta, wrap)
-            .then(newIndex => currentNotebook.keyForLocation(newIndex))
-            .then(key => goToKey(key))
-            .catch(error => console.log("Error when skipping", error))
+        try {
+            const newIndex = currentNotebook.skip(currentItemIndex, delta, wrap)
+            const key = currentNotebook.keyForLocation(newIndex)
+            goToKey(key)
+        } catch(error) {
+            console.log("Error when skipping", error)
+        }
     }
 
-    // Returns a Promise
     function goToKey(key, options) {
         if (!editor) {
             console.log("EARLY GOTOKEY")
             // Called before we are ready -- defer this for later
             startupGoToKey = {key, options}
-            return Promise.resolve(false)
+            return false
         }
         if (!options) options = {}
 
@@ -644,12 +633,12 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
         if (!options.reload && key === currentItemId && !isEditorDirty()) {
             updateIsLastMatch()
             if (!options.noredraw) m.redraw()
-            return Promise.resolve(false)
+            return false
         }
         if (!options.ignoreDirty && !confirmClear()) {
             updateIsLastMatch()
             if (!options.noredraw) m.redraw()
-            return Promise.resolve(false)
+            return false
         }
 
         const progressDelay = 200
@@ -666,7 +655,8 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
             }, progressDelay)
         }
 
-        return currentNotebook.getItem(key).then((itemText) => {
+        try {
+            const itemText = currentNotebook.getItem(key)
             let item
             if (itemText === undefined || itemText === null) {
                 if (key) toast("item not found for:\n\"" + key + "\"")
@@ -694,25 +684,24 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
             setDocumentTitleForCurrentItem()
 
             // TODO: Optimize this so the index is returned with item data
-            return currentNotebook.locationForKey(currentItemId).then((itemIndex) => {
-                currentItemIndex = itemIndex
-                if (options.showProgress) {
-                    if (progressTimeout) {
-                        // Did not show progress message yet, so don't show it now
-                        clearTimeout(progressTimeout)
-                    } else {
-                        progress(null)
-                    }
+            const itemIndex = currentNotebook.locationForKey(currentItemId)
+            currentItemIndex = itemIndex
+            if (options.showProgress) {
+                if (progressTimeout) {
+                    // Did not show progress message yet, so don't show it now
+                    clearTimeout(progressTimeout)
+                } else {
+                    progress(null)
                 }
-                // Redraw as a convenience by default to avoid a dozen callers doing it since we now do Promises
-                if (!options.noredraw) m.redraw()
-                return Promise.resolve(true)
-            })
-        }).catch((error) => {
+            }
+            // Redraw as a convenience by default to avoid a dozen callers doing it
+            if (!options.noredraw) m.redraw()
+            return true
+        } catch(error) {
             console.log("Error in goToKey", error)
             m.redraw()
-            return Promise.resolve(false)
-        })
+            return false
+        }
     }
 
     function setDocumentTitleForCurrentItem() {
@@ -780,77 +769,73 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
 
     function goLast() { skip(1000000) }
 
-    // Returns Promise
     function goToLatestForEntity() {
-        return findLatestForEntity().then((key) => {
+        try {
+            const key = findLatestForEntity()
             if (key) {
                 return goToKey(key)
             }
-            return Promise.resolve(false)
-        }).catch((error) => {
+            return false
+        } catch(error) {
             console.log("Problem in goToLatestForEntity", error)
-            return Promise.reject(error)
-        })
+            return false
+        }
     }
 
-    // Returns Promise
     function goToLatestForEntityAttribute() {
-        return findLatestForEntityAttribute().then((key) => {
+        try {
+            const key = findLatestForEntityAttribute()
             if (key) {
                 return goToKey(key)
             }
-            return Promise.resolve(false)
-        }).catch((error) => {
+            return false
+        } catch(error) {
             console.log("Problem in goToLatestForEntityAttribute", error)
-            return Promise.reject(error)
-        })
+            return false
+        }
     }
 
-    // Returns Promise
     function findLatestForEntity() {
-        return Twirlip7.findItem({entity: currentItem.entity}, { includeMetadata: true, sortBy: "location" }).then((matches) => {
+        try {
+            const matches = Twirlip7.findItem({entity: currentItem.entity}, { includeMetadata: true, sortBy: "location" })
             if (matches.length) {
-                return Promise.resolve(matches[0].key)
+                return matches[0].key
             }
-            return Promise.resolve(null)
-        }).catch((error) => {
+            return null
+        } catch(error) {
             console.log("Problem in findLatestForEntity", error)
-            return Promise.reject(error)
-        })
+            return null
+        }
     }
 
-    // Returns Promise
     function findLatestForEntityAttribute() {
-        return Twirlip7.findItem({
-            entity: currentItem.entity,
-            attribute: currentItem.attribute
-        }, { includeMetadata: true, sortBy: "location" }).then((matches) => {
+        try {
+            const matches = Twirlip7.findItem({
+                entity: currentItem.entity,
+                attribute: currentItem.attribute
+            }, { includeMetadata: true, sortBy: "location" })
             if (matches.length) {
-                return Promise.resolve(matches[0].key)
+                return matches[0].key
             }
-            return Promise.resolve(null)
-        }).catch((error) => {
+            return null
+        } catch(error) {
             console.log("Problem in findLatestForEntityAttribute", error)
-            return Promise.reject(error)
-        })
+            return null
+        }
     }
 
-    // Returns Promise
-    // TODO: Rethink how this works -- users not using it like a promise-returning function so it has spurious redraw
+    // TODO: does this still have spurious redraw?
     function updateIsLastMatch(value) {
         // TODO: Computing these two variables is CPU intensive as they both iterate over all items
         if (value !== undefined) {
             isLastEntityMatch = value
             isLastEntityAttributeMatch = value
             m.redraw()
-            return Promise.resolve(false)
+            return false
         }
-        return Promise.all([
-            findLatestForEntity(),
-            findLatestForEntityAttribute()
-        ]).then((allResults) => {
-            const latestForEntity = allResults[0]
-            const latestForEntityAttribute = allResults[1]
+        try {
+            const latestForEntity = findLatestForEntity()
+            const latestForEntityAttribute = findLatestForEntityAttribute()
             if (isEditorDirty() || !currentItemId) {
                 isLastEntityMatch = !latestForEntity
                 isLastEntityAttributeMatch = !latestForEntityAttribute
@@ -861,11 +846,11 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
             // TODO: Redraw for convenience of callers -- probably makes a spurious redraw a lot of times
             // TODO: Replace this with optimization of info about item when it is retrieved or other new items are added
             m.redraw()
-            return Promise.resolve(true)
-        }).catch((error) => {
+            return true
+        } catch(error) {
             console.log("Problem in updateIsLastMatch", error)
-            return Promise.reject(error)
-        })
+            return false
+        }
     }
 
     function updateLastLoadedItemFromCurrentItem() {
@@ -894,12 +879,12 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
 
     function showCurrentNotebook() {
         if (!confirmClear()) return
-        currentNotebook.textForNotebook().then((textForNotebook) => {
+        try {
+            const textForNotebook = currentNotebook.textForNotebook()
             showNotebook(textForNotebook)
-        }).catch((error) => {
+        } catch(error) {
             console.log("Problem in showCurrentNotebook", error)
-            return Promise.reject(error)
-        })
+        }
     }
 
     function showExampleNotebook() {
@@ -918,49 +903,44 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
         )
     }
 
-    // Returns Promise
     function replaceNotebook() {
-        if (currentNotebook.itemCount() && !confirm("Replace all items in the " + notebookChoice + " notebook with items from JSON in editor?")) return Promise.resolve(false)
-        return currentNotebook.loadFromNotebookText(getEditorContents())
-            .then(() => {
-                // Update lastLoadedItem.value in case pasted in contents to avoid warning later since data was processed as intended
-                lastLoadedItem.value = getEditorContents()
-                wasEditorDirty = false
-                toast("Replaced notebook from editor")
-                m.redraw()
-                return Promise.resolve(true)
-            }).catch((error) => {
-                toast("Problem replacing notebook from editor:\n" + error)
-                m.redraw()
-                return Promise.resolve(false)
-            })
+        if (currentNotebook.itemCount() && !confirm("Replace all items in the " + notebookChoice + " notebook with items from JSON in editor?")) return false
+        try {
+            currentNotebook.loadFromNotebookText(getEditorContents())
+            // Update lastLoadedItem.value in case pasted in contents to avoid warning later since data was processed as intended
+            lastLoadedItem.value = getEditorContents()
+            wasEditorDirty = false
+            toast("Replaced notebook from editor")
+            m.redraw()
+            return true
+        } catch(error) {
+            toast("Problem replacing notebook from editor:\n" + error)
+            m.redraw()
+            return false
+        }
     }
 
-    // Returns Promise
     function mergeNotebook() {
         if (currentNotebook.itemCount() && !confirm("Merge items from JSON in editor into the current notebook?")) return
-        return Promise.resolve().then(() => {
+        try {
+            // TODO: Had empty Promise -- was it needed?
             let addedItemCount = 0
             const newNotebookItems = JSON.parse(getEditorContents())
-            return Promise.all(
-                newNotebookItems.map((itemJSON) => {
-                    return currentNotebook.addItem(itemJSON).then((addResult) => {
-                        if (!addResult.existed) addedItemCount++
-                        return Promise.resolve(true)
-                    })
-                })
-            ).then(() => {
-                toast("Added " + addedItemCount + " item" + ((addedItemCount === 1 ? "" : "s")) + " to current notebook")
-                // Update lastLoadedItem.value in case pasted in contents to avoid warning later since data was processed as intended
-                lastLoadedItem.value = getEditorContents()
-                wasEditorDirty = false
-                m.redraw()
+            newNotebookItems.map((itemJSON) => {
+                const addResult = currentNotebook.addItem(itemJSON)
+                if (!addResult.existed) addedItemCount++
+                return true
             })
-        }).catch((error) => {
+            toast("Added " + addedItemCount + " item" + ((addedItemCount === 1 ? "" : "s")) + " to current notebook")
+            // Update lastLoadedItem.value in case pasted in contents to avoid warning later since data was processed as intended
+            lastLoadedItem.value = getEditorContents()
+            wasEditorDirty = false
+            m.redraw()
+        } catch(error) {
             console.log("Problem while merging", error)
             toast("Problem merging notebook from editor:\n" + error)
             m.redraw()
-        })
+        }
     }
 
     function progress(message) {
@@ -1138,15 +1118,16 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
             const newItemId = prompt("Go to item id", currentItemId)
             if (!newItemId) return
             // TODO: Should have a check for "exists"
-            currentNotebook.getItem(newItemId).then((item) => {
+            try {
+                const item = currentNotebook.getItem(newItemId)
                 if (item === null) {
                     alert("Could not find item for id:\n" + newItemId)
                 } else {
                     goToKey(newItemId, {reload: true})
                 }
-            }).catch((error) => {
+            } catch(error) {
                 console.log("Error in itemIdentifierClicked", error)
-            })
+            }
         }
 
         function itemPositionClicked() {
@@ -1154,19 +1135,18 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
             if (!newItemIndex || newItemIndex === itemIndex) return
             // TODO: Should have a check for "exists" at location
             let newItemId = null
-            currentNotebook.keyForLocation(parseInt(newItemIndex) - 1)
-                .then((itemId) => {
-                    newItemId = itemId
-                    return currentNotebook.getItem(newItemId)
-                }).then((item) => {
-                    if (item === null) {
-                        alert("Could not find item for index:\n" + newItemIndex)
-                    } else {
-                        goToKey(newItemId, {reload: true})
-                    }
-                }).catch((error) => {
-                    console.log("Error in itemPositionClicked", error)
-                })
+            try {
+                const itemId = currentNotebook.keyForLocation(parseInt(newItemIndex) - 1)
+                newItemId = itemId
+                const item = currentNotebook.getItem(newItemId)
+                if (item === null) {
+                    alert("Could not find item for index:\n" + newItemIndex)
+                } else {
+                    goToKey(newItemId, {reload: true})
+                }
+            } catch(error) {
+                console.log("Error in itemPositionClicked", error)
+            }
         }
 
         const itemIdentifier = (currentItemId === null) ?

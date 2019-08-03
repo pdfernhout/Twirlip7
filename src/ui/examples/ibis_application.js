@@ -122,26 +122,24 @@ if (!window.CompendiumIcons) {
         id: "e82b2713edf72692e6546436b0e4ac1a777e8a6269b2df17459f293e8f66fbd9"
     }
 
-    iconsPromise = Twirlip7.getCurrentNotebook().getItem(iconLoaderResource.id).then((iconLoaderItemJSON) => {
-        if (iconLoaderItemJSON) {
-            /* eslint no-eval: 0 */
-            /* jslint evil: true */
-            eval(JSON.parse(iconLoaderItemJSON).value)
-            return Promise.resolve(false)
-        } else {
-            // If all else fails, try to load the icons directly from example files -- this will run asynchronously and cause a brief flicker
-            // Temporarily set global to reduce flicker
-            window.CompendiumIcons = {}
-            return new Promise((resolve, reject) => {
-                requirejs(["vendor/text!examples/ibis_icons.js"], function (ibisIconItemContents) {
-                    eval(ibisIconItemContents)
-                    resolve(true)
-                }, function (error) {
-                    reject(error)
-                })
+    const iconLoaderItemJSON = Twirlip7.getCurrentNotebook().getItem(iconLoaderResource.id)
+    if (iconLoaderItemJSON) {
+        /* eslint no-eval: 0 */
+        /* jslint evil: true */
+        eval(JSON.parse(iconLoaderItemJSON).value)
+    } else {
+        // If all else fails, try to load the icons directly from example files -- this will run asynchronously and cause a brief flicker
+        // Temporarily set global to reduce flicker
+        window.CompendiumIcons = {}
+        iconsPromise = new Promise((resolve, reject) => {
+            requirejs(["vendor/text!examples/ibis_icons.js"], function (ibisIconItemContents) {
+                eval(ibisIconItemContents)
+                resolve(true)
+            }, function (error) {
+                reject(error)
             })
-        }
-    })
+        })
+    }
 }
 
 let diagram = {
@@ -414,16 +412,15 @@ function loadDiagram() {
     const diagramName = prompt("Load which diagram name?", diagram.diagramName)
     if (!diagramName) return
 
-    Twirlip7.findItem({entity: diagramName, attribute: "contents"}).then((items) => {
-        if (items.length === 0) {
-            console.log("item not found", diagramName)
-            return
-        }
-        const item = items[0]
-        diagramJSON = item.value
-        updateDiagramFromJSON()
-        m.redraw()
-    })
+    const items = Twirlip7.findItem({entity: diagramName, attribute: "contents"})
+    if (items.length === 0) {
+        console.log("item not found", diagramName)
+        return
+    }
+    const item = items[0]
+    diagramJSON = item.value
+    updateDiagramFromJSON()
+    m.redraw()
 }
 
 function viewJSONPanel() {
@@ -515,9 +512,9 @@ function view() {
     ]
 }
 
-iconsPromise.then(() => {
+try {
     Twirlip7.show(view, { extraStyling: ".bg-blue.br4", title: () => "IBIS Diagram for: " + diagram.diagramName })
-}).catch((error) => {
+} catch(error) {
     console.log(error)
     alert("Problem loading IBIS icons")
-})
+}

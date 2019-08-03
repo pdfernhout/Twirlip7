@@ -623,20 +623,19 @@ function clearDiagram() {
     lastClickPosition = {x: delta, y: delta}
 }
 
-/*function loadDiagram() {
+/* function loadDiagram() {
     const diagramName = prompt("Load which diagram name?", diagram.diagramName)
     if (!diagramName) return
 
-    Twirlip7.findItem({entity: diagramName, attribute: "contents"}).then((items) => {
-        if (items.length === 0) {
-            console.log("item not found", diagramName)
-            return
-        }
-        const item = items[0]
-        diagramJSON = item.value
-        updateDiagramFromJSON()
-        m.redraw()
-    })
+    const items = Twirlip7.findItem({entity: diagramName, attribute: "contents"})
+    if (items.length === 0) {
+        console.log("item not found", diagramName)
+        return
+    }
+    const item = items[0]
+    diagramJSON = item.value
+    updateDiagramFromJSON()
+    m.redraw()
 }
 */
 

@@ -13,7 +13,7 @@ import "./vendor/mithril.js"
 import "./vendor/sha256.js"
 
 import { NotebookView } from "./NotebookView.js"
-import { Stream } from "./StreamAsync.js"
+import { Stream } from "./Stream.js"
 import { StreamBackendUsingLocalStorage } from "./StreamBackendUsingLocalStorage.js"
 import { StreamBackendUsingServer } from "./StreamBackendUsingServer.js"
 import { FileUtils } from "./FileUtils.js"
@@ -131,61 +131,54 @@ function setupTwirlip7Global(callback) {
             return notebookView.getCurrentNotebook().addItem(itemJSON)
         },
 
-        // returns a Promise
         findItem(match, configuration) {
             // configuration: { includeMetadata: false, sortBy: "timestamp" (default) | "location" }
             // returns either array of items -- or if includeMetadata is truthy, {location, item, key}
             // TODO: This extremely computationally inefficient placeholder needs to be improved
             // TODO: This should not have to iterate over all stored objects
             if (!configuration) configuration = {}
-            const promises = []
             const result = []
             const notebook = notebookView.getCurrentNotebook()
             const count = notebook.itemCount()
             for (let i = 0; i < count; i++) {
                 const index = i
-                const promise = notebook.getItemForLocation(i).then((itemJSON) => {
-                    const item = getItemForJSON(itemJSON)
-                    if (!item) return
-                    let isMatch = true
-                    for (let key in match) {
-                        if (item[key] !== match[key]) {
-                            isMatch = false
-                            continue
-                        }
+                const itemJSON = notebook.getItemForLocation(i)
+                const item = getItemForJSON(itemJSON)
+                if (!item) return
+                let isMatch = true
+                for (let key in match) {
+                    if (item[key] !== match[key]) {
+                        isMatch = false
+                        continue
                     }
-                    if (isMatch) {
-                        notebook.keyForLocation(index).then(key => {
-                            result.push({location: index, item, key})
-                        })
-                    }
-                })
-                promises.push(promise)
+                }
+                if (isMatch) {
+                    const key = notebook.keyForLocation(index)
+                    result.push({location: index, item, key})
+                }
             }
-            return Promise.all(promises).then(() => {
-                // Sort so later items are earlier in list
-                result.sort((a, b) => {
-                    if (!configuration.sortBy || configuration.sortBy === "timestamp") {
-                        if (a.item.timestamp < b.item.timestamp) return 1
-                        if (a.item.timestamp > b.item.timestamp) return -1
-                    } else if (configuration.sortBy === "location") {
-                        if (a.location < b.location) return 1
-                        if (a.location > b.location) return -1
-                    } else {
-                        console.log("unexpected sortBy option", configuration.sortBy)
-                    }
-                    // compare on triple hash if timestamps match
-                    const aHash = a.key
-                    const bHash = b.key
-                    if (aHash < bHash) return 1
-                    if (aHash > bHash) return -1
-                    // Should never get here unless incorrectly storing duplicates
-                    console.log("duplicate item error", a, b)
-                    return 0
-                })
-                if (configuration.includeMetadata) return result
-                return Promise.resolve(result.map(match => match.item) )
+            // Sort so later items are earlier in list
+            result.sort((a, b) => {
+                if (!configuration.sortBy || configuration.sortBy === "timestamp") {
+                    if (a.item.timestamp < b.item.timestamp) return 1
+                    if (a.item.timestamp > b.item.timestamp) return -1
+                } else if (configuration.sortBy === "location") {
+                    if (a.location < b.location) return 1
+                    if (a.location > b.location) return -1
+                } else {
+                    console.log("unexpected sortBy option", configuration.sortBy)
+                }
+                // compare on triple hash if timestamps match
+                const aHash = a.key
+                const bHash = b.key
+                if (aHash < bHash) return 1
+                if (aHash > bHash) return -1
+                // Should never get here unless incorrectly storing duplicates
+                console.log("duplicate item error", a, b)
+                return 0
             })
+            if (configuration.includeMetadata) return result
+            return result.map(match => match.item)
         }
     }
 
@@ -211,47 +204,44 @@ function setupTwirlip7Global(callback) {
     */
 }
 
-// returns promise
 function runStartupItem(itemId) {
-    return NotebookUsingLocalStorage.getItem(itemId).then((item) => {
+    try {
+        const item = NotebookUsingLocalStorage.getItem(itemId)
         if (item) {
             try {
                 const code = (item.startsWith("{")) ? JSON.parse(item).value : item
                 // TODO: Could this cause issues if eval code is waiting on promises?
                 eval(code)
-                return Promise.resolve("ok")
+                return "ok"
             } catch (error) {
                 console.log("Error running startup item", itemId)
                 console.log("Error message\n", error)
                 console.log("Beginning of item contents\n", item.substring(0,500) + (item.length > 500 ? "..." : ""))
-                return Promise.resolve("failed")
+                return "failed"
             }
         } else {
             console.log("startup item not found", itemId)
-            return Promise.resolve("missing")
+            return "missing"
         }
-    }).catch((error) => {
+    } catch(error) {
         console.log("Problem in runStartupItem", error)
-        return Promise.reject(error)
-    })
+        return "error"
+    }
 }
 
 function runAllStartupItems() {
     const startupInfo = notebookView.getStartupInfo()
     if (startupInfo.startupItemIds.length) {
         setTimeout(() => {
-            const invalidStartupItems = []
-            const startupPromises = []
-            for (let startupItemId of startupInfo.startupItemIds) {
-                const promise = runStartupItem(startupItemId).then((status) => {
+            try {
+                const invalidStartupItems = []
+                for (let startupItemId of startupInfo.startupItemIds) {
+                    const status = runStartupItem(startupItemId)
                     if (status !== "ok") {
                         console.log("Removing " +  status + " startup item from bootstrap: ", startupItemId)
                         invalidStartupItems.push(startupItemId)
                     }
-                })
-                startupPromises.push(promise)
-            }
-            Promise.all(startupPromises).then(() => {
+                }
                 if (invalidStartupItems.length) {
                     // disable any invalid startup items
                     for (let invalidStartupItemId of invalidStartupItems) {
@@ -260,11 +250,10 @@ function runAllStartupItems() {
                     }
                     notebookView.setStartupInfo(startupInfo)
                 }
-                m.redraw()
-            }).catch((error) => {
+            } catch(error) {
                 console.log("Problem in runAllStartupItems", error)
-                return Promise.reject(error)
-            })
+            }
+            m.redraw()
         })
     }
 }

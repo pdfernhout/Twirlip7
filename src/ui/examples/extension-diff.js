@@ -147,29 +147,30 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
     function diffClicked() {
         if (Twirlip7.notebookView.isEditorDirty()) {
             earlierItemKey = Twirlip7.notebookView.getCurrentItemId()
-            Twirlip7.getCurrentNotebook().getItem(earlierItemKey).then((earlierItemText) => {
+            try {
+                const earlierItemText = Twirlip7.getCurrentNotebook().getItem(earlierItemKey)
                 const earlierItem = Twirlip7.getItemForJSON(earlierItemText)
                 
                 laterItemKey = "<editor>"
                 const laterItem = { value: Twirlip7.notebookView.getEditorContents() }
                 makeAceDifferForTwoItems(earlierItem, laterItem)
                 m.redraw()
-            }).catch((error) => {
+            } catch(error) {
                 console.log("Problem loading item", error)
-            })
+            }
         } else {
             laterItemKey = Twirlip7.notebookView.getCurrentItemId()
-            Twirlip7.getCurrentNotebook().getItem(laterItemKey).then((laterItemText) => {
+            try {
+                const laterItemText = Twirlip7.getCurrentNotebook().getItem(laterItemKey)
                 const laterItem = Twirlip7.getItemForJSON(laterItemText)
                 earlierItemKey = laterItem.derivedFrom || ""
-                return Twirlip7.getCurrentNotebook().getItem(earlierItemKey).then((earlierItemText) => {
-                    const earlierItem = Twirlip7.getItemForJSON(earlierItemText)
-                    makeAceDifferForTwoItems(earlierItem, laterItem)
-                    m.redraw()
-                })
-            }).catch((error) => {
+                const earlierItemText = Twirlip7.getCurrentNotebook().getItem(earlierItemKey)
+                const earlierItem = Twirlip7.getItemForJSON(earlierItemText)
+                makeAceDifferForTwoItems(earlierItem, laterItem)
+                m.redraw()
+            } catch(error) {
                 console.log("Problem loading item", error)
-            })
+            }
         }
     }
     

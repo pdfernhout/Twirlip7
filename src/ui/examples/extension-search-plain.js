@@ -12,20 +12,18 @@ function search() {
     
     function processItem(i, item) {
         if (item && item.indexOf(searchText) !== -1) {
-            return notebook.keyForLocation(i).then((key) => {
-                searchResults.push({i, key, item})
-                return Promise.resolve(null)
-            })
+            const key = notebook.keyForLocation(i)
+            searchResults.push({i, key, item})
+            return null
         }
-        return Promise.resolve(null)
+        return null
     }
     
-    const promises = []
     for (let i = 0; i < notebook.itemCount(); i++) {
-        const promise = notebook.getItemForLocation(i).then(processItem.bind(null, i))
-        promises.push(promise)
+        const item = notebook.getItemForLocation(i)
+        processItem(i, item)
     }
-    Promise.all(promises).then(() => m.redraw())
+    m.redraw()
 }
 
 Twirlip7.notebookView.extensionsInstall({
