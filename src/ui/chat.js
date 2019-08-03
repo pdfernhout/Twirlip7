@@ -37,7 +37,7 @@ let sortMessagesByContent = false
 
 let messagesDiv = null
 
-const messagesByUUID = {}
+let messagesByUUID = {}
 
 function startup() {
     chatRoom = HashUtils.getHashParams()["chatRoom"] || chatRoom
@@ -52,8 +52,10 @@ function updateTitleForChatRoom() {
 
 function updateChatRoomFromHash() {
     const hashParams = HashUtils.getHashParams()
+    console.log("updateChatRoomFromHash", hashParams)
     const newChatRoom = hashParams["chatRoom"]
     if (newChatRoom !== chatRoom) {
+        resetMessagesForChatroomChange()
         chatRoom = newChatRoom
         backend.configure({chatRoom})
         updateTitleForChatRoom()
@@ -68,10 +70,15 @@ function updateHashForChatRoom() {
 }
 
 function chatRoomChange(event) {
+    resetMessagesForChatroomChange()
     chatRoom = event.target.value
-    messages.splice(0)
     updateHashForChatRoom()
     backend.configure({chatRoom})
+}
+
+function resetMessagesForChatroomChange() {
+    messages.splice(0)
+    messagesByUUID = {}
 }
 
 function userIDChange(event) {
@@ -150,7 +157,7 @@ function formatChatMessage(text) {
 
 function getSortedMessages() {
     if (!sortMessagesByContent) return messages
-    console.log("sorting messages")
+    // console.log("sorting messages")
     const sortedMessages = messages.slice()
     sortedMessages.sort((a, b) => {
         if (a.chatText < b.chatText) return -1
@@ -258,7 +265,7 @@ function uploadDocumentClicked() {
         backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "base64-segment-size", c: segmentSize}, alternateStreamId)
         // let reconstruct = ""
         for (let i = 0; i < segments.length; i++) {
-            console.log("sending", i + 1, "of", segments.length)
+            // console.log("sending", i + 1, "of", segments.length)
             // reconstruct += segments[i]
             backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "base64-segment:" + i, c: segments[i]}, alternateStreamId)
         }
@@ -408,7 +415,7 @@ const chatRoomResponder = {
         scrollToBottomLater()
     },
     addItem: (item, isAlreadyStored) => {
-        console.log("addItem", item)
+        // console.log("addItem", item)
         let edited = false
         // Complexity needed to support editing
         if (messagesByUUID[item.uuid] === undefined) {
@@ -417,7 +424,7 @@ const chatRoomResponder = {
         } else {
             if (messagesByUUID[item.uuid] !== undefined) {
                 const previousVersion = messages[messagesByUUID[item.uuid]]
-                console.log("message is edited", item, messagesByUUID[item.uuid])
+                // console.log("message is edited", item, messagesByUUID[item.uuid])
                 item.editedTimestamp = item.timestamp
                 item.timestamp = previousVersion.timestamp
                 messages[messagesByUUID[item.uuid]] = item
