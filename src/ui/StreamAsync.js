@@ -10,6 +10,8 @@
 // This stream is stored in memory.
 // A backend can be connected to the stream for persistence.
 
+// This version of Stream uses promises
+
 export function Stream(store) {
 
     let itemForLocation = []
