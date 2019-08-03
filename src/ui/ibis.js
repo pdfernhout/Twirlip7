@@ -800,10 +800,10 @@ startup()
 const backend = NotebookBackendUsingServer(m.redraw, {ibisDiagram: diagramUUID}, userID)
 
 backend.connect(diagramResponder)
-if (io) {
+try {
     backend.setup(io)
-} else {
-    alert("This IBIS app requires a backend server supporting socket.io (i.e. won't work on rawgit)")
+} catch(e) {
+    alert("This IBIS app requires a backend server supporting socket.io (i.e. won't work correctly on rawgit)")
 }
 
 m.mount(document.body, TwirlipIbisApp)

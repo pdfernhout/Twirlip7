@@ -453,10 +453,10 @@ startup()
 const backend = NotebookBackendUsingServer(m.redraw, {chatRoom}, userID)
 
 backend.connect(chatRoomResponder)
-if (io) {
+try {
     backend.setup(io)
-} else {
-    alert("This Chat app requires a backend server supporting socket.io (i.e. won't work on rawgit)")
+} catch(e) {
+    alert("This Chat app requires a backend server supporting socket.io (i.e. won't work correctly on rawgit)")
 }
 
 m.mount(document.body, TwirlipChat)
