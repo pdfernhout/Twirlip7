@@ -4,14 +4,7 @@
 
 /* global sha256 */
 
-// This elegant style of defining notebooks is "inefficient" of memory
-// compared to sharing function definitions via a common prototype.
-// But, we are only going to have a few notebooks in the application,
-// so the clarity is not very costly
-// (especially compared to megabytes of items in each notebook).
-// See also: https://stackoverflow.com/questions/387707/what-techniques-can-be-used-to-define-a-class-in-javascript-and-what-are-their/1169656#1169656
-
-export function Notebook(store) {
+export function Stream(store) {
 
     let itemForLocation = []
     let itemForHash = {}
@@ -166,7 +159,7 @@ export function Notebook(store) {
         }
     }
 
-    const notebook = {
+    const stream = {
         getCapabilities,
         addItem,
         getItem,
@@ -190,10 +183,10 @@ export function Notebook(store) {
     }
 
     if (store) {
-        store.connect(notebook)
+        store.connect(stream)
     } else {
         onLoaded()
     }
 
-    return notebook
+    return stream
 }

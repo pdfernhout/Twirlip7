@@ -1,7 +1,7 @@
 "use strict"
 
 // returns position + 1 for item reference to avoid first item being "0"
-export function NotebookBackendUsingServer(aRedrawCallback, streamId = "common", userId = "anonymous") {
+export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", userId = "anonymous") {
     let socket = null
     let messagesReceivedCount = 0
     let responder = null

@@ -5,7 +5,7 @@
 
 // Assumes socket.io loaded from script tag to define io
 
-import { NotebookBackendUsingServer } from "./NotebookBackendUsingServer.js"
+import { StreamBackendUsingServer } from "./StreamBackendUsingServer.js"
 import { HashUtils } from "./HashUtils.js"
 
 // defines marked
@@ -234,7 +234,7 @@ function uploadDocumentClicked() {
             addItem: (item, isAlreadyStored) => {}
         }
 
-        const upload = NotebookBackendUsingServer(m.redraw, {sha256: null}, userID)
+        const upload = StreamBackendUsingServer(m.redraw, {sha256: null}, userID)
         upload.connect(uploadResponder)
         upload.setup(io)
         */
@@ -450,7 +450,7 @@ const chatRoomResponder = {
 
 startup()
 
-const backend = NotebookBackendUsingServer(m.redraw, {chatRoom}, userID)
+const backend = StreamBackendUsingServer(m.redraw, {chatRoom}, userID)
 
 backend.connect(chatRoomResponder)
 try {

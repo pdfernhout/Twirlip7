@@ -13,9 +13,9 @@ import "./vendor/mithril.js"
 import "./vendor/sha256.js"
 
 import { WorkspaceView } from "./WorkspaceView.js"
-import { Notebook } from "./Notebook.js"
-import { NotebookBackendUsingLocalStorage } from "./NotebookBackendUsingLocalStorage.js"
-import { NotebookBackendUsingServer } from "./NotebookBackendUsingServer.js"
+import { Stream } from "./Stream.js"
+import { StreamBackendUsingLocalStorage } from "./StreamBackendUsingLocalStorage.js"
+import { StreamBackendUsingServer } from "./StreamBackendUsingServer.js"
 import { FileUtils } from "./FileUtils.js"
 import { CanonicalJSON } from "./CanonicalJSON.js"
 
@@ -23,9 +23,9 @@ let initialKeyToGoTo = null
 
 let notebookId = "common"
 
-const NotebookUsingMemory = Notebook()
-const NotebookUsingLocalStorage = Notebook(NotebookBackendUsingLocalStorage())
-const NotebookUsingServer = Notebook(NotebookBackendUsingServer(m.redraw, notebookId))
+const NotebookUsingMemory = Stream()
+const NotebookUsingLocalStorage = Stream(StreamBackendUsingLocalStorage())
+const NotebookUsingServer = Stream(StreamBackendUsingServer(m.redraw, notebookId))
 
 // TODO: improve import for ace somehow via ES6 probably by getting a new version of ace
 ace.require(["ace/ext/modelist"], function(modelist) {

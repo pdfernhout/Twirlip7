@@ -115,7 +115,7 @@ After pasting, load it using "Update Diagram from JSON" button.
 
 // Assumes socket.io loaded from script tag to define io
 
-import { NotebookBackendUsingServer } from "./NotebookBackendUsingServer.js"
+import { StreamBackendUsingServer } from "./StreamBackendUsingServer.js"
 import { HashUtils } from "./HashUtils.js"
 import { FileUtils } from "./FileUtils.js"
 
@@ -797,7 +797,7 @@ const diagramResponder = {
 
 startup()
 
-const backend = NotebookBackendUsingServer(m.redraw, {ibisDiagram: diagramUUID}, userID)
+const backend = StreamBackendUsingServer(m.redraw, {ibisDiagram: diagramUUID}, userID)
 
 backend.connect(diagramResponder)
 try {

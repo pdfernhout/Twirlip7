@@ -48,7 +48,7 @@ Resources must have been created with a specific format. See chat.js uploadDocum
                 addItem: (item, isAlreadyStored) => {}
             }
 
-            const upload = NotebookBackendUsingServer(m.redraw, {sha256: null}, userID)
+            const upload = StreamBackendUsingServer(m.redraw, {sha256: null}, userID)
             upload.connect(uploadResponder)
             upload.setup(io)
             */
@@ -120,7 +120,7 @@ Resources must have been created with a specific format. See chat.js uploadDocum
 
 ### Socket.io messages
 
-See NotebookBackendUsingServer.js for API details
+See StreamBackendUsingServer.js for API details
 
     // =============== socket.io communications
 

@@ -8,7 +8,7 @@ const hashToLocationPrefix = "_h2l_"
 const locationToHashPrefix = "_l2h_"
 const itemCountKey = "_itemCounter"
 
-export function NotebookBackendUsingLocalStorage() {
+export function StreamBackendUsingLocalStorage() {
 
     function addItem(item) {
         const hash = "" + sha256(item)
@@ -16,7 +16,7 @@ export function NotebookBackendUsingLocalStorage() {
         const numberOfItems = itemCount()
         const location = numberOfItems
         try {
-            // TODO: Could simplify this now -- but want to still support legacy notebooks
+            // TODO: Could simplify this now -- but want to still support legacy streams
             localStorage.setItem(hashToItemPrefix + hash, item)
             localStorage.setItem(hashToLocationPrefix + hash, "" + location)
             localStorage.setItem(locationToHashPrefix + location, hash)
