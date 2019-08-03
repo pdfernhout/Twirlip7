@@ -69,7 +69,7 @@ function latest() {
         if (searchResults.length) {
             const latestResult = searchResults[0]
             searchResults.splice(0)
-            Twirlip7.workspaceView.goToKey(latestResult.key)
+            Twirlip7.notebookView.goToKey(latestResult.key)
         }
     }
 }
@@ -79,7 +79,7 @@ function clearResults() {
     noMatches = false
 }
 
-Twirlip7.workspaceView.extensionsInstall({
+Twirlip7.notebookView.extensionsInstall({
     id: "search-regex",
     // For tags, try header, middle, and footer
     tags: "footer",
@@ -126,4 +126,4 @@ Twirlip7.workspaceView.extensionsInstall({
     }
 })
 
-// Twirlip7.workspaceView.extensionsUninstall({id: "search-regex"})
+// Twirlip7.notebookView.extensionsUninstall({id: "search-regex"})

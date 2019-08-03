@@ -122,12 +122,12 @@ function view() {
     )
 }
 
-Twirlip7.workspaceView.extensionsInstall({
+Twirlip7.notebookView.extensionsInstall({
     id: "navigation-eav-tree",
     tags: "footer",
     code: view
 })
 
-// Twirlip7.workspaceView.extensionsUninstall({id: "navigation"})
+// Twirlip7.notebookView.extensionsUninstall({id: "navigation"})
 
 // Twirlip7.show(view, { title: "EAV Navigation" })

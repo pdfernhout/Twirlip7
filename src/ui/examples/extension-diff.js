@@ -124,41 +124,41 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
     let editorMode = "ace/mode/javascript"
     
     function earlierClicked() {
-        earlierItemKey = Twirlip7.workspaceView.getCurrentItemId()
-        earlierText = Twirlip7.workspaceView.getEditorContents()
-        editorMode = Twirlip7.workspaceView.getEditorMode()
+        earlierItemKey = Twirlip7.notebookView.getCurrentItemId()
+        earlierText = Twirlip7.notebookView.getEditorContents()
+        editorMode = Twirlip7.notebookView.getEditorMode()
         makeAceDiffer()
     }
     
     function laterClicked() {
-        laterItemKey = Twirlip7.workspaceView.getCurrentItemId()
-        laterText = Twirlip7.workspaceView.getEditorContents()
-        editorMode = Twirlip7.workspaceView.getEditorMode()
+        laterItemKey = Twirlip7.notebookView.getCurrentItemId()
+        laterText = Twirlip7.notebookView.getEditorContents()
+        editorMode = Twirlip7.notebookView.getEditorMode()
         makeAceDiffer()
     }
     
     function makeAceDifferForTwoItems(earlierItem, laterItem) {
         earlierText = (earlierItem && earlierItem.value) || ""
         laterText = (laterItem && laterItem.value) || ""
-        editorMode = Twirlip7.workspaceView.getEditorMode()
+        editorMode = Twirlip7.notebookView.getEditorMode()
         makeAceDiffer()
     }
 
     function diffClicked() {
-        if (Twirlip7.workspaceView.isEditorDirty()) {
-            earlierItemKey = Twirlip7.workspaceView.getCurrentItemId()
+        if (Twirlip7.notebookView.isEditorDirty()) {
+            earlierItemKey = Twirlip7.notebookView.getCurrentItemId()
             Twirlip7.getCurrentNotebook().getItem(earlierItemKey).then((earlierItemText) => {
                 const earlierItem = Twirlip7.getItemForJSON(earlierItemText)
                 
                 laterItemKey = "<editor>"
-                const laterItem = { value: Twirlip7.workspaceView.getEditorContents() }
+                const laterItem = { value: Twirlip7.notebookView.getEditorContents() }
                 makeAceDifferForTwoItems(earlierItem, laterItem)
                 m.redraw()
             }).catch((error) => {
                 console.log("Problem loading item", error)
             })
         } else {
-            laterItemKey = Twirlip7.workspaceView.getCurrentItemId()
+            laterItemKey = Twirlip7.notebookView.getCurrentItemId()
             Twirlip7.getCurrentNotebook().getItem(laterItemKey).then((laterItemText) => {
                 const laterItem = Twirlip7.getItemForJSON(laterItemText)
                 earlierItemKey = laterItem.derivedFrom || ""
@@ -192,12 +192,12 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
         window.aceDiffer = aceDiffer
     }
     
-    Twirlip7.workspaceView.extensionsInstall({
+    Twirlip7.notebookView.extensionsInstall({
         id: "diff",
         tags: "footer",
         code: () => {
             return m("div.mt1",
-                m("button", { onclick: diffClicked }, "Diff from " + (Twirlip7.workspaceView.isEditorDirty() ? "saved" : "previous") + " version"),
+                m("button", { onclick: diffClicked }, "Diff from " + (Twirlip7.notebookView.isEditorDirty() ? "saved" : "previous") + " version"),
                 m("button.ml2", { onclick: cleanupAceDiffer }, "Hide Diff"),
                 m("button.ml2", { onclick: makeAceDiffer }, "Show Diff"),
                 m("button.ml2", { onclick: earlierClicked, title: earlierItemKey }, "Earlier"),
@@ -220,5 +220,5 @@ require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(di
     // Need to redraw since the install happens in an asynchronous require
     m.redraw()
 
-    // Twirlip7.workspaceView.extensionsUninstall({id: "diff"})
+    // Twirlip7.notebookView.extensionsUninstall({id: "diff"})
 })

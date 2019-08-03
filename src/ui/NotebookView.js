@@ -33,7 +33,7 @@ const twirlip7DataUrlPrefix = "twirlip7://v1/"
 
 // TODO: Fix kludge of passing in NotebookUsingLocalStorage because of startup timing issues
 // TODO: Fix kludge of passing in ace and modelist due to import issues
-export function WorkspaceView(NotebookUsingLocalStorage, ace, modelist) {
+export function NotebookView(NotebookUsingLocalStorage, ace, modelist) {
     let editor = null
 
     let lastLoadedItem = newItem()

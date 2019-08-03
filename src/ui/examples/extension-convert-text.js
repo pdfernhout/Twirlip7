@@ -1,24 +1,24 @@
 // Extend the application with common text conversion functions
 
 function convertRemoveNewlines() {
-    const selection = Twirlip7.workspaceView.getSelectedEditorText().text
+    const selection = Twirlip7.notebookView.getSelectedEditorText().text
     const conversionResult = selection.replace(/(\r\n|\n|\r)/gm," ").replace(/\s+/g," ")
-    Twirlip7.workspaceView.replaceSelection(conversionResult)
+    Twirlip7.notebookView.replaceSelection(conversionResult)
 }
 
 function convertUppercase() {
-    const selection = Twirlip7.workspaceView.getSelectedEditorText().text
+    const selection = Twirlip7.notebookView.getSelectedEditorText().text
     const conversionResult = selection.toUpperCase()
-    Twirlip7.workspaceView.replaceSelection(conversionResult)
+    Twirlip7.notebookView.replaceSelection(conversionResult)
 }
 
 function convertLowercase() {
-    const selection = Twirlip7.workspaceView.getSelectedEditorText().text
+    const selection = Twirlip7.notebookView.getSelectedEditorText().text
     const conversionResult = selection.toLowerCase()
-    Twirlip7.workspaceView.replaceSelection(conversionResult)
+    Twirlip7.notebookView.replaceSelection(conversionResult)
 }
 
-Twirlip7.workspaceView.extensionsInstall({
+Twirlip7.notebookView.extensionsInstall({
     id: "convert-text",
     tags: "middle",
     code: () => {
@@ -31,4 +31,4 @@ Twirlip7.workspaceView.extensionsInstall({
     }
 })
 
-// Twirlip7.workspaceView.extensionsUninstall({id: "convert-text"})
+// Twirlip7.notebookView.extensionsUninstall({id: "convert-text"})

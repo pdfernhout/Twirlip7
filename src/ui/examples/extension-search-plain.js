@@ -28,7 +28,7 @@ function search() {
     Promise.all(promises).then(() => m.redraw())
 }
 
-Twirlip7.workspaceView.extensionsInstall({
+Twirlip7.notebookView.extensionsInstall({
     id: "search-plain",
     // For tags, try header, middle, and footer
     tags: "header",
@@ -37,7 +37,7 @@ Twirlip7.workspaceView.extensionsInstall({
             searchResults.map((result) => {
                 return m("div", {
                     title: result.item, 
-                    onclick: Twirlip7.workspaceView.goToKey.bind(null, result.key)
+                    onclick: Twirlip7.notebookView.goToKey.bind(null, result.key)
                 }, "" + (result.i + 1) + ") " + result.item.substring(0, 120) + "...")
             }),
             "Find items matching:",
@@ -49,4 +49,4 @@ Twirlip7.workspaceView.extensionsInstall({
     }
 })
 
-// Twirlip7.workspaceView.extensionsUninstall({id: "search-plain"})
+// Twirlip7.notebookView.extensionsUninstall({id: "search-plain"})

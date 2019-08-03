@@ -12,7 +12,7 @@ import "./vendor/mithril.js"
 // sha256 only needs to be imported once in the application as it sets a global sha256
 import "./vendor/sha256.js"
 
-import { WorkspaceView } from "./NotebookView.js"
+import { NotebookView } from "./NotebookView.js"
 import { Stream } from "./Stream.js"
 import { StreamBackendUsingLocalStorage } from "./StreamBackendUsingLocalStorage.js"
 import { StreamBackendUsingServer } from "./StreamBackendUsingServer.js"
@@ -30,7 +30,7 @@ const NotebookUsingServer = Stream(StreamBackendUsingServer(m.redraw, notebookId
 // TODO: improve import for ace somehow via ES6 probably by getting a new version of ace
 ace.require(["ace/ext/modelist"], function(modelist) {
 
-    let workspaceView = WorkspaceView(NotebookUsingLocalStorage, ace, modelist)
+    let notebookView = NotebookView(NotebookUsingLocalStorage, ace, modelist)
 
     function getItemForJSON(itemJSON) {
         if (itemJSON === null) return null
@@ -41,7 +41,7 @@ ace.require(["ace/ext/modelist"], function(modelist) {
                 // fall through
             }
         }
-        const newItem = workspaceView.newItem()
+        const newItem = notebookView.newItem()
         newItem.value = itemJSON
         return newItem
     }
@@ -88,14 +88,14 @@ ace.require(["ace/ext/modelist"], function(modelist) {
             return
         }
         window.Twirlip7 = {
-            show: workspaceView.show,
-            icon: workspaceView.icon,
+            show: notebookView.show,
+            icon: notebookView.icon,
             popup,
             menu,
 
-            workspaceView,
-            // TODO: Remove legacy support for older extensions using "WorkspaceView"
-            WorkspaceView: workspaceView,
+            notebookView,
+            // TODO: Remove legacy support for "workspaceView"
+            workspaceView: notebookView,
 
             FileUtils,
             CanonicalJSON,
@@ -105,21 +105,21 @@ ace.require(["ace/ext/modelist"], function(modelist) {
 
             // TODO: Remove legacy support for previous development notes
             getCurrentJournal: () => {
-                return workspaceView.getCurrentNotebook()
+                return notebookView.getCurrentNotebook()
             },
 
             getCurrentNotebook: () => {
-                return workspaceView.getCurrentNotebook()
+                return notebookView.getCurrentNotebook()
             },
 
             getItemForJSON: getItemForJSON,
-            newItem: workspaceView.newItem,
+            newItem: notebookView.newItem,
 
             saveItem: (item) => {
                 if (!item.timestamp) item.timestamp = new Date().toISOString()
-                if (!item.contributor) item.contributor = workspaceView.getCurrentContributor()
+                if (!item.contributor) item.contributor = notebookView.getCurrentContributor()
                 const itemJSON = CanonicalJSON.stringify(item)
-                return workspaceView.getCurrentNotebook().addItem(itemJSON)
+                return notebookView.getCurrentNotebook().addItem(itemJSON)
             },
 
             // returns a Promise
@@ -131,7 +131,7 @@ ace.require(["ace/ext/modelist"], function(modelist) {
                 if (!configuration) configuration = {}
                 const promises = []
                 const result = []
-                const notebook = workspaceView.getCurrentNotebook()
+                const notebook = notebookView.getCurrentNotebook()
                 const count = notebook.itemCount()
                 for (let i = 0; i < count; i++) {
                     const index = i
@@ -184,8 +184,8 @@ ace.require(["ace/ext/modelist"], function(modelist) {
         // requirejs(["/socket.io/socket.io.js"], function(io) {
         NotebookUsingServer.setOnLoadedCallback(function() {
             // assuming callback will always be done before get here to go to initialKeyToGoTo
-            if (initialKeyToGoTo && workspaceView.getNotebookChoice() === "server") {
-                workspaceView.goToKey(initialKeyToGoTo)
+            if (initialKeyToGoTo && notebookView.getNotebookChoice() === "server") {
+                notebookView.goToKey(initialKeyToGoTo)
             } else {
                 m.redraw()
             }
@@ -228,7 +228,7 @@ ace.require(["ace/ext/modelist"], function(modelist) {
     }
 
     function runAllStartupItems() {
-        const startupInfo = workspaceView.getStartupInfo()
+        const startupInfo = notebookView.getStartupInfo()
         if (startupInfo.startupItemIds.length) {
             setTimeout(() => {
                 const invalidStartupItems = []
@@ -249,7 +249,7 @@ ace.require(["ace/ext/modelist"], function(modelist) {
                             const index = startupInfo.startupItemIds.indexOf(invalidStartupItemId)
                             if (index > -1) startupInfo.startupItemIds.splice(index, 1)
                         }
-                        workspaceView.setStartupInfo(startupInfo)
+                        notebookView.setStartupInfo(startupInfo)
                     }
                     m.redraw()
                 }).catch((error) => {
@@ -263,7 +263,7 @@ ace.require(["ace/ext/modelist"], function(modelist) {
     function startEditor(postMountCallback, preMountCallback) {
         if (preMountCallback) preMountCallback()
         const root = document.body
-        m.mount(root, workspaceView)
+        m.mount(root, notebookView)
         setTimeout(() => {
             if (postMountCallback) {
                 postMountCallback()
@@ -279,8 +279,8 @@ ace.require(["ace/ext/modelist"], function(modelist) {
         // do our own routing and ignore things that don't match in case other evaluated code is using Mithril's router
         if (hash && hash.startsWith("#item=")) {
             const itemId = hash.substring("#item=".length)
-            if (workspaceView.getCurrentItemId() !== itemId) {
-                workspaceView.goToKey(itemId)
+            if (notebookView.getCurrentItemId() !== itemId) {
+                notebookView.goToKey(itemId)
             }
         }
         m.redraw()
@@ -291,7 +291,7 @@ ace.require(["ace/ext/modelist"], function(modelist) {
     function startup() {
         setupTwirlip7Global(() => {
 
-            workspaceView.setCurrentContributor(localStorage.getItem("_contributor") || "")
+            notebookView.setCurrentContributor(localStorage.getItem("_contributor") || "")
 
             const hash = location.hash
             if (hash && hash.startsWith("#open=")) {
@@ -301,9 +301,9 @@ ace.require(["ace/ext/modelist"], function(modelist) {
                 const itemId = hash.substring("#item=".length)
                 initialKeyToGoTo = itemId
                 startEditor(() => {
-                    if (initialKeyToGoTo && workspaceView.getNotebookChoice() === "local storage") workspaceView.goToKey(initialKeyToGoTo)
+                    if (initialKeyToGoTo && notebookView.getNotebookChoice() === "local storage") notebookView.goToKey(initialKeyToGoTo)
                 }, () => {
-                    workspaceView.restoreNotebookChoice()
+                    notebookView.restoreNotebookChoice()
                 })
             } else if (hash && hash.startsWith("#eval=")) {
                 // TODO: Not sure whether to restore notebook choice here
@@ -319,18 +319,18 @@ ace.require(["ace/ext/modelist"], function(modelist) {
                 const startupSelection = hash.substring("#edit=".length)
                 m.request({method: "GET", url: startupSelection, deserialize: value => value}).then(function (startupFileContents) {
                     startEditor(() => {
-                        const currentItem = workspaceView.getCurrentItem()
+                        const currentItem = notebookView.getCurrentItem()
                         currentItem.entity = startupSelection
                         currentItem.attribute = "contents"
-                        workspaceView.setEditorContents(startupFileContents)
+                        notebookView.setEditorContents(startupFileContents)
                     })
                 })
             } else {
                 startEditor(() => {
-                    initialKeyToGoTo = workspaceView.fetchStoredItemId()
-                    if (workspaceView.getNotebookChoice() !== "server") workspaceView.goToKey(initialKeyToGoTo)
+                    initialKeyToGoTo = notebookView.fetchStoredItemId()
+                    if (notebookView.getNotebookChoice() !== "server") notebookView.goToKey(initialKeyToGoTo)
                 },() => {
-                    workspaceView.restoreNotebookChoice()
+                    notebookView.restoreNotebookChoice()
                 })
             }
         })

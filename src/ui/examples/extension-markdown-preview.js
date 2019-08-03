@@ -3,13 +3,13 @@
 
 requirejs(["vendor/marked"], function(marked) {
     function markdownPreview() {
-        const markdownString = Twirlip7.workspaceView.getEditorContents()
+        const markdownString = Twirlip7.notebookView.getEditorContents()
         Twirlip7.show(() => {
             return m("div", m.trust(marked(markdownString)))
         })
     }
     
-    Twirlip7.workspaceView.extensionsInstall({
+    Twirlip7.notebookView.extensionsInstall({
         id: "markdown-preview",
         // For tags, try header, middle, and footer
         tags: "footer",
@@ -22,4 +22,4 @@ requirejs(["vendor/marked"], function(marked) {
     m.redraw()
 })
 
-// Twirlip7.workspaceView.extensionsUninstall({id: "markdown-preview"})
+// Twirlip7.notebookView.extensionsUninstall({id: "markdown-preview"})
