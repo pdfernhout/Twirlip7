@@ -75,10 +75,12 @@ export function WorkspaceView(NotebookUsingLocalStorage, ace, modelist) {
         if (Twirlip7.NotebookUsingLocalStorage.itemCount() === 0) {
             show(function () {
                 return [
-                    m("div", "Thanks for trying Twirlip7, a programmable notebook and experimental Mithril.js playground."),
-                    m("div", "To get started with some example code snippets, click on the \"Notebook operations\" drop down and select \"Show example notebook\"."),
-                    m("div", "Then click \"Merge notebook\" (also under \"Notebook operations\"), then click the \"Next\" button, and then click the \"Do it\" button."),
-                    m("div", "Use \"Previous\" and \"Next\" to scroll through more example snippets. \"Inspect it\" puts evaluation results for selected text into the console log.")
+                    m("div", "Thank you for trying Twirlip7's programmable notebook and Mithril.js playground. To get started with some example code snippets:"),
+                    m("div", "* Make sure \"local storage\" is selected in the dropdown to the right of \"Notebook\"."),
+                    m("div", "* Click on the \"Notebook operations\" dropdown at the bottom of the page and select \"Show example notebook\". The text panel should fill up."),
+                    m("div", "* Click \"Merge notebook\" (also under \"Notebook operations\"). The item count will change from \"of 0\" to \"of 52\" or such."),
+                    m("div", "* To run the first example, click the \"Next\" button to move to the first item, and then click the \"Do it\" button."),
+                    m("div", "* Use \"Previous\" and \"Next\" to scroll through more example snippets. \"Inspect it\" puts evaluation results for selected text into the console log.")
                 ]
             }, { title: "Startup help" })
         }
