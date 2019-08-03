@@ -94,8 +94,10 @@ ace.require(["ace/ext/modelist"], function(modelist) {
             menu,
 
             notebookView,
-            // TODO: Remove legacy support for "workspaceView"
+
+            // TODO: Remove legacy support for two forms of "workspace view"
             workspaceView: notebookView,
+            WorkspaceView: notebookView,
 
             FileUtils,
             CanonicalJSON,
