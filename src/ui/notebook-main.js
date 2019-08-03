@@ -12,7 +12,7 @@ import "./vendor/mithril.js"
 // sha256 only needs to be imported once in the application as it sets a global sha256
 import "./vendor/sha256.js"
 
-import { WorkspaceView } from "./WorkspaceView.js"
+import { WorkspaceView } from "./NotebookView.js"
 import { Stream } from "./Stream.js"
 import { StreamBackendUsingLocalStorage } from "./StreamBackendUsingLocalStorage.js"
 import { StreamBackendUsingServer } from "./StreamBackendUsingServer.js"
