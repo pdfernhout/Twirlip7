@@ -4,6 +4,12 @@
 
 /* global sha256 */
 
+// A Stream is an ordered collection of items (JSON objects).
+// Each item can be referenced by its zero-based position
+// or by the SHA256 of its canoncial JSON representation.
+// This stream is stored in memory.
+// A backend can be connected to the stream for persistence.
+
 export function Stream(store) {
 
     let itemForLocation = []
