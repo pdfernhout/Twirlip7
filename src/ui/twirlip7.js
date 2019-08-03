@@ -26,15 +26,17 @@ const TwirlipAppList = {
                 (!userID || userID === "anonymous") && "(Please enter a user ID you'd like to use.)"
             ),
             m("div.pa3",
+                m("a.ma3", {href: "notebook.html"}, "Programmable Notebook"),
+                "(can run without a server)"
+            ),
+            m("div.pa3",
                 m("a.ma3", {href: "chat.html"}, "Test Chat"),
+                "(requires server)"
             ),
             m("div.ma3",
                 m("a.ma3", {href: "ibis.html"}, "New IBIS diagram"),
-                "(Bookmark the IBIS URL to return to it)",
+                "(requires server; bookmark the IBIS URL to return to it)",
             ),
-            m("div.pa3",
-                m("a.ma3", {href: "notebook.html"}, "Programmable Notebook"),
-            )
         )
     }
 }
