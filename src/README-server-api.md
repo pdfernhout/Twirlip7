@@ -2,7 +2,7 @@
 
 Most of the interaction with streams (i.e. "notebooks" or "journals") on the server is done via socket.io. Each stream has an ID which is the SHA256 of a JSON object in canonical form. 
 
-There are also a couple of supplemental server-side APIs for proxying requests (to get aroudn CORS) and to retrieve streams as file resources with a specific content-type.
+There are also a couple of supplemental server-side APIs. One is for proxying requests (to get around CORS). The other is to retrieve streams as file resources with a specific content-type.
 
 ### POST /api/proxy
 
@@ -34,7 +34,7 @@ Retrieve a stream referenced by sha256 as a file with a specific content-type, t
 
 Example URL: http://localhost:8080/sha256/somesha?content-type=image/png&title=some%20title
 
-Resources must have been created with a specific format. See chat.js uploadDocumentClicked for an example.
+Resources must have been created with a specific format. The resource files must also be names in a certain way -- specifically as {sha256: sha256Requested}. See chat.js uploadDocumentClicked for an example.
 
     function uploadDocumentClicked() {
         FileUtils.loadFromFile(true, (filename, contents, bytes) => {
@@ -120,7 +120,15 @@ Resources must have been created with a specific format. See chat.js uploadDocum
 
 ### Socket.io messages
 
-See StreamBackendUsingServer.js for API details
+Commands for messages (all on "twirlip" channel):
+
+* listen -- start listening for messages after (optionally) getting all previous messages from a stream
+* unlisten -- stop getting messages from a stream
+* insert -- add a message to a stream
+* remove -- remove one specific message from a stream (or act as if that happened)
+* reset -- remove everything stored in stream to start over (or act as if that happened)
+
+See StreamBackendUsingServer.js for API details:
 
     // =============== socket.io communications
 
