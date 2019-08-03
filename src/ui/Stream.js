@@ -24,39 +24,37 @@ export function Stream(store) {
         }
     }
 
-    // Returns Promise
-    function addItem(item, isAlreadyStored) {
+    async function addItem(item, isAlreadyStored) {
         const reference = "" + sha256(item)
         const storedItem = itemForHash[reference]
         if (storedItem) {
-            return Promise.resolve({ id: reference, location: storedItem.location, existed: true })
+            return { id: reference, location: storedItem.location, existed: true }
         }
         const newLocation = itemForLocation.length
         const newStoredItem = { id: reference, location: newLocation, item: item }
         itemForLocation.push(newStoredItem)
         itemForHash[reference] = newStoredItem
+        // This might become an await on store.addItem(...) if any store required it
         if (!isAlreadyStored && store) store.addItem(item)
         const result = { id: reference, location: newLocation, existed: false }
-        return Promise.resolve(result)
+        return result
     }
 
-    // Returns Promise
-    function getItem(reference) {
-        if (reference === null) return Promise.resolve(null)
+    async function getItem(reference) {
+        if (reference === null) return null
         const storedItem = itemForHash[reference]
         const result = storedItem ? storedItem.item : null
-        return Promise.resolve(result)
+        return result
         // For testing: Simulate delay; uncomment this and comment above line
-        // return new Promise((resolve, reject) => {
+        // return await new Promise(resolve, reject) => {
         //    setTimeout(() => resolve(result), 400)
         // })
     }
 
-    // Returns Promise
-    function getItemForLocation(location) {
+    async function getItemForLocation(location) {
         const storedItem = itemForLocation[location]
         const result = storedItem ? storedItem.item : null
-        return Promise.resolve(result)
+        return result
     }
 
     // Return this value directly
@@ -67,58 +65,53 @@ export function Stream(store) {
         return result
     }
 
-    // Returns Promise
-    function textForNotebook() {
+    async function textForNotebook() {
         const result = []
         for (let i = 0; i < itemForLocation.length; i++) {
             const storedItem = itemForLocation[i]
             result.push(storedItem.item)
         }
         const resultAsJSON = JSON.stringify(result, null, 4)
-        return Promise.resolve(resultAsJSON)
+        return resultAsJSON
     }
 
-    // Returns Promise
-    function clearItems() {
+    async function clearItems() {
         if (store) {
             if (!store.clearItems) {
-                return Promise.reject("clearItems not supported for current store")
+                throw new Error("clearItems not supported for current store")
             }
+            // This might need to become an await on store.clearItems() if any store required it
             store.clearItems()
         }
         itemForLocation = []
         itemForHash = {}
-        return Promise.resolve(true)
+        return true
     }
 
-    // Returns Promise
-    function loadFromNotebookText(notebookText) {
-        return clearItems().then(result => {
-            const items = JSON.parse(notebookText)
-            for (let item of items) { addItem(item) }
-            return Promise.resolve(true)
-        })
+    async function loadFromNotebookText(notebookText) {
+        await clearItems()
+        const items = JSON.parse(notebookText)
+        for (let item of items) { await addItem(item) }
+        return true
     }
 
-    // Returns Promise
-    function locationForKey(key) {
-        if (key === null || key === "") return Promise.resolve(null)
+    async function locationForKey(key) {
+        if (key === null || key === "") return null
         const storedItem = itemForHash[key]
         const result = storedItem ? storedItem.location : null
-        return Promise.resolve(result)
+        return result
     }
 
-    // Returns Promise
-    function keyForLocation(location) {
+    async function keyForLocation(location) {
         const storedItem = itemForLocation[location]
         const result = storedItem ? storedItem.id : null
-        return Promise.resolve(result)
+        return result
     }
 
-    // Returns Promise with newLocation
-    function skip(start, delta, wrap) {
+    // Returns newLocation
+    async function skip(start, delta, wrap) {
         const numberOfItems = itemCount()
-        if (numberOfItems === 0) return Promise.resolve(null)
+        if (numberOfItems === 0) return null
         if (start === null || start === undefined) {
             if (wrap) {
                 // when wrapping, want +1 to go to 0 or -1 to go to end
@@ -144,7 +137,7 @@ export function Stream(store) {
             if (newLocation < 0) newLocation = 0
             if (newLocation >= numberOfItems) newLocation = numberOfItems - 1
         }
-        return Promise.resolve(newLocation)
+        return newLocation
     }
 
     function setup(io) {
