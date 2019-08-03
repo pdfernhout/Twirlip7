@@ -13,7 +13,7 @@ import "./vendor/mithril.js"
 import "./vendor/sha256.js"
 
 import { NotebookView } from "./NotebookView.js"
-import { Stream } from "./Stream.js"
+import { Stream } from "./StreamAsync.js"
 import { StreamBackendUsingLocalStorage } from "./StreamBackendUsingLocalStorage.js"
 import { StreamBackendUsingServer } from "./StreamBackendUsingServer.js"
 import { FileUtils } from "./FileUtils.js"
