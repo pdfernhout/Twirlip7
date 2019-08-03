@@ -4,7 +4,7 @@
 export function NotebookBackendUsingServer(aRedrawCallback, streamId = "common", userId = "anonymous") {
     let socket = null
     let messagesReceivedCount = 0
-    let notebook = null
+    let responder = null
     let redrawCallback = aRedrawCallback
 
     function addItem(item) {
@@ -30,7 +30,7 @@ export function NotebookBackendUsingServer(aRedrawCallback, streamId = "common",
         // console.log("messageReceived", message)
         if (message.command === "insert") {
             messagesReceivedCount++
-            notebook.addItem(message.item, "isFromServer")
+            responder.addItem(message.item, "isFromServer")
         } else if (message.command === "remove") {
             messagesReceivedCount++
             console.log("TODO: Remove message not handled")
@@ -42,7 +42,7 @@ export function NotebookBackendUsingServer(aRedrawCallback, streamId = "common",
         } else if (message.command === "loaded") {
             // Don't increment messagesReceivedCount as "loaded" is an advisory meta message from server
             console.log("all server data loaded", messagesReceivedCount, new Date().toISOString())
-            notebook.onLoaded()
+            responder.onLoaded()
         }
         if (redrawCallback) redrawCallback()
     }
@@ -65,8 +65,8 @@ export function NotebookBackendUsingServer(aRedrawCallback, streamId = "common",
         })
     }
 
-    function connect(aNotebook) {
-        notebook = aNotebook
+    function connect(aResponder) {
+        responder = aResponder
     }
 
     function disconnect() {

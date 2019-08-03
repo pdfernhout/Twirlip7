@@ -74,21 +74,21 @@ export function NotebookBackendUsingLocalStorage() {
         return localStorage.getItem(locationToHashPrefix + location)
     }
 
-    function connect(notebook) {
+    function connect(responder) {
         const count = itemCount()
         for (let i = 0; i < count; i++) {
-            notebook.addItem(getItemForLocation(i), "isAlreadyStored")
+            responder.addItem(getItemForLocation(i), "isAlreadyStored")
         }
 
         window.addEventListener("storage", function(event) {
             const key = event.key
             if (key.startsWith(hashToItemPrefix)) {
                 const newValue = event.newValue
-                notebook.addItem(newValue, "isAlreadyStored")
+                responder.addItem(newValue, "isAlreadyStored")
             }
         })
 
-        notebook.onLoaded()
+        responder.onLoaded()
     }
 
     return {
