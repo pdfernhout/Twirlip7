@@ -154,12 +154,12 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
                     collapsed ? currentTitle : [],
                     isCloseButtonHidden ? [] : [
                         m("button.absolute", {
-                            style: "top: 0.25rem; right: 3rem; min-width: 1.5rem",
+                            style: "top: 0.25rem; right: 3.5rem; min-width: 2.0rem; padding: 0",
                             title: collapsed ? "Expand" : "Collapse",
                             onclick: () => collapsed = !collapsed
                         }, (collapsed ? "+" : "-")),
                         m("button.absolute", {
-                            style: "top: 0.25rem; right: 1rem",
+                            style: "top: 0.25rem; right: 1rem; min-width: 2.0rem; padding: 0",
                             title: "Close",
                             onclick: function () {
                                 if (config.onclose) {
