@@ -423,16 +423,16 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
         console.dir(evalResult)
     }
 
-    function openIt() {
+    function launchIt() {
         if (currentNotebook !== Twirlip7.NotebookUsingLocalStorage) {
-            alert("Items need to be in the \"local storage\" notebook (not memory or server)\nto be opened in a new window.")
+            alert("Items need to be in the \"local storage\" notebook (not memory or server)\nto be launched in a new window.")
             return
         }
         if (currentItemId === null) {
-            alert("To open (and run) an item in its own window, you need to\nnavigate to an item from local storage first or save a new one.")
+            alert("To launch an item in its own window, you need to\nnavigate to an item from local storage first or save a new one.")
             return
         }
-        window.open("#open=" + currentItemId)
+        window.open("#launch=" + currentItemId)
     }
 
     function importText(convertToBase64) {
@@ -1185,9 +1185,9 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
             currentItem.contentType = guessContentTypeForEditorMode(newEditorMode)
         }
         return m("select", { value: editorMode, onchange: selectChanged },
-        modelistWrapper.modelist 
-            ? modelistWrapper.modelist.modes.map(mode => m("option", { value: mode.mode }, mode.name))
-            : []
+            modelistWrapper.modelist 
+                ? modelistWrapper.modelist.modes.map(mode => m("option", { value: mode.mode }, mode.name))
+                : []
         )
     }
 
@@ -1443,7 +1443,7 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
             m("button.ma1", { onclick: doIt, title: "Evaluate selected code" }, icon("fa-play.mr1"), "Do it"),
             m("button.ma1", { onclick: printIt, title: "Evaluate code and insert result in editor" }, icon("fa-print.mr1"), "Print it"),
             m("button.ma1", { onclick: inspectIt, title: "Evaluate code and log result to console"  }, icon("fa-eye.mr1"), "Inspect it"),
-            m("button.ma1", { onclick: openIt, title: "Open current saved snippet in a new window" }, icon("fa-external-link.mr1"), "Open it"),
+            m("button.ma1", { onclick: launchIt, title: "Launch current saved snippet in a new window" }, icon("fa-external-link.mr1"), "Launch it"),
             viewStartupItem()
         ]
     }
@@ -1575,7 +1575,7 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
         doIt,
         printIt,
         inspectIt,
-        openIt,
+        launchIt,
 
         icon,
 

@@ -152,6 +152,7 @@ function setupTwirlip7Global(callback) {
             m.redraw()
         }
     })
+    console.log("about to setup link to server", new Date().toISOString())
     NotebookUsingServer.setup(io)
     callback()
     m.redraw()
@@ -252,27 +253,15 @@ function startup() {
 
         const hashParams = HashUtils.getHashParams()
         // "open" should be considered deprecated as too confusing with "item"
-        const runParam = hashParams["run"] || hashParams["open"]
+        const launchParam = hashParams["launch"] || hashParams["open"]
         const itemParam = hashParams["item"]
         const evalParam = hashParams["eval"]
         const editParam = hashParams["edit"]
 
-        if (runParam) {
-            const startupItemId = runParam
+        if (launchParam) {
+            const startupItemId = launchParam
             runStartupItem(startupItemId)
-        } else if (itemParam) {
-            const itemId = itemParam
-            initialKeyToGoTo = itemId
-            startEditor(
-                () => {
-                    notebookView.restoreNotebookChoice()
-                },
-                () => {
-                    // No data in memory to go to, and server data loads later
-                    if (initialKeyToGoTo && notebookView.getNotebookChoice() === "local storage") notebookView.goToKey(initialKeyToGoTo)
-                }
-            )
-        } else if (evalParam) {
+        } else if (!itemParam && evalParam) {
             // TODO: Not sure whether to restore notebook choice here
             const startupSelection = evalParam
             const startupFileNames = startupSelection.split(";")
@@ -281,7 +270,7 @@ function startup() {
                     eval(startupFileContents)
                 })
             }
-        } else if (editParam) {
+        } else if (!itemParam && editParam) {
             // TODO: Not sure whether to restore notebook choice here
             const startupSelection = editParam
             m.request({method: "GET", url: startupSelection, deserialize: value => value}).then(function (startupFileContents) {
@@ -299,10 +288,13 @@ function startup() {
             startEditor(
                 () => {
                     notebookView.restoreNotebookChoice()
+                    initialKeyToGoTo = itemParam || notebookView.fetchStoredItemId()
                 },
                 () => {
-                    initialKeyToGoTo = notebookView.fetchStoredItemId()
-                    if (notebookView.getNotebookChoice() !== "server") notebookView.goToKey(initialKeyToGoTo)
+                    // No memory storage at startup and server data loads later, so only do local storage
+                    if (initialKeyToGoTo && notebookView.getNotebookChoice() === "local storage") {
+                        notebookView.goToKey(initialKeyToGoTo)
+                    }
                 }
             )
         }
