@@ -54,7 +54,7 @@ You can run the simple example canvas application here: http://rawgit.com/pdfern
 
 You can edit a complex example IBIS app -- written using Twirlip7 -- here: https://rawgit.com/pdfernhout/Twirlip7/master/src/ui/notebook.html#edit=examples/ibis_application.js
 
-You can run the complex example IBIS application: http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/notebook.html#eval=examples/ibis_icons.js;examples/ibis_application.js
+You can run the complex example IBIS application: http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/notebook.html#eval=examples/ibis_icons.js|examples/ibis_application.js
 
 ### Using the notebook to edit and run any JavaScript on GitHub
 

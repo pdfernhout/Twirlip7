@@ -264,7 +264,8 @@ function startup() {
         } else if (!itemParam && evalParam) {
             // TODO: Not sure whether to restore notebook choice here
             const startupSelection = evalParam
-            const startupFileNames = startupSelection.split(";")
+            const startupFileNames = startupSelection.split("|")
+            console.log("startupFileNames", startupFileNames)
             for (let startupFileName of startupFileNames) {
                 m.request({method: "GET", url: startupFileName, deserialize: value => value}).then(function (startupFileContents) {
                     eval(startupFileContents)
