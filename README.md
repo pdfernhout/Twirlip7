@@ -60,6 +60,6 @@ Screenshot of Twirlip7 notebook showing a code snippet with a simple temperature
 
 ![Twirlip7 Screenshot showing F-to-C snippet in editor](screenshots/Twirlip7_Screenshot_showing_F-to-C_snippet_2017-05-19.png?raw=true "Twirlip7 Screenshot showing F-to-C snippet in editor after pressing Do it")
 
-Screenshot showing the same code snippet opened in a new tab as a stand-alone-looking app (after having pressed "Open it"):
+Screenshot showing the same code snippet opened in a new tab as a stand-alone-looking app (after having pressed "Launch it"):
 
 ![Twirlip7 Screenshot showing F-to-C snippet opened in a new tab](screenshots/Twirlip7_Screenshot_showing_F-to-C_opened_2017-05-19.png?raw=true "Twirlip7 Screenshot showing F-to-C snippet opened as an app running in a new tab after pressing Open it")

@@ -2,9 +2,9 @@
 
 // This is an example of creating a form in Mithril.
 
-// You can use the "Open it" button to open this form in a new tab as a stand-alone single-page application without the editor.
+// You can use the "Launch it" button to open this form in a new tab as a stand-alone single-page application without the editor.
 // The application is not quite fully "stand-alone" because it still uses the Twirlip7 program.
-// There is no "X" close box when you use Twirlip7.show(...) with "Open it" instead of "Do it".
+// There is no "X" close box when you use Twirlip7.show(...) with "Launch it" instead of "Do it".
 
 let temperature_F
 let temperature_C
