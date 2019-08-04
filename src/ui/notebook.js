@@ -250,30 +250,35 @@ function startup() {
 
         notebookView.setCurrentContributor(localStorage.getItem("_contributor") || "")
 
-        const hash = location.hash
-        if (hash && hash.startsWith("#open=")) {
-            const startupItemId = hash.substring("#open=".length)
+        const hashParams = HashUtils.getHashParams()
+        const openParam = hashParams["open"]
+        const itemParam = hashParams["item"]
+        const evalParam = hashParams["open"]
+        const editParam = hashParams["edit"]
+
+        if (openParam) {
+            const startupItemId = openParam
             runStartupItem(startupItemId)
-        } else if (hash && hash.startsWith("#item=")) {
-            const itemId = hash.substring("#item=".length)
+        } else if (itemParam) {
+            const itemId = itemParam
             initialKeyToGoTo = itemId
             startEditor(() => {
                 if (initialKeyToGoTo && notebookView.getNotebookChoice() === "local storage") notebookView.goToKey(initialKeyToGoTo)
             }, () => {
                 notebookView.restoreNotebookChoice()
             })
-        } else if (hash && hash.startsWith("#eval=")) {
+        } else if (evalParam) {
             // TODO: Not sure whether to restore notebook choice here
-            const startupSelection = hash.substring("#eval=".length)
+            const startupSelection = evalParam
             const startupFileNames = startupSelection.split(";")
             for (let startupFileName of startupFileNames) {
                 m.request({method: "GET", url: startupFileName, deserialize: value => value}).then(function (startupFileContents) {
                     eval(startupFileContents)
                 })
             }
-        } else if (hash && hash.startsWith("#edit=")) {
+        } else if (editParam) {
             // TODO: Not sure whether to restore notebook choice here
-            const startupSelection = hash.substring("#edit=".length)
+            const startupSelection = editParam
             m.request({method: "GET", url: startupSelection, deserialize: value => value}).then(function (startupFileContents) {
                 startEditor(() => {
                     const currentItem = notebookView.getCurrentItem()
