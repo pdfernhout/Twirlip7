@@ -234,6 +234,10 @@ function startEditor(preMountCallback, postMountCallback) {
 
 function hashChange() {
     const hashParams = HashUtils.getHashParams()
+    const notebookParam = hashParams["notebook"] || notebookView.getNotebookChoice()
+    if (notebookParam !== notebookView.getNotebookChoice()) {
+        notebookView.restoreNotebookChoice(notebookParam)
+    }
     // do our own routing and ignore things that don't match in case other evaluated code is using Mithril's router
     const itemId = hashParams["item"]
     if (itemId) {
@@ -257,12 +261,12 @@ function startup() {
         const itemParam = hashParams["item"]
         const evalParam = hashParams["eval"]
         const editParam = hashParams["edit"]
+        const notebookParam = hashParams["notebook"]
 
         if (launchParam) {
             const startupItemId = launchParam
             runStartupItem(startupItemId)
         } else if (!itemParam && evalParam) {
-            // TODO: Not sure whether to restore notebook choice here
             const startupSelection = evalParam
             const startupFileNames = startupSelection.split("|")
             console.log("startupFileNames", startupFileNames)
@@ -272,7 +276,6 @@ function startup() {
                 })
             }
         } else if (!itemParam && editParam) {
-            // TODO: Not sure whether to restore notebook choice here
             const startupSelection = editParam
             m.request({method: "GET", url: startupSelection, deserialize: value => value}).then(function (startupFileContents) {
                 startEditor(
@@ -288,7 +291,7 @@ function startup() {
         } else {
             startEditor(
                 () => {
-                    notebookView.restoreNotebookChoice()
+                    notebookView.restoreNotebookChoice(notebookParam)
                     initialKeyToGoTo = itemParam || notebookView.fetchStoredItemId()
                 },
                 () => {

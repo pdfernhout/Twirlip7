@@ -207,12 +207,15 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
     }
 
     function saveNotebookChoice() {
+        const hashParams = HashUtils.getHashParams()
         localStorage.setItem("_currentNotebookChoice", notebookChoice)
+        hashParams["notebook"] = notebookChoice
+        HashUtils.setHashParams(hashParams)
     }
 
-    function restoreNotebookChoice() {
-        const newChoice = localStorage.getItem("_currentNotebookChoice") || "local storage"
-        if (newChoice) {
+    function restoreNotebookChoice(notebookParam) {
+        const newChoice = notebookParam || localStorage.getItem("_currentNotebookChoice") || "local storage"
+        if (newChoice && newChoice !== notebookChoice) {
             const newNotebook = notebooksAvailable()[newChoice]
             if (newNotebook) {
                 notebookChoice = newChoice
