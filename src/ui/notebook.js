@@ -218,7 +218,7 @@ function runAllStartupItems() {
     }
 }
 
-function startEditor(postMountCallback, preMountCallback) {
+function startEditor(preMountCallback, postMountCallback) {
     if (preMountCallback) preMountCallback()
     const root = document.body
     m.mount(root, notebookView)
@@ -262,11 +262,14 @@ function startup() {
         } else if (itemParam) {
             const itemId = itemParam
             initialKeyToGoTo = itemId
-            startEditor(() => {
-                if (initialKeyToGoTo && notebookView.getNotebookChoice() === "local storage") notebookView.goToKey(initialKeyToGoTo)
-            }, () => {
-                notebookView.restoreNotebookChoice()
-            })
+            startEditor(
+                () => {
+                    notebookView.restoreNotebookChoice()
+                },
+                () => {
+                    if (initialKeyToGoTo && notebookView.getNotebookChoice() === "local storage") notebookView.goToKey(initialKeyToGoTo)
+                }
+            )
         } else if (evalParam) {
             // TODO: Not sure whether to restore notebook choice here
             const startupSelection = evalParam
@@ -280,20 +283,26 @@ function startup() {
             // TODO: Not sure whether to restore notebook choice here
             const startupSelection = editParam
             m.request({method: "GET", url: startupSelection, deserialize: value => value}).then(function (startupFileContents) {
-                startEditor(() => {
-                    const currentItem = notebookView.getCurrentItem()
-                    currentItem.entity = startupSelection
-                    currentItem.attribute = "contents"
-                    notebookView.setEditorContents(startupFileContents)
-                })
+                startEditor(
+                    null, 
+                    () => {
+                        const currentItem = notebookView.getCurrentItem()
+                        currentItem.entity = startupSelection
+                        currentItem.attribute = "contents"
+                        notebookView.setEditorContents(startupFileContents)
+                    }   
+                )
             })
         } else {
-            startEditor(() => {
-                initialKeyToGoTo = notebookView.fetchStoredItemId()
-                if (notebookView.getNotebookChoice() !== "server") notebookView.goToKey(initialKeyToGoTo)
-            },() => {
-                notebookView.restoreNotebookChoice()
-            })
+            startEditor(
+                () => {
+                    notebookView.restoreNotebookChoice()
+                },
+                () => {
+                    initialKeyToGoTo = notebookView.fetchStoredItemId()
+                    if (notebookView.getNotebookChoice() !== "server") notebookView.goToKey(initialKeyToGoTo)
+                }
+            )
         }
     })
 }
