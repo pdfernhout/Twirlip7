@@ -236,7 +236,6 @@ function startEditor(postMountCallback, preMountCallback) {
             m.redraw()
         }
         runAllStartupItems()
-        window.addEventListener("hashchange", () =>  hashChange, false)
     }, 0)
 }
 
