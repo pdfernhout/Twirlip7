@@ -1,6 +1,7 @@
 /* global m, location, localStorage, Twirlip7, sha256 */
 
 import { FileUtils } from "./FileUtils.js"
+import { HashUtils } from "./HashUtils.js"
 import { EvalUtils } from "./EvalUtils.js"
 
 import { ExampleNotebookLoader } from "./ExampleNotebookLoader.js"
@@ -183,13 +184,11 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
     }
 
     function saveCurrentItemId() {
-        if (currentItemId !== null) {
-            localStorage.setItem("_current_" + notebookChoice, currentItemId)
-            location.hash = "#item=" + currentItemId
-        } else {
-            localStorage.setItem("_current_" + notebookChoice, "")
-            location.hash = "#"
-        }
+        const hashParams = HashUtils.getHashParams()
+        const itemIdToSave = currentItemId || ""
+        localStorage.setItem("_current_" + notebookChoice, itemIdToSave)
+        hashParams["item"] = itemIdToSave
+        HashUtils.setHashParams(hashParams)
     }
 
     function fetchStoredItemId() {

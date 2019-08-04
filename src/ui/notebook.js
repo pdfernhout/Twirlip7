@@ -17,6 +17,7 @@ import { Stream } from "./Stream.js"
 import { StreamBackendUsingLocalStorage } from "./StreamBackendUsingLocalStorage.js"
 import { StreamBackendUsingServer } from "./StreamBackendUsingServer.js"
 import { FileUtils } from "./FileUtils.js"
+import { HashUtils } from "./HashUtils.js"
 import { CanonicalJSON } from "./CanonicalJSON.js"
 
 import { menu, popup } from "./popup.js"
@@ -231,10 +232,10 @@ function startEditor(postMountCallback, preMountCallback) {
 }
 
 function hashChange() {
-    const hash = location.hash
+    const hashParams = HashUtils.getHashParams()
     // do our own routing and ignore things that don't match in case other evaluated code is using Mithril's router
-    if (hash && hash.startsWith("#item=")) {
-        const itemId = hash.substring("#item=".length)
+    const itemId = hashParams["item"]
+    if (itemId) {
         if (notebookView.getCurrentItemId() !== itemId) {
             notebookView.goToKey(itemId)
         }
