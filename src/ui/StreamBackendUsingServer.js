@@ -75,10 +75,10 @@ export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", u
 
     function configure(streamIdNew, userIdNew) {
         if (streamIdNew !== undefined) {
-            sendMessage({command: "unlisten", streamId: streamId})
+            if (socket) sendMessage({command: "unlisten", streamId: streamId})
             streamId = streamIdNew
             messagesReceivedCount = 0
-            requestAllMessages()
+            if (socket) requestAllMessages()
         }
         if (userIdNew !== undefined) userId = userIdNew
     }

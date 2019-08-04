@@ -38,6 +38,8 @@ const modelistWrapper = {
 
 let notebookView = NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper)
 
+let launchItem = null
+
 // TODO: improve import for ace somehow via ES6 probably by getting a new version of ace
 ace.require(["ace/ext/modelist"], function(modelist) {
     modelistWrapper.modelist = modelist
@@ -58,11 +60,10 @@ function getItemForJSON(itemJSON) {
     return newItem
 }
 
-function setupTwirlip7Global(callback) {
+function setupTwirlip7Global() {
     // setup Twirlip7 global for use by evaluated code
     if (window.Twirlip7) {
         alert("Unexpected: Twirlip7 global already exists!")
-        callback()
         return
     }
     window.Twirlip7 = {
@@ -143,21 +144,26 @@ function setupTwirlip7Global(callback) {
             return result.map(match => match.item)
         }
     }
+}
 
+function startLoadingFromServer() {
     // Try to load socket.io, which may fail
     // requirejs(["/socket.io/socket.io.js"], function(io) {
     NotebookUsingServer.setOnLoadedCallback(function() {
         // assuming callback will always be done before get here to go to initialKeyToGoTo
-        if (initialKeyToGoTo && notebookView.getNotebookChoice() === "server") {
+        if (launchItem) {
+            runStartupItem(launchItem)
+            launchItem = null
+            m.redraw()
+        } else if (initialKeyToGoTo && notebookView.getNotebookChoice() === "server") {
             notebookView.goToKey(initialKeyToGoTo)
+            m.redraw()
         } else {
             m.redraw()
         }
     })
     console.log("about to setup link to server", new Date().toISOString())
     NotebookUsingServer.setup(io)
-    callback()
-    m.redraw()
     /*
     }).catch(error => {
         console.log("No socket.io available -- server function disabled")
@@ -165,11 +171,16 @@ function setupTwirlip7Global(callback) {
         m.redraw()
     })
     */
+    /*
+    callback()
+    m.redraw()
+    */
+
 }
 
 function runStartupItem(itemId) {
     try {
-        const item = NotebookUsingLocalStorage.getItem(itemId)
+        const item = notebookView.getCurrentNotebook().getItem(itemId)
         if (item) {
             try {
                 const code = (item.startsWith("{")) ? JSON.parse(item).value : item
@@ -264,61 +275,67 @@ function hashChange() {
 window.addEventListener("hashchange", hashChange, false)
 
 function startup() {
-    setupTwirlip7Global(() => {
+    setupTwirlip7Global()
 
-        notebookView.setCurrentContributor(localStorage.getItem("_contributor") || "")
+    notebookView.setCurrentContributor(localStorage.getItem("_contributor") || "")
 
-        const hashParams = HashUtils.getHashParams()
-        // "open" should be considered deprecated as too confusing with "item"
-        const launchParam = hashParams["launch"] || hashParams["open"]
-        const itemParam = hashParams["item"]
-        const evalParam = hashParams["eval"]
-        const editParam = hashParams["edit"]
-        const notebookParam = hashParams["notebook"]
-        const notebookIdParam = hashParams["notebook-id"] || "common"
+    const hashParams = HashUtils.getHashParams()
+    // "open" should be considered deprecated as too confusing with "item"
+    const launchParam = hashParams["launch"] || hashParams["open"]
+    const itemParam = hashParams["item"]
+    const evalParam = hashParams["eval"]
+    const editParam = hashParams["edit"]
+    const notebookParam = hashParams["notebook"]
+    const notebookIdParam = hashParams["notebook-id"] || "common"
 
-        changeServerNotebookId(notebookIdParam)
+    changeServerNotebookId(notebookIdParam)
 
-        if (launchParam) {
-            const startupItemId = launchParam
-            runStartupItem(startupItemId)
-        } else if (!itemParam && evalParam) {
-            const startupSelection = evalParam
-            const startupFileNames = startupSelection.split("|")
-            console.log("startupFileNames", startupFileNames)
-            for (let startupFileName of startupFileNames) {
-                m.request({method: "GET", url: startupFileName, deserialize: value => value}).then(function (startupFileContents) {
-                    eval(startupFileContents)
-                })
-            }
-        } else if (!itemParam && editParam) {
-            const startupSelection = editParam
-            m.request({method: "GET", url: startupSelection, deserialize: value => value}).then(function (startupFileContents) {
-                startEditor(
-                    null, 
-                    () => {
-                        const currentItem = notebookView.getCurrentItem()
-                        currentItem.entity = startupSelection
-                        currentItem.attribute = "contents"
-                        notebookView.setEditorContents(startupFileContents)
-                    }   
-                )
-            })
-        } else {
-            startEditor(
-                () => {
-                    notebookView.restoreNotebookChoice(notebookParam)
-                    initialKeyToGoTo = itemParam || notebookView.fetchStoredItemId()
-                },
-                () => {
-                    // No memory storage at startup and server data loads later, so only do local storage
-                    if (initialKeyToGoTo && notebookView.getNotebookChoice() === "local storage") {
-                        notebookView.goToKey(initialKeyToGoTo)
-                    }
-                }
-            )
+    startLoadingFromServer()
+
+    if (launchParam) {
+        notebookView.restoreNotebookChoice(notebookParam)
+        launchItem = launchParam
+        // Run it now if not for the server or memory (memory can't work)
+        if (notebookView.getNotebookChoice() === "local storage") {
+            runStartupItem(launchItem)
+            launchItem = null
         }
-    })
+    } else if (!itemParam && evalParam) {
+        const startupSelection = evalParam
+        const startupFileNames = startupSelection.split("|")
+        console.log("startupFileNames", startupFileNames)
+        for (let startupFileName of startupFileNames) {
+            m.request({method: "GET", url: startupFileName, deserialize: value => value}).then(function (startupFileContents) {
+                eval(startupFileContents)
+            })
+        }
+    } else if (!itemParam && editParam) {
+        const startupSelection = editParam
+        m.request({method: "GET", url: startupSelection, deserialize: value => value}).then(function (startupFileContents) {
+            startEditor(
+                null, 
+                () => {
+                    const currentItem = notebookView.getCurrentItem()
+                    currentItem.entity = startupSelection
+                    currentItem.attribute = "contents"
+                    notebookView.setEditorContents(startupFileContents)
+                }   
+            )
+        })
+    } else {
+        startEditor(
+            () => {
+                notebookView.restoreNotebookChoice(notebookParam)
+                initialKeyToGoTo = itemParam || notebookView.fetchStoredItemId()
+            },
+            () => {
+                // No memory storage at startup and server data loads later, so only do local storage
+                if (initialKeyToGoTo && notebookView.getNotebookChoice() === "local storage") {
+                    notebookView.goToKey(initialKeyToGoTo)
+                }
+            }
+        )
+    }
 }
 
 startup()

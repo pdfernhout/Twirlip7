@@ -103,84 +103,88 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
 
     // Convenience function which examples could use to put up closeable views
     function show(userComponentOrViewFunction, config, componentConfig) {
-        // config supports extraStyling, onclose, and title displayed when collapsed or run stand alone (title can be a string or function)
-        if (typeof config === "string") {
-            config = { extraStyling: config }
-        }
-        if (!config) config = {}
-        if (!config.extraStyling) { config.extraStyling = "" }
-        if (!config.extraStyling.includes(".bg-")) { config.extraStyling += ".bg-light-purple" }
+        try {
+            // config supports extraStyling, onclose, and title displayed when collapsed or run stand alone (title can be a string or function)
+            if (typeof config === "string") {
+                config = { extraStyling: config }
+            }
+            if (!config) config = {}
+            if (!config.extraStyling) { config.extraStyling = "" }
+            if (!config.extraStyling.includes(".bg-")) { config.extraStyling += ".bg-light-purple" }
 
-        let div = document.createElement("div")
+            let div = document.createElement("div")
 
-        const userComponent = userComponentOrViewFunction.view ?
-            userComponentOrViewFunction : {
-                view: userComponentOrViewFunction
+            const userComponent = userComponentOrViewFunction.view ?
+                userComponentOrViewFunction : {
+                    view: userComponentOrViewFunction
+                }
+
+            userComponent.view = protectedViewFunction(userComponent.view)
+
+            let collapsed = false
+
+            function title() {
+                if (config.title === undefined || config.title === null) return "Untitled"
+                if (typeof config.title === "function") return config.title()
+                return config.title
             }
 
-        userComponent.view = protectedViewFunction(userComponent.view)
+            const isCloseButtonHidden = !!HashUtils.getHashParams()["launch"]
 
-        let collapsed = false
+            let currentTitle
 
-        function title() {
-            if (config.title === undefined || config.title === null) return "Untitled"
-            if (typeof config.title === "function") return config.title()
-            return config.title
-        }
+            if (!isCloseButtonHidden && !config.title && currentItem && (currentItem.entity || currentItem.attribute)) {
+                config.title = (currentItem.entity || "<No Entity>") + " :: " + (currentItem.attribute || "<No Attribute>")
+            }
 
-        const isCloseButtonHidden = location.hash.startsWith("#open=")
-
-        let currentTitle
-
-        if (!isCloseButtonHidden && !config.title && currentItem && (currentItem.entity || currentItem.attribute)) {
-            config.title = (currentItem.entity || "<No Entity>") + " :: " + (currentItem.attribute || "<No Attribute>")
-        }
-
-        const ClosableComponent = {
-            view() {
-                if (collapsed || isCloseButtonHidden) {
-                    const newTitle = title()
-                    if (newTitle !== currentTitle) {
-                        currentTitle = newTitle
-                        if (isCloseButtonHidden) {
-                            document.title = currentTitle
+            const ClosableComponent = {
+                view() {
+                    if (collapsed || isCloseButtonHidden) {
+                        const newTitle = title()
+                        if (newTitle !== currentTitle) {
+                            currentTitle = newTitle
+                            if (isCloseButtonHidden) {
+                                document.title = currentTitle
+                            }
                         }
                     }
-                }
-                return m("div.ba.ma3.pa3.relative" + config.extraStyling,
-                    m("div",
-                        { style: collapsed ? "display: none" : "display: block" },
-                        m(userComponent, componentConfig)
-                    ),
-                    collapsed ? currentTitle : [],
-                    isCloseButtonHidden ? [] : [
-                        m("button.absolute", {
-                            style: "top: 0.25rem; right: 3.5rem; min-width: 2.0rem; padding: 0",
-                            title: collapsed ? "Expand" : "Collapse",
-                            onclick: () => collapsed = !collapsed
-                        }, (collapsed ? "+" : "-")),
-                        m("button.absolute", {
-                            style: "top: 0.25rem; right: 1rem; min-width: 2.0rem; padding: 0",
-                            title: "Close",
-                            onclick: function () {
-                                if (config.onclose) {
-                                    try {
-                                        config.onclose()
-                                    } catch (e) {
-                                        console.log("Error in onclose function", e)
+                    return m("div.ba.ma3.pa3.relative" + config.extraStyling,
+                        m("div",
+                            { style: collapsed ? "display: none" : "display: block" },
+                            m(userComponent, componentConfig)
+                        ),
+                        collapsed ? currentTitle : [],
+                        isCloseButtonHidden ? [] : [
+                            m("button.absolute", {
+                                style: "top: 0.25rem; right: 3.5rem; min-width: 2.0rem; padding: 0",
+                                title: collapsed ? "Expand" : "Collapse",
+                                onclick: () => collapsed = !collapsed
+                            }, (collapsed ? "+" : "-")),
+                            m("button.absolute", {
+                                style: "top: 0.25rem; right: 1rem; min-width: 2.0rem; padding: 0",
+                                title: "Close",
+                                onclick: function () {
+                                    if (config.onclose) {
+                                        try {
+                                            config.onclose()
+                                        } catch (e) {
+                                            console.log("Error in onclose function", e)
+                                        }
                                     }
+                                    m.mount(div, null)
+                                    document.body.removeChild(div)
                                 }
-                                m.mount(div, null)
-                                document.body.removeChild(div)
-                            }
-                        }, "X")
-                    ]
-                )
+                            }, "X")
+                        ]
+                    )
+                }
             }
-        }
 
-        document.body.appendChild(div)
-        m.mount(div, ClosableComponent)
+            document.body.appendChild(div)
+            m.mount(div, ClosableComponent)
+        } catch (error) {
+            console.error("show", error)
+        }
     }
 
     function saveCurrentItemId() {
@@ -432,15 +436,19 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
     }
 
     function launchIt() {
-        if (currentNotebook !== Twirlip7.NotebookUsingLocalStorage) {
-            alert("Items need to be in the \"local storage\" notebook (not memory or server)\nto be launched in a new window.")
+        if (currentNotebook === Twirlip7.NotebookUsingMemory) {
+            alert("Items in a memory notebook can't be launched in a new window.")
             return
         }
         if (currentItemId === null) {
             alert("To launch an item in its own window, you need to\nnavigate to an item from local storage first or save a new one.")
             return
         }
-        window.open("#launch=" + currentItemId)
+        const streamId = Twirlip7.NotebookUsingServer.getStore().getStreamId()
+        const extra = (notebookChoice === "server" && streamId !== "common")
+            ? "&notebook-id=" + streamId 
+            : ""
+        window.open("#notebook=" + notebookChoice + extra + "&launch=" + currentItemId)
     }
 
     function importText(convertToBase64) {
