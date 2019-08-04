@@ -251,13 +251,14 @@ function startup() {
         notebookView.setCurrentContributor(localStorage.getItem("_contributor") || "")
 
         const hashParams = HashUtils.getHashParams()
-        const openParam = hashParams["open"]
+        // "open" should be considered deprecated as too confusing with "item"
+        const runParam = hashParams["run"] || hashParams["open"]
         const itemParam = hashParams["item"]
-        const evalParam = hashParams["open"]
+        const evalParam = hashParams["eval"]
         const editParam = hashParams["edit"]
 
-        if (openParam) {
-            const startupItemId = openParam
+        if (runParam) {
+            const startupItemId = runParam
             runStartupItem(startupItemId)
         } else if (itemParam) {
             const itemId = itemParam
@@ -267,6 +268,7 @@ function startup() {
                     notebookView.restoreNotebookChoice()
                 },
                 () => {
+                    // No data in memory to go to, and server data loads later
                     if (initialKeyToGoTo && notebookView.getNotebookChoice() === "local storage") notebookView.goToKey(initialKeyToGoTo)
                 }
             )
