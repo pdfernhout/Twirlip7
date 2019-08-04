@@ -70,6 +70,12 @@ export function Stream(store) {
         return resultAsJSON
     }
 
+    function reset() {
+        isLoaded = false
+        itemForLocation = []
+        itemForHash = {}
+    }
+
     function clearItems() {
         if (store) {
             if (!store.clearItems) {
@@ -159,6 +165,7 @@ export function Stream(store) {
         getItemForLocation,
         itemCount,
         textForNotebook,
+        reset,
         clearItems,
         loadFromNotebookText,
         locationForKey,
@@ -172,6 +179,9 @@ export function Stream(store) {
         },
         isAvailable: function () {
             return !store || store.isSetup()
+        },
+        getStore: function() {
+            return store
         }
     }
 

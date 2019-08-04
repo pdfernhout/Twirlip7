@@ -90,6 +90,7 @@ export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", u
         connect,
         setup,
         configure,
+        getStreamId: function() { return streamId },
         isSetup: function() { return !!socket }
     }
 }

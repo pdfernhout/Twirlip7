@@ -210,6 +210,11 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
         const hashParams = HashUtils.getHashParams()
         localStorage.setItem("_currentNotebookChoice", notebookChoice)
         hashParams["notebook"] = notebookChoice
+        hashParams["notebook-id"] = Twirlip7.NotebookUsingServer.getStore().getStreamId()
+        if (hashParams["notebook-id"] === "common") {
+            // Only specify notebook-id when it is not the default
+            delete hashParams["notebook-id"]
+        }
         HashUtils.setHashParams(hashParams)
     }
 

@@ -28,7 +28,9 @@ let notebookId = "common"
 
 const NotebookUsingMemory = Stream()
 const NotebookUsingLocalStorage = Stream(StreamBackendUsingLocalStorage())
-const NotebookUsingServer = Stream(StreamBackendUsingServer(m.redraw, notebookId))
+
+const serverBackend = StreamBackendUsingServer(m.redraw, notebookId) 
+const NotebookUsingServer = Stream(serverBackend)
 
 const modelistWrapper = {
     modelist: null
@@ -232,12 +234,23 @@ function startEditor(preMountCallback, postMountCallback) {
     }, 0)
 }
 
+function changeServerNotebookId(notebookIdParam) {
+    if (notebookIdParam !== notebookId) {
+        notebookId = notebookIdParam
+        NotebookUsingServer.reset()
+        serverBackend.configure(notebookId)
+    }
+}
+
 function hashChange() {
     const hashParams = HashUtils.getHashParams()
     const notebookParam = hashParams["notebook"] || notebookView.getNotebookChoice()
     if (notebookParam !== notebookView.getNotebookChoice()) {
         notebookView.restoreNotebookChoice(notebookParam)
     }
+    const notebookIdParam = hashParams["notebook-id"] || "common"
+    changeServerNotebookId(notebookIdParam)
+
     // do our own routing and ignore things that don't match in case other evaluated code is using Mithril's router
     const itemId = hashParams["item"]
     if (itemId) {
@@ -262,6 +275,9 @@ function startup() {
         const evalParam = hashParams["eval"]
         const editParam = hashParams["edit"]
         const notebookParam = hashParams["notebook"]
+        const notebookIdParam = hashParams["notebook-id"] || "common"
+
+        changeServerNotebookId(notebookIdParam)
 
         if (launchParam) {
             const startupItemId = launchParam
