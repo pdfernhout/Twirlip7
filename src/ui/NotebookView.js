@@ -1149,9 +1149,9 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
             }
         }
 
-        const itemIdentifier = (currentItemId === null) ?
-            "???" :
-            ("" + currentItemId).substring(0, 12) + ((("" + currentItemId).length > 12) ? "..." : "")
+        const itemIdentifier = (currentItemId === null)
+            ? "???"
+            : ("" + currentItemId).substring(0, 12) + ((("" + currentItemId).length > 12) ? "..." : "")
 
         return m("div.ba.ma1",
             m("span.ml1", "Notebook"),
@@ -1171,13 +1171,10 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
             m("button.ma1", { onclick: goPrevious, title: "Go to earlier item", disabled: isPreviousDisabled() }, icon("fa-step-backward.mr1"), "Previous"),
             m("button.ma1", { onclick: goNext, title: "Go to later item", disabled: isNextDisabled() }, "Next", icon("fa-step-forward.ml1")),
             m("button.ma1", { onclick: goLast, title: "Go to last item", disabled: isNextDisabled() }, "Last", icon("fa-fast-forward.ml1")),
-            "Item ",
-            m("span", { title: "Click to jump to different item by identifier", onclick: itemIdentifierClicked }, itemIdentifier),
-            m("span", { onclick: itemPositionClicked, title: "Click to jump to different item by index" },
-                " : " + (itemIndex === null ? "???" : (itemIndex + 1))
+            m("div.dib.ml1", { onclick: itemPositionClicked, title: "Click to jump to different item by index" },
+                "Item: " +(itemIndex === null ? "???" : (itemIndex + 1)) + " of " + itemCount
             ),
-            " of ",
-            itemCount
+            m("span.ml2", { title: "Click to jump to different item by identifier", onclick: itemIdentifierClicked }, "Id: " + itemIdentifier),
         )
     }
 
