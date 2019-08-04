@@ -70,20 +70,11 @@ function setupTwirlip7Global(callback) {
 
         notebookView,
 
-        // TODO: Remove legacy support for two forms of "workspace view"
-        workspaceView: notebookView,
-        WorkspaceView: notebookView,
-
         FileUtils,
         CanonicalJSON,
         NotebookUsingLocalStorage,
         NotebookUsingMemory,
         NotebookUsingServer,
-
-        // TODO: Remove legacy support for previous development notes
-        getCurrentJournal: () => {
-            return notebookView.getCurrentNotebook()
-        },
 
         getCurrentNotebook: () => {
             return notebookView.getCurrentNotebook()
