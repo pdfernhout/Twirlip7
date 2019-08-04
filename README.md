@@ -48,18 +48,18 @@ No required build step (yet).
 
 ### Controlling notebook startup to edit or run examples
 
-You can edit a simple example canvas app here: https://rawgit.com/pdfernhout/Twirlip7/master/src/ui/twirlip7.html#edit=examples/canvas-example.js
+You can edit a simple example canvas app here: https://rawgit.com/pdfernhout/Twirlip7/master/src/ui/notebook.html#edit=examples/canvas-example.js
 
-You can run the simple example canvas application here: http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/twirlip7.html#eval=examples/canvas-example.js
+You can run the simple example canvas application here: http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/notebook.html#eval=examples/canvas-example.js
 
-You can edit a complex example IBIS app -- written using Twirlip7 -- here: https://rawgit.com/pdfernhout/Twirlip7/master/src/ui/twirlip7.html#edit=examples/ibis_application.js
+You can edit a complex example IBIS app -- written using Twirlip7 -- here: https://rawgit.com/pdfernhout/Twirlip7/master/src/ui/notebook.html#edit=examples/ibis_application.js
 
-You can run the complex example IBIS application: http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/twirlip7.html#eval=examples/ibis_icons.js;examples/ibis_application.js
+You can run the complex example IBIS application: http://rawgit.com/pdfernhout/Twirlip7/master/src/ui/notebook.html#eval=examples/ibis_icons.js;examples/ibis_application.js
 
 ### Using the notebook to edit and run any JavaScript on GitHub
 
 This edit and run functionality is mostly for demo purposes, but you can also edit or run any JavaScript on GitHub with relative path navigation on rawgit.
-For example: https://rawgit.com/pdfernhout/Twirlip7/master/src/ui/twirlip7.html#edit=../../../../../MithrilJS/mithril.js/next/examples/todomvc/todomvc.js
+For example: https://rawgit.com/pdfernhout/Twirlip7/master/src/ui/notebook.html#edit=../../../../../MithrilJS/mithril.js/next/examples/todomvc/todomvc.js
 
 You can even get that code to run (sort-of) by adding these extra three line of code just before the m.route line to create a needed div the app's HTML file otherwise supplies.
 ```
