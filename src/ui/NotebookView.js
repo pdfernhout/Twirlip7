@@ -441,7 +441,7 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
             return
         }
         if (currentItemId === null) {
-            alert("To launch an item in its own window, you need to\nnavigate to an item from local storage first or save a new one.")
+            alert("To launch an item in its own window, you need to\nnavigate to an item first or save a new one.")
             return
         }
         const streamId = Twirlip7.NotebookUsingServer.getStore().getStreamId()
