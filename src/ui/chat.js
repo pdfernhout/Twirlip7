@@ -361,7 +361,7 @@ const TwirlipChat = {
                 getSortedMessages().map(function (message, index) {
                     if (!hasFilterText(message)) return []
                     return m("div", /* Causes ordering issue: {key: message.uuid || ("" + index)}, */ [
-                        m("hr"),
+                        m("hr.b--light-gray"),
                         m("span",
                             m("i", makeLocalMessageTimestamp(message.timestamp) + " " + message.userID),
                             message.editedTimestamp ? m("b.ml1", {title: makeLocalMessageTimestamp(message.editedTimestamp) }, "edited")  : [],
