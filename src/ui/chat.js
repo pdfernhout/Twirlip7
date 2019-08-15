@@ -100,6 +100,13 @@ function uuidv4() {
     )
 }
 
+function makeNewMessage() {
+    const text = prompt("New message?")
+    if (!text) return
+    chatText = text
+    sendChatMessage()
+}
+
 function sendChatMessage() {
     const timestamp = new Date().toISOString()
     const uuid = "chatMessage:" + uuidv4()
@@ -390,6 +397,7 @@ const TwirlipChat = {
                     m("input[type=checkbox].ma1", { checked: showEntryArea, onchange: (event) => showEntryArea = event.target.checked }),
                     "entry area"
                 ),
+                !showEntryArea && m("button.ml2.mt2", {onclick: makeNewMessage}, "New message"),
                 showEntryArea && m("div.dib",
                     m("a.pl2", {href: "https://github.github.com/gfm/", target: "_blank"}, "Markdown"),
                     m("a.pl2", {href: "https://svg-edit.github.io/svgedit/releases/latest/editor/svg-editor.html", target: "_blank"}, "SVGEdit"),
