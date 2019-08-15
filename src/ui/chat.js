@@ -404,7 +404,7 @@ let isLoaded = false
 function scrollToBottomLater() {
     setTimeout(() => {
         // Scroll to bottom when loaded everything
-        if (messagesDiv) messagesDiv.scrollTop = messagesDiv.scrollHeight
+        if (messagesDiv) messagesDiv.scrollTop = messagesDiv.scrollHeight + 10000
     }, 0)
 }
 
