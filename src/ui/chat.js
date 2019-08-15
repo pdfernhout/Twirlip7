@@ -196,7 +196,7 @@ function exportChatAsMarkdownClicked() {
     getSortedMessages().forEach(function (message, index) {
         if (!hasFilterText(message)) return
         text += "\n----\n"
-        text += "author: " + message.userID + " @ " + makeLocalMessageTimestamp(message.timestamp) + "\n"
+        text += "author: " + message.userID + " " + makeLocalMessageTimestamp(message.timestamp) + "\n"
         text += message.editedTimestamp ? "last edited: " + makeLocalMessageTimestamp(message.editedTimestamp) + "\n": ""
         text += "\n"
         text += message.chatText
@@ -355,7 +355,7 @@ const TwirlipChat = {
                     if (!hasFilterText(message)) return []
                     return m("div.pa2.f2.f5-l", /* Causes ordering issue: {key: message.uuid || ("" + index)}, */ [
                         m("span.f4.f6-l",
-                            m("i", message.userID + " @ " + makeLocalMessageTimestamp(message.timestamp)),
+                            m("i", message.userID + " " + makeLocalMessageTimestamp(message.timestamp)),
                             message.editedTimestamp ? m("b.ml1", {title: makeLocalMessageTimestamp(message.editedTimestamp) }, "edited")  : [],
                             // support editing
                             (message.userID === userID && message.uuid)
