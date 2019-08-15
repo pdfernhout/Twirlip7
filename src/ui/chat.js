@@ -336,7 +336,7 @@ const TwirlipChat = {
     view: function () {
         return m("div.pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
             // m("h4.tc", "Twirlip Chat"),
-            m("div.mb3.f3.f6-l",
+            m("div.mb3",
                 m("span.dib.tr", "Space:"),
                 m("input.w5.ml2", {value: chatRoom, onchange: chatRoomChange}),
                 m("span.dib.tr.ml2", "User:"),
@@ -360,9 +360,10 @@ const TwirlipChat = {
                 },
                 getSortedMessages().map(function (message, index) {
                     if (!hasFilterText(message)) return []
-                    return m("div.pa2.f2.f5-l", /* Causes ordering issue: {key: message.uuid || ("" + index)}, */ [
-                        m("span.f4.f6-l",
-                            m("i", message.userID + " " + makeLocalMessageTimestamp(message.timestamp)),
+                    return m("div", /* Causes ordering issue: {key: message.uuid || ("" + index)}, */ [
+                        m("hr"),
+                        m("span",
+                            m("i", makeLocalMessageTimestamp(message.timestamp) + " " + message.userID),
                             message.editedTimestamp ? m("b.ml1", {title: makeLocalMessageTimestamp(message.editedTimestamp) }, "edited")  : [],
                             // support editing
                             (message.userID === userID && message.uuid)
@@ -377,7 +378,6 @@ const TwirlipChat = {
                                         }
                                     }}, "✎")
                                 : []),
-
                         editedChatMessageUUID === message.uuid
                             // if editing
                             ? m("div.ba.bw1.ma3.ml4.pa3",
