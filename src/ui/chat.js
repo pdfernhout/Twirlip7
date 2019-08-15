@@ -39,6 +39,8 @@ let messagesDiv = null
 
 let messagesByUUID = {}
 
+let showEntryArea = true
+
 function startup() {
     chatRoom = HashUtils.getHashParams()["chatRoom"] || chatRoom
     window.onhashchange = () => updateChatRoomFromHash()
@@ -328,12 +330,10 @@ const TwirlipChat = {
         return m("div.pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
             // m("h4.tc", "Twirlip Chat"),
             m("div.mb3.f3.f6-l",
-                m("span.dib.tr", "Twirlip chat room:"),
-                m("input.w4.ml2", {value: chatRoom, onchange: chatRoomChange}),
-                m("span.dib.tr.ml2", "User ID:"),
+                m("span.dib.tr", "Space:"),
+                m("input.w5.ml2", {value: chatRoom, onchange: chatRoomChange}),
+                m("span.dib.tr.ml2", "User:"),
                 m("input.w4.ml2", {value: userID, onchange: userIDChange, title: "Your user id or handle"}),
-                m("a.pl2", {href: "https://github.github.com/gfm/", target: "_blank"}, "Markdown"),
-                m("a.pl2", {href: "https://svg-edit.github.io/svgedit/releases/latest/editor/svg-editor.html", target: "_blank"}, "SVGEdit"),
                 m("div.dib",
                     m("span.ml2" + (filterText ? ".green" : ""), "Show:"),
                     m("input.ml2" + (filterText ? ".green" : ""), {value: filterText, oninput: (event) => { filterText = event.target.value; scrollToBottomLater() }, title: "Only display messages with all entered words"}),
@@ -343,7 +343,7 @@ const TwirlipChat = {
                         m("input[type=checkbox].ma1", { checked: sortMessagesByContent, onchange: (event) => sortMessagesByContent = event.target.checked }),
                         "sort"
                     )
-                )
+                ),
             ),
             m("div.overflow-auto.flex-auto",
                 {
@@ -384,16 +384,24 @@ const TwirlipChat = {
                     ])
                 })
             ),
-            m("br"),
-            m("div.pb1.f2.f5-l" + (editedChatMessageUUID ? ".dn" : ""),
-                m("textarea.h4.w-80.ma1.ml3", {value: chatText, oninput: chatTextChange, onkeydown: textAreaKeyDown}),
-                m("div",
-                    m("button.ml2.f3.mt2", {onclick: sendChatMessage}, "Send (ctrl-enter)"),
-                    m("button.ml2.f3.mt2", {onclick: uploadDocumentClicked}, "Upload document..."),
-                    m("button.ml2.f3.mt2", {onclick: exportChatAsMarkdownClicked, title: "Export filtered chat as Markdown"}, "Export Markdown..."),
-                    m("button.ml2.f3.mt2", {onclick: exportChatAsJSONClicked, title: "Export filtered chat as JSON"}, "Export JSON..."),
-                    m("button.ml2.f3.mt2", {onclick: importChatFromJSONClicked, title: "Import chat messages from JSON"}, "Import JSON..."),                    
+            // showEntryArea && m("br"),
+            m("div",
+                m("span.ml2",  { title: "Show entry area" },
+                    m("input[type=checkbox].ma1", { checked: showEntryArea, onchange: (event) => showEntryArea = event.target.checked }),
+                    "entry area"
                 ),
+                showEntryArea && m("div.dib",
+                    m("a.pl2", {href: "https://github.github.com/gfm/", target: "_blank"}, "Markdown"),
+                    m("a.pl2", {href: "https://svg-edit.github.io/svgedit/releases/latest/editor/svg-editor.html", target: "_blank"}, "SVGEdit"),
+                    m("button.ml2.f4.mt2", {onclick: sendChatMessage}, "Send (ctrl-enter)"),
+                    m("button.ml2.f4.mt2", {onclick: uploadDocumentClicked}, "Upload document..."),
+                    m("button.ml2.f4.mt2", {onclick: exportChatAsMarkdownClicked, title: "Export filtered chat as Markdown"}, "Export Markdown..."),
+                    m("button.ml2.f4.mt2", {onclick: exportChatAsJSONClicked, title: "Export filtered chat as JSON"}, "Export JSON..."),
+                    m("button.ml2.f4.mt2", {onclick: importChatFromJSONClicked, title: "Import chat messages from JSON"}, "Import JSON..."),
+                )                    
+            ),
+            showEntryArea && m("div.pb1.f2.f5-l" + (editedChatMessageUUID ? ".dn" : ""),
+                m("textarea.h4.w-80.ma1.ml3", {value: chatText, oninput: chatTextChange, onkeydown: textAreaKeyDown}),
             )
         ])
     }
