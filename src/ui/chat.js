@@ -374,10 +374,10 @@ const TwirlipChat = {
                         editedChatMessageUUID === message.uuid
                             // if editing
                             ? m("div.ba.bw1.ma3.ml4.pa3",
-                                m("textarea.h5.w-80.ma2.ml3", {value: editedChatMessageText, onkeydown: editedChatMessageKeyDown, oninput: (event) => editedChatMessageText = event.target.value}),
+                                m("textarea.h5.w-80.ma2.ml3.f4", {value: editedChatMessageText, onkeydown: editedChatMessageKeyDown, oninput: (event) => editedChatMessageText = event.target.value}),
                                 m("div",
-                                    m("button.ml2.f3.mt2", {onclick: () => sendEditedChatMessage() }, "Update (ctrl-enter)"),
-                                    m("button.ml2.f3.mt2", {onclick: () => editedChatMessageUUID = null}, "Cancel"),
+                                    m("button.ml2.mt2", {onclick: () => sendEditedChatMessage() }, "Update (ctrl-enter)"),
+                                    m("button.ml2.mt2", {onclick: () => editedChatMessageUUID = null}, "Cancel"),
                                 ),
                             )
                             : m(".pl4.pr4", formatChatMessage(message.chatText))
@@ -393,14 +393,14 @@ const TwirlipChat = {
                 showEntryArea && m("div.dib",
                     m("a.pl2", {href: "https://github.github.com/gfm/", target: "_blank"}, "Markdown"),
                     m("a.pl2", {href: "https://svg-edit.github.io/svgedit/releases/latest/editor/svg-editor.html", target: "_blank"}, "SVGEdit"),
-                    m("button.ml2.f4.mt2", {onclick: sendChatMessage}, "Send (ctrl-enter)"),
-                    m("button.ml2.f4.mt2", {onclick: uploadDocumentClicked}, "Upload document..."),
-                    m("button.ml2.f4.mt2", {onclick: exportChatAsMarkdownClicked, title: "Export filtered chat as Markdown"}, "Export Markdown..."),
-                    m("button.ml2.f4.mt2", {onclick: exportChatAsJSONClicked, title: "Export filtered chat as JSON"}, "Export JSON..."),
-                    m("button.ml2.f4.mt2", {onclick: importChatFromJSONClicked, title: "Import chat messages from JSON"}, "Import JSON..."),
+                    m("button.ml2.mt2", {onclick: sendChatMessage}, "Send (ctrl-enter)"),
+                    m("button.ml2.mt2", {onclick: uploadDocumentClicked}, "Upload document..."),
+                    m("button.ml2.mt2", {onclick: exportChatAsMarkdownClicked, title: "Export filtered chat as Markdown"}, "Export Markdown..."),
+                    m("button.ml2.mt2", {onclick: exportChatAsJSONClicked, title: "Export filtered chat as JSON"}, "Export JSON..."),
+                    m("button.ml2.mt2", {onclick: importChatFromJSONClicked, title: "Import chat messages from JSON"}, "Import JSON..."),
                 )                    
             ),
-            showEntryArea && m("div.pb1.f2.f5-l" + (editedChatMessageUUID ? ".dn" : ""),
+            showEntryArea && m("div.pb1.f4" + (editedChatMessageUUID ? ".dn" : ""),
                 m("textarea.h4.w-80.ma1.ml3", {value: chatText, oninput: chatTextChange, onkeydown: textAreaKeyDown}),
             )
         ])
