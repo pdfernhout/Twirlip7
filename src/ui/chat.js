@@ -364,6 +364,18 @@ const TwirlipChat = {
                         m("hr.b--light-gray"),
                         m("span",
                             m("i", makeLocalMessageTimestamp(message.timestamp) + " " + message.userID),
+                            (message.previousVersion)
+                                ? m("span.ml2", {
+                                    title: "show history in console",
+                                    onclick: () => {
+                                        let messageVersion = message
+                                        while (messageVersion) {
+                                            console.log("messageVersion", messageVersion)
+                                            messageVersion = messageVersion.previousVersion
+                                        }
+                                        alert("History of message put in console")
+                                    }}, "⌚")
+                                : [],
                             message.editedTimestamp ? m("b.ml1", {title: makeLocalMessageTimestamp(message.editedTimestamp) }, "edited")  : [],
                             // support editing
                             (message.userID === userID && message.uuid)
@@ -445,6 +457,7 @@ const chatRoomResponder = {
                 item.timestamp = previousVersion.timestamp
                 messages[messagesByUUID[item.uuid]] = item
                 edited = true
+                item.previousVersion = previousVersion
             }
         }
         const itemIsNotFiltered = hasFilterText(item)
