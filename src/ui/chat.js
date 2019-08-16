@@ -101,7 +101,7 @@ function uuidv4() {
 }
 
 function makeNewMessage() {
-    const text = prompt("New message?")
+    const text = prompt("New message?", chatText)
     if (!text) return
     chatText = text
     sendChatMessage()
