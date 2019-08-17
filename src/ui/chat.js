@@ -131,7 +131,9 @@ function sendChatMessage() {
 }
 
 function sendMessage(message) {
-    backend.addItem(message)
+    // Call adItem after a delay to give socket.io a chance to reconnect
+    // as socket.io will timeout if the prompt is up for very long
+    setTimeout(() => backend.addItem(message), 1000)
 }
 
 function sendEditedChatMessage() {
