@@ -48,8 +48,7 @@ function startup() {
 }
 
 function updateTitleForChatRoom() {
-    const title = document.title.split(" -- ")[0]
-    document.title = title + " -- " + chatRoom
+    document.title = chatRoom + " -- Twirlip7 Chat"
 }
 
 function updateChatRoomFromHash() {
