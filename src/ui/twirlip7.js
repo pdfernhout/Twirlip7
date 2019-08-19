@@ -37,6 +37,10 @@ const TwirlipAppList = {
                 m("a.ma3", {href: "ibis.html"}, "New IBIS diagram"),
                 "(requires server; bookmark the IBIS URL to return to it)",
             ),
+            m("div.ma3",
+                m("a.ma3", {href: "monitor.html"}, "Stream Monitor"),
+                "(requires server)",
+            ),
         )
     }
 }
