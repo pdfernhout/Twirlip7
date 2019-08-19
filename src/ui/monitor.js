@@ -191,6 +191,7 @@ const TwirlipChat = {
                 ),
                 showEntryArea && m("div.dib",
                     m("button.ml2.mt2", {onclick: sendChatMessage, disabled: !isTextValidJSONObject(chatText)}, "Send (ctrl-enter)"),
+                    m("span.ml2", "Enter a valid JSON object {...} below:")
                 )                    
             ),
             showEntryArea && m("div.pb1.f4",
