@@ -11,7 +11,7 @@ import { HashUtils } from "./HashUtils.js"
 // defines m
 import "./vendor/mithril.js"
 
-let streamName = "test"
+let streamName = "{\"chatRoom\": \"test\"}"
 let userID = localStorage.getItem("userID") || "anonymous"
 let newMessageJSONText = ""
 const messages = []
@@ -24,7 +24,7 @@ let hideText = ""
 
 let messagesDiv = null
 
-let showEntryArea = true
+let showEntryArea = false
 
 function startup() {
     streamName = HashUtils.getHashParams()["stream"] || streamName
@@ -33,7 +33,7 @@ function startup() {
 }
 
 function updateTitleForStreamName() {
-    document.title = streamName + " -- Twirlip7 Monitor"
+    document.title = streamName.replace(/[{}":]/g, "") + " -- Twirlip7 Monitor"
 }
 
 function updateStreamNameFromHash() {
@@ -41,10 +41,14 @@ function updateStreamNameFromHash() {
     console.log("updateStreamNameFromHash", hashParams)
     const newStreamName = hashParams["stream"]
     if (newStreamName !== streamName) {
-        resetMessagesForStreamNameChange()
         streamName = newStreamName
-        backend.configure({chatRoom: streamName})
+        resetMessagesForStreamNameChange()
         updateTitleForStreamName()
+        if (!isTextValidJSON(newStreamName)) {
+            console.log("invalid JSON stream name in hash", newStreamName)
+            return
+        }
+        backend.configure(JSON.parse(streamName))
     }
 }
 
@@ -59,7 +63,11 @@ function streamNameChange(event) {
     resetMessagesForStreamNameChange()
     streamName = event.target.value
     updateHashForStreamName()
-    backend.configure({chatRoom: streamName})
+    if (!isTextValidJSON(streamName)) {
+        console.log("invalid JSON stream name in hash", streamName)
+        return
+    }
+    backend.configure(JSON.parse(streamName))
 }
 
 function resetMessagesForStreamNameChange() {
@@ -139,9 +147,8 @@ function hasFilterText(message) {
     return true
 }
 
-function isTextValidJSONObject(text) {
-    if (!newMessageJSONText) return false
-    if (text[0] !== "{") return false
+function isTextValidJSON(text) {
+    if (!text) return false
     try {
         JSON.parse(text)
         return true
@@ -150,13 +157,18 @@ function isTextValidJSONObject(text) {
     }
 }
 
+function isTextValidJSONObject(text) {
+    if (text[0] !== "{") return false
+    return isTextValidJSON(text)
+}
+
 const TwirlipMonitor = {
     view: function () {
         return m("div.pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
             // m("h4.tc", "Twirlip Monitor"),
             m("div.mb3",
-                m("span.dib.tr", "Space:"),
-                m("input.w5.ml2", {value: streamName, onchange: streamNameChange}),
+                m("span.dib.tr", "Stream:"),
+                m("input.ml2" + (!isTextValidJSON(streamName) ? ".orange" : ""), {style: "width: 30rem", value: streamName, onchange: streamNameChange}),
                 m("span.dib.tr.ml2", "User:"),
                 m("input.w4.ml2", {value: userID, onchange: userIDChange, title: "Your user id or handle"}),
                 m("div.dib",
@@ -231,7 +243,13 @@ const streamNameResponder = {
 
 startup()
 
-const backend = StreamBackendUsingServer(m.redraw, {chatRoom: streamName}, userID)
+let initialObject = {}
+try {
+    initialObject = JSON.parse(streamName)
+} catch (e) {
+    console.log("not valid JSON for hash", streamName)
+}
+const backend = StreamBackendUsingServer(m.redraw, initialObject, userID)
 
 backend.connect(streamNameResponder)
 try {
