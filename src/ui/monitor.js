@@ -11,9 +11,9 @@ import { HashUtils } from "./HashUtils.js"
 // defines m
 import "./vendor/mithril.js"
 
-let chatRoom = "test"
+let streamName = "test"
 let userID = localStorage.getItem("userID") || "anonymous"
-let chatText = ""
+let newMessageJSONText = ""
 const messages = []
 
 // filterText is split into tags by spaces and used to filter by a logical "and" to include displayed items
@@ -24,49 +24,46 @@ let hideText = ""
 
 let messagesDiv = null
 
-let messagesByUUID = {}
-
 let showEntryArea = true
 
 function startup() {
-    chatRoom = HashUtils.getHashParams()["stream"] || chatRoom
-    window.onhashchange = () => updateChatRoomFromHash()
-    updateHashForChatRoom()
+    streamName = HashUtils.getHashParams()["stream"] || streamName
+    window.onhashchange = () => updateStreamNameFromHash()
+    updateHashForStreamName()
 }
 
-function updateTitleForChatRoom() {
-    document.title = chatRoom + " -- Twirlip7 Monitor"
+function updateTitleForStreamName() {
+    document.title = streamName + " -- Twirlip7 Monitor"
 }
 
-function updateChatRoomFromHash() {
+function updateStreamNameFromHash() {
     const hashParams = HashUtils.getHashParams()
-    console.log("updateChatRoomFromHash", hashParams)
-    const newChatRoom = hashParams["stream"]
-    if (newChatRoom !== chatRoom) {
-        resetMessagesForChatroomChange()
-        chatRoom = newChatRoom
-        backend.configure({chatRoom})
-        updateTitleForChatRoom()
+    console.log("updateStreamNameFromHash", hashParams)
+    const newStreamName = hashParams["stream"]
+    if (newStreamName !== streamName) {
+        resetMessagesForStreamNameChange()
+        streamName = newStreamName
+        backend.configure({chatRoom: streamName})
+        updateTitleForStreamName()
     }
 }
 
-function updateHashForChatRoom() {
+function updateHashForStreamName() {
     const hashParams = HashUtils.getHashParams()
-    hashParams["stream"] = chatRoom
+    hashParams["stream"] = streamName
     HashUtils.setHashParams(hashParams)
-    updateTitleForChatRoom()
+    updateTitleForStreamName()
 }
 
-function chatRoomChange(event) {
-    resetMessagesForChatroomChange()
-    chatRoom = event.target.value
-    updateHashForChatRoom()
-    backend.configure({chatRoom})
+function streamNameChange(event) {
+    resetMessagesForStreamNameChange()
+    streamName = event.target.value
+    updateHashForStreamName()
+    backend.configure({chatRoom: streamName})
 }
 
-function resetMessagesForChatroomChange() {
+function resetMessagesForStreamNameChange() {
     messages.splice(0)
-    messagesByUUID = {}
 }
 
 function userIDChange(event) {
@@ -75,16 +72,16 @@ function userIDChange(event) {
     localStorage.setItem("userID", userID)
 }
 
-function chatTextChange(event) {
-    chatText = event.target.value
+function newMessageJSONTextChange(event) {
+    newMessageJSONText = event.target.value
 }
 
-function sendChatMessage() {
+function sendStreamMessage() {
 
-    const newMessage = JSON.parse(chatText)
+    const newMessage = JSON.parse(newMessageJSONText)
 
     sendMessage(newMessage)
-    // chatText = ""
+    // newMessageJSONText = ""
     if (!hasFilterText(newMessage)) {
         setTimeout(() => alert("The message you just added is currently\nnot displayed due to show/hide filtering."))
         /*
@@ -107,7 +104,7 @@ function sendMessage(message) {
 }
 
 function sendIfCtrlEnter(event, text, callbackToSendMessage) {
-    if (isTextValidJSONObject(chatText) && text.trim() && event.key === "Enter" && event.ctrlKey ) {
+    if (isTextValidJSONObject(newMessageJSONText) && text.trim() && event.key === "Enter" && event.ctrlKey ) {
         callbackToSendMessage()
         return false
     }
@@ -116,7 +113,7 @@ function sendIfCtrlEnter(event, text, callbackToSendMessage) {
 }
 
 function textAreaKeyDown(event) {
-    return sendIfCtrlEnter(event, chatText, sendChatMessage)
+    return sendIfCtrlEnter(event, newMessageJSONText, sendStreamMessage)
 }
 
 function hasFilterText(message) {
@@ -143,7 +140,7 @@ function hasFilterText(message) {
 }
 
 function isTextValidJSONObject(text) {
-    if (!chatText) return false
+    if (!newMessageJSONText) return false
     if (text[0] !== "{") return false
     try {
         JSON.parse(text)
@@ -153,13 +150,13 @@ function isTextValidJSONObject(text) {
     }
 }
 
-const TwirlipChat = {
+const TwirlipMonitor = {
     view: function () {
         return m("div.pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
             // m("h4.tc", "Twirlip Monitor"),
             m("div.mb3",
                 m("span.dib.tr", "Space:"),
-                m("input.w5.ml2", {value: chatRoom, onchange: chatRoomChange}),
+                m("input.w5.ml2", {value: streamName, onchange: streamNameChange}),
                 m("span.dib.tr.ml2", "User:"),
                 m("input.w4.ml2", {value: userID, onchange: userIDChange, title: "Your user id or handle"}),
                 m("div.dib",
@@ -190,12 +187,12 @@ const TwirlipChat = {
                     "entry area"
                 ),
                 showEntryArea && m("div.dib",
-                    m("button.ml2.mt2", {onclick: sendChatMessage, disabled: !isTextValidJSONObject(chatText)}, "Send (ctrl-enter)"),
+                    m("button.ml2.mt2", {onclick: sendStreamMessage, disabled: !isTextValidJSONObject(newMessageJSONText)}, "Send (ctrl-enter)"),
                     m("span.ml2", "Enter a valid JSON object {...} below:")
                 )                    
             ),
             showEntryArea && m("div.pb1.f4",
-                m("textarea.h4.w-80.ma1.ml3", {value: chatText, oninput: chatTextChange, onkeydown: textAreaKeyDown}),
+                m("textarea.h4.w-80.ma1.ml3", {value: newMessageJSONText, oninput: newMessageJSONTextChange, onkeydown: textAreaKeyDown}),
             )
         ])
     }
@@ -210,7 +207,7 @@ function scrollToBottomLater() {
     }, 0)
 }
 
-const chatRoomResponder = {
+const streamNameResponder = {
     onLoaded: () => {
         isLoaded = true
         console.log("onLoaded")
@@ -234,13 +231,13 @@ const chatRoomResponder = {
 
 startup()
 
-const backend = StreamBackendUsingServer(m.redraw, {chatRoom}, userID)
+const backend = StreamBackendUsingServer(m.redraw, {chatRoom: streamName}, userID)
 
-backend.connect(chatRoomResponder)
+backend.connect(streamNameResponder)
 try {
     backend.setup(io)
 } catch(e) {
     alert("This Monitor app requires a backend server supporting socket.io (i.e. won't work correctly on rawgit)")
 }
 
-m.mount(document.body, TwirlipChat)
+m.mount(document.body, TwirlipMonitor)
