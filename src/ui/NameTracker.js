@@ -1,7 +1,9 @@
 "use strict"
 
-import HashUtils from "./HashUtils.js"
-import m from "./mithril.v1.1.6.js"
+import { HashUtils } from "./HashUtils.js"
+
+// defines m
+// import "./vendor/mithril.js"
 
 export default class NameTracker {
 
