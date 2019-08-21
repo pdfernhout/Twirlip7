@@ -150,7 +150,7 @@ class Pointrel20190820 {
         }
         */
     
-        console.log("this.tripleIndex", this.tripleIndex)
+        // console.log("this.tripleIndex", this.tripleIndex)
         const aIndex = this.tripleIndex[a]
         if (aIndex) {
             const bJSON = JSON.stringify(b)
@@ -215,12 +215,12 @@ class Pointrel20190820 {
     }
 
     isOffline() {
-        console.log("TODO isOffline")
+        // console.log("TODO isOffline")
         return false
     }
 
     isLoaded() {
-        console.log("TODO isLoaded")
+        // console.log("TODO isLoaded")
         return true
     }
     
@@ -249,7 +249,7 @@ p.setDefaultApplicationName("tables")
 const nameTracker = new NameTracker({
     hashNameField: "name",
     displayNameLabel: "Name",
-    defaultName: "tables",
+    defaultName: "tables-test",
     nameChangedCallback: startup
 })
 
@@ -365,6 +365,14 @@ function displayTable(table) {
     let cellsEvaled = {}
     let cellHasError = false
 
+    function evalFormula(textToEval) {
+        // Replace cell ref strings with function calls
+        // textToEval = textToEval.replace(/(^| )(\$?[a-z]+\$?[0-9]+)( |$)/g, "cell(\"$2\")")
+        textToEval = textToEval.replace(/(^| )([a-z]+[0-9]+)( |$)/g, "cell(\"$2\")")
+        console.log("textToEval", textToEval)
+        return eval(textToEval)
+    }
+
     // cell can be used within spreadsheet
     /* eslint-disable-next-line no-unused-vars */
     function cell(cellName, tableName) {
@@ -378,10 +386,11 @@ function displayTable(table) {
         const r = parseInt(cellName[1]) - 1
         let result = t.getCell(c, r)
         // console.log("cell,result", cellName, result, c, r)
-
+        // =a1 + a2 + a3
         if (result.startsWith("=")) {
+            let textToEval = result.substring(1)
             try {
-                result = eval(result.substring(1))
+                result = evalFormula(textToEval.substring(1))
             } catch (e) {
                 console.log("Error in cell", e)
                 cellHasError = true
@@ -429,7 +438,7 @@ function displayTable(table) {
                 if (!table.getShowFormulas() && enteredText.startsWith("=") && (focusedCell.tableName !== table.getName() || focusedCell.column !== column || focusedCell.row !== row)) {
                     try {
                         cellsEvaled = {}
-                        displayText = eval(enteredText.substring(1))
+                        displayText = evalFormula(enteredText.substring(1))
                     } catch (e) {
                         displayText = enteredText
                         cellHasError = true
