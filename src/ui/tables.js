@@ -369,7 +369,6 @@ let lastTextCopied = ""
 // TODO: This could mess up strings with cell refs in them
 // This is limited to basic math for non-space separated cell refs.
 // Other cell refs need to be separated from operators by spaces.
-// (\+|-|\*|\/|\(|\)| |$)
 const cellRefRegex = /(^| |=|\+|-|\*|\/|\(|\))(\$?)([a-z]+)(\$?)([0-9]+)/g
 
 function displayTable(table) {
