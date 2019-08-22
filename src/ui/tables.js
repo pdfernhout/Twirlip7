@@ -373,7 +373,8 @@ function displayTable(table) {
     const height =  table.getHeight()
 
     // To prevent and report circular references
-    let cellsEvaled = {}
+    let cellsRequired = {}
+    let cellsResult = {}
     let cellHasError = false
 
     function evalFormula(textToEval) {
@@ -386,30 +387,52 @@ function displayTable(table) {
 
     // cell can be used within spreadsheet
     /* eslint-disable-next-line no-unused-vars */
+    // Recursive via eval
     function cell(cellName, tableName) {
         const t = tableName ? tablesApplication.getTableForName(tableName) : table
         if (!t) throw new Error("No table named: " + tableName)
 
-        if (cellsEvaled[JSON.stringify({cellName, tableName})]) throw new Error("Circular reference: " + cellName)
-        cellsEvaled[JSON.stringify({cellName, tableName})] = true
-
-        const [discard1, dicard2, letter, discard3, number] = cellRefRegex.exec(cellName)
+        const [discard0, discard1, discard2, letter, discard3, number] = new RegExp(cellRefRegex).exec(cellName)
+        
+        console.log("cell", letter, number, "other", discard1, discard2, discard3)
         const c = letter.charCodeAt(0) - "a".charCodeAt(0)
         const r = parseInt(number) - 1
-        let result = t.getCell(c, r)
-        // console.log("cell,result", cellName, result, c, r)
+
+        return cell_(t, c, r)
+    }
+
+    function cell_(t, c, r) {
+
+        const cellRefJSON = JSON.stringify({tableName: t.getName(), c, r})
+        if (cellsResult[cellRefJSON] !== undefined) {
+            console.log("cached result", cellRefJSON, cellsResult[cellRefJSON])
+            return cellsResult[cellRefJSON]
+        }
+        if (cellsRequired[cellRefJSON]) throw new Error("Circular reference: " + cellRefJSON)
+        cellsRequired[cellRefJSON] = true
+        
+        let contents = t.getCell(c, r)
+        // console.log("cell,contents", cellName, contents, c, r)
         // =a1 + a2 + a3
-        if (result.startsWith("=")) {
-            let textToEval = result.substring(1)
+        let result
+        if (contents.startsWith("=")) {
+            let textToEval = contents.substring(1)
             try {
-                result = evalFormula(textToEval.substring(1))
+                result = evalFormula(textToEval)
             } catch (e) {
                 console.log("Error in cell", e)
+                result = "#REF!"
                 cellHasError = true
             }
         } else {
-            if (!isNaN(result)) result = parseFloat(result)
+            if (!isNaN(contents)) {
+                result = parseFloat(contents)
+            } else {
+                result = contents
+            }
         }
+        cellsResult[cellRefJSON] = result
+        console.log("calc result", cellRefJSON, result)
         return result
     }
 
@@ -483,8 +506,8 @@ function displayTable(table) {
                 cellHasError = false
                 if (!table.getShowFormulas() && enteredText.startsWith("=") && (focusedCell.tableName !== table.getName() || focusedCell.column !== column || focusedCell.row !== row)) {
                     try {
-                        cellsEvaled = {}
-                        displayText = evalFormula(enteredText.substring(1))
+                        cellsRequired = {}
+                        displayText = cell_(table, column, row)
                     } catch (e) {
                         displayText = enteredText
                         cellHasError = true
