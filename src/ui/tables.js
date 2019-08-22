@@ -525,18 +525,15 @@ function displayTable(table) {
                     onchange: event => table.setCell(column, row, event.target.value),
                     oncopy: (e) => {
                         event.redraw = false
-                        table.setCell(column, row, event.target.value)
                         lastCellCopiedFrom = {row, column}
                         lastTextCopied = getSelection(e.target)
                     },
                     oncut: (e) => {
                         event.redraw = false
-                        table.setCell(column, row, event.target.value)
                         lastCellCopiedFrom = {row, column}
                         lastTextCopied = getSelection(e.target)
                     },
                     onpaste: (e) => {
-                        table.setCell(column, row, event.target.value)
                         event.redraw = false
 
                         // Get pasted data via clipboard API
