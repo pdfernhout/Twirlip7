@@ -92,7 +92,7 @@ class Pointrel20190820 {
             return
         }
         if (this.indexedTransactions[sha256]) {
-            console.log("transaction already indexed", sha256)
+            console.log("transaction already indexed", sha256, transaction)
             return
         }
         if (transaction.type === "triples") {
@@ -252,9 +252,10 @@ class Pointrel20190820 {
                 console.log("onLoaded")
             },
             addItem: (item, isAlreadyStored) => {
-                console.log("addItem", item)
+                // console.log("addItem", item)
                 const sha256 = calculateSHA256(JSON.stringify(item))
                 this.addTransactionToTripleIndex(sha256, item)
+                this.setLatest(sha256)
             }
         })
         try {
@@ -403,6 +404,7 @@ function displayTable(table) {
     let cellsRequired = {}
     let cellsResult = {}
     let cellHasError = false
+    let currentTable = table
 
     function evalFormula(textToEval) {
         // Replace cell ref strings with function calls
@@ -413,7 +415,8 @@ function displayTable(table) {
     // cell can be used within spreadsheet
     // Recursive via eval
     function cell(cellName, tableName) {
-        const t = tableName ? tablesApplication.getTableForName(tableName) : table
+        const t = tableName ? tablesApplication.getTableForName(tableName) : currentTable
+        currentTable = t
         if (!t) throw new Error("No table named: " + tableName)
 
         const [discard0, discard1, discard2, letter, discard3, number] = new RegExp(cellRefRegex).exec(cellName)
@@ -424,6 +427,7 @@ function displayTable(table) {
     }
 
     function cell_(t, c, r) {
+        currentTable = t
 
         const cellRefJSON = JSON.stringify({tableName: t.getName(), c, r})
         if (cellsResult[cellRefJSON] !== undefined) {
