@@ -48,7 +48,7 @@ export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", u
     }
 
     function setup(io) {
-        console.log("setup", io)
+        console.log("setup", streamId, io)
         // TODO: Concern: Want to get all messages, but new messages may be added while waiting
         socket = io()
 

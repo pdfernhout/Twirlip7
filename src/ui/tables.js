@@ -27,12 +27,17 @@ function uuidv4() {
     })
 }
 
+let userID = localStorage.getItem("userID") || "anonymous"
+
 class Pointrel20190820 {
     
     constructor() {
         this.tripleIndex = {}
         this.indexedTransactions = {}
         this.latest = null
+        this.streamId = null
+        this._isLoaded = false
+        this.backend = StreamBackendUsingServer(m.redraw, this.streamId, userID)
 
         this.redrawFunction = null
         this.currentTransaction = null
@@ -71,6 +76,7 @@ class Pointrel20190820 {
 
         console.log("TODO sendCurrentTransaction")
         // TODO: sendQueue.push(currentTransaction)
+        setTimeout(() => this.backend.addItem(transaction), 10)
         this.currentTransaction = null
         this.setLatest(sha256)
         // TODO if (!sending) processNextSend()
@@ -220,8 +226,7 @@ class Pointrel20190820 {
     }
 
     isLoaded() {
-        // console.log("TODO isLoaded")
-        return true
+        return this._isLoaded
     }
     
     getLastSequenceRead() {
@@ -234,11 +239,30 @@ class Pointrel20190820 {
     }
 
     setShareName(shareName) {
-        console.log("TODO setShareName")
+        console.log("setShareName", shareName)
+        if (this.streamId === shareName) return
+        this.streamId = shareName
+        this.backend.configure(this.streamId)
     }
 
-    updateFromStorage(repeatDelay) {
-        console.log("TODO updateFromStorage")
+    updateFromStorage() {
+        this.backend.connect({
+            onLoaded: () => {
+                this._isLoaded = true
+                console.log("onLoaded")
+            },
+            addItem: (item, isAlreadyStored) => {
+                console.log("addItem", item)
+                const sha256 = calculateSHA256(JSON.stringify(item))
+                this.addTransactionToTripleIndex(sha256, item)
+            }
+        })
+        try {
+            console.log("backend setup start")
+            this.backend.setup(io)
+        } catch(e) {
+            alert("This Monitor app requires a backend server supporting socket.io (i.e. won't work correctly on rawgit)")
+        }
     }
 }
 
@@ -249,12 +273,12 @@ p.setDefaultApplicationName("tables")
 const nameTracker = new NameTracker({
     hashNameField: "name",
     displayNameLabel: "Name",
-    defaultName: "tables-test",
+    defaultName: "test",
     nameChangedCallback: startup
 })
 
 function getTablesName() {
-    if (!nameTracker.name || nameTracker.name === "tables") return "tables"
+    if (!nameTracker.name || nameTracker.name === "tables") return "tables:test"
     return "tables:" + nameTracker.name
 }
 
@@ -597,7 +621,7 @@ const TablesViewer = {
 async function startup() {
     p.setRedrawFunction(m.redraw)
     p.setShareName(getTablesName())
-    await p.updateFromStorage(true)
+    p.updateFromStorage()
     m.redraw()
 }
 
