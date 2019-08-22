@@ -272,7 +272,7 @@ class Table {
     }
 
     getWidth() {
-        return p.findC(this.uuid, "width") || 1
+        return p.findC(this.uuid, "width") || 5
     }
 
     setWidth(width) {
@@ -284,7 +284,7 @@ class Table {
     }
 
     getHeight() {
-        return p.findC(this.uuid, "height") || 1
+        return p.findC(this.uuid, "height") || 10
     }
 
     setHeight(height) {
@@ -304,7 +304,9 @@ class Table {
     }
 
     setCell(x, y, contents) {
-        p.addTriple(this.uuid, JSON.stringify({x: x, y: y}), contents)
+        if (this.getCell(x, y) !== contents) {
+            p.addTriple(this.uuid, JSON.stringify({x: x, y: y}), contents)
+        }
     } 
     
     getColumnWidth(x) {
@@ -357,6 +359,15 @@ function makeNewTable() {
 
 let focusedCell = {tableName: "", row: 0, column: 0}
 
+let lastCellCopiedFrom = null
+let lastTextCopied = ""
+
+// TODO: This could mess up strings with cell refs in them
+// This is imited to basic math for non-space seprtaed cell refs.
+// Other cell refs need to be separated from operators by spaces.
+// (\+|-|\*|\/|\(|\)| |$)
+const cellRefRegex = /(^| |=|\+|-|\*|\/|\(|\))(\$?)([a-z]+)(\$?)([0-9]+)/g
+
 function displayTable(table) {
     const width = table.getWidth()
     const height =  table.getHeight()
@@ -368,7 +379,7 @@ function displayTable(table) {
     function evalFormula(textToEval) {
         // Replace cell ref strings with function calls
         // textToEval = textToEval.replace(/(^| )(\$?[a-z]+\$?[0-9]+)( |$)/g, "cell(\"$2\")")
-        textToEval = textToEval.replace(/(^| )([a-z]+[0-9]+)( |$)/g, "cell(\"$2\")")
+        textToEval = textToEval.replace(cellRefRegex, "$1cell(\"$3$5\")")
         console.log("textToEval", textToEval)
         return eval(textToEval)
     }
@@ -382,8 +393,9 @@ function displayTable(table) {
         if (cellsEvaled[JSON.stringify({cellName, tableName})]) throw new Error("Circular reference: " + cellName)
         cellsEvaled[JSON.stringify({cellName, tableName})] = true
 
-        const c = cellName[0].charCodeAt(0) - "a".charCodeAt(0)
-        const r = parseInt(cellName[1]) - 1
+        const [discard1, dicard2, letter, discard3, number] = cellRefRegex.exec(cellName)
+        const c = letter.charCodeAt(0) - "a".charCodeAt(0)
+        const r = parseInt(number) - 1
         let result = t.getCell(c, r)
         // console.log("cell,result", cellName, result, c, r)
         // =a1 + a2 + a3
@@ -412,6 +424,40 @@ function displayTable(table) {
         if (newWidth < 2) newWidth = 2
         if (newWidth > 80) newWidth = 80
         table.setColumnWidth(column, newWidth)
+    }
+
+    function getSelection(element) {
+        return element.value.slice(element.selectionStart, element.selectionEnd)
+    }
+
+    function updateTextForPasteInNewLocation(text, from, to) {
+        console.log("updateTextForPasteInNewLocation", from, to)
+        const dx = to.column - from.column
+        const dy = to.row - from.row
+        
+        return text.replace(cellRefRegex, (match, leader, absoluteLetter, letter, absoluteNumber, number) => {
+            if (!absoluteLetter) {
+                if (letter.length > 1) {
+                    console.log("only one character cell references supported yet")
+                    letter = "#REF!"
+                } else {
+                    const newLetterIndex = letter.charCodeAt(0) + dx
+                    if (newLetterIndex >= "a".charCodeAt(0) && newLetterIndex <= "z".charCodeAt(0)) {
+                        letter = String.fromCharCode(newLetterIndex)
+                    } else {
+                        letter = "#REF!"
+                    }
+                }
+            }
+            if (!absoluteNumber) {
+                console.log("number", number)
+                number = parseInt(number) + dy
+                if (number < 1) {
+                    number = "#REF!"
+                }
+            }
+            return leader + absoluteLetter + letter + absoluteNumber + number
+        })
     }
 
     function cells() {
@@ -459,7 +505,49 @@ function displayTable(table) {
                     },
                     onfocus: () => focusedCell = {tableName: table.getName(), column: column, row: row },
                     value: displayText, 
-                    onchange: event => table.setCell(column, row, event.target.value)
+                    onchange: event => table.setCell(column, row, event.target.value),
+                    oncopy: (e) => {
+                        console.log("oncopy", e, "data:", e.clipboardData.getData("text/plain"), "end data")
+                        table.setCell(column, row, event.target.value)
+                        lastCellCopiedFrom = {row, column}
+                        lastTextCopied = getSelection(e.target)
+                        console.log("copy -- lastCellCopiedFrom", lastCellCopiedFrom)
+                        console.log("copy -- lastTextCopied", lastTextCopied)
+                        event.redraw = false
+                        // e.clipboardData.setData('text/plain', lastTextCopied)
+                        // e.preventDefault()
+                    },
+                    oncut: (e) => {
+                        console.log("oncut", e)
+                        table.setCell(column, row, event.target.value)
+                        lastCellCopiedFrom = {row, column}
+                        lastTextCopied = getSelection(e.target)
+                        console.log("cut -- lastCellCopiedFrom", lastCellCopiedFrom)
+                        console.log("cut -- lastTextCopied", lastTextCopied)
+                        event.redraw = false
+                    },
+                    onpaste: (e) => {
+                        table.setCell(column, row, event.target.value)
+                        console.log("onpaste", e)
+                        console.log("paste -- lastCellCopiedFrom", lastCellCopiedFrom)
+                        console.log("paste -- lastTextCopied", lastTextCopied)
+                        event.redraw = false
+
+                        // Get pasted data via clipboard API
+                        const clipboardData = e.clipboardData || window.clipboardData
+                        const pastedData = clipboardData.getData("Text")
+                        console.log("pastedData", pastedData)
+
+                        if (pastedData === lastTextCopied) {
+                            console.log("match")
+                            // Stop data actually being pasted into div
+                            //e.stopPropagation()
+                            //e.preventDefault()
+                            const updatedText = updateTextForPasteInNewLocation(pastedData, lastCellCopiedFrom, {row, column})
+                            document.execCommand("insertText", false, updatedText)
+                            return false
+                        }
+                    }
                 })))
             }
             rows.push(m("tr", columns))
