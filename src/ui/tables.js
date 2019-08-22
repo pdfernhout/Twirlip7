@@ -258,6 +258,8 @@ function getTablesName() {
     return "tables:" + nameTracker.name
 }
 
+const showFormulasForTable = {}
+
 class Table {
     constructor(uuid) {
         this.uuid = uuid || p.uuidv4()
@@ -292,11 +294,13 @@ class Table {
     }
 
     getShowFormulas() {
-        return p.findC(this.uuid, "showFormulas") || false
+        // return p.findC(this.uuid, "showFormulas") || false
+        return showFormulasForTable[this.uuid]
     }
 
     setShowFormulas(showFormulas) {
-        p.addTriple(this.uuid, "showFormulas", showFormulas)
+        // p.addTriple(this.uuid, "showFormulas", showFormulas)
+        showFormulasForTable[this.uuid] = showFormulas
     }
 
     getCell(x, y) {
@@ -379,9 +383,7 @@ function displayTable(table) {
 
     function evalFormula(textToEval) {
         // Replace cell ref strings with function calls
-        // textToEval = textToEval.replace(/(^| )(\$?[a-z]+\$?[0-9]+)( |$)/g, "cell(\"$2\")")
         textToEval = textToEval.replace(cellRefRegex, "$1cell(\"$3$5\")")
-        console.log("textToEval", textToEval)
         return eval(textToEval)
     }
 
@@ -393,8 +395,6 @@ function displayTable(table) {
         if (!t) throw new Error("No table named: " + tableName)
 
         const [discard0, discard1, discard2, letter, discard3, number] = new RegExp(cellRefRegex).exec(cellName)
-        
-        console.log("cell", letter, number, "other", discard1, discard2, discard3)
         const c = letter.charCodeAt(0) - "a".charCodeAt(0)
         const r = parseInt(number) - 1
 
@@ -405,15 +405,12 @@ function displayTable(table) {
 
         const cellRefJSON = JSON.stringify({tableName: t.getName(), c, r})
         if (cellsResult[cellRefJSON] !== undefined) {
-            console.log("cached result", cellRefJSON, cellsResult[cellRefJSON])
             return cellsResult[cellRefJSON]
         }
         if (cellsRequired[cellRefJSON]) throw new Error("Circular reference: " + cellRefJSON)
         cellsRequired[cellRefJSON] = true
         
         let contents = t.getCell(c, r)
-        // console.log("cell,contents", cellName, contents, c, r)
-        // =a1 + a2 + a3
         let result
         if (contents.startsWith("=")) {
             let textToEval = contents.substring(1)
@@ -432,7 +429,6 @@ function displayTable(table) {
             }
         }
         cellsResult[cellRefJSON] = result
-        console.log("calc result", cellRefJSON, result)
         return result
     }
 
@@ -454,7 +450,6 @@ function displayTable(table) {
     }
 
     function updateTextForPasteInNewLocation(text, from, to) {
-        console.log("updateTextForPasteInNewLocation", from, to)
         const dx = to.column - from.column
         const dy = to.row - from.row
         
@@ -473,7 +468,6 @@ function displayTable(table) {
                 }
             }
             if (!absoluteNumber) {
-                console.log("number", number)
                 number = parseInt(number) + dy
                 if (number < 1) {
                     number = "#REF!"
@@ -530,44 +524,29 @@ function displayTable(table) {
                     value: displayText, 
                     onchange: event => table.setCell(column, row, event.target.value),
                     oncopy: (e) => {
-                        console.log("oncopy", e, "data:", e.clipboardData.getData("text/plain"), "end data")
+                        event.redraw = false
                         table.setCell(column, row, event.target.value)
                         lastCellCopiedFrom = {row, column}
                         lastTextCopied = getSelection(e.target)
-                        console.log("copy -- lastCellCopiedFrom", lastCellCopiedFrom)
-                        console.log("copy -- lastTextCopied", lastTextCopied)
-                        event.redraw = false
-                        // e.clipboardData.setData('text/plain', lastTextCopied)
-                        // e.preventDefault()
                     },
                     oncut: (e) => {
-                        console.log("oncut", e)
+                        event.redraw = false
                         table.setCell(column, row, event.target.value)
                         lastCellCopiedFrom = {row, column}
                         lastTextCopied = getSelection(e.target)
-                        console.log("cut -- lastCellCopiedFrom", lastCellCopiedFrom)
-                        console.log("cut -- lastTextCopied", lastTextCopied)
-                        event.redraw = false
                     },
                     onpaste: (e) => {
                         table.setCell(column, row, event.target.value)
-                        console.log("onpaste", e)
-                        console.log("paste -- lastCellCopiedFrom", lastCellCopiedFrom)
-                        console.log("paste -- lastTextCopied", lastTextCopied)
                         event.redraw = false
 
                         // Get pasted data via clipboard API
                         const clipboardData = e.clipboardData || window.clipboardData
                         const pastedData = clipboardData.getData("Text")
-                        console.log("pastedData", pastedData)
 
                         if (pastedData === lastTextCopied) {
-                            console.log("match")
-                            // Stop data actually being pasted into div
-                            //e.stopPropagation()
-                            //e.preventDefault()
                             const updatedText = updateTextForPasteInNewLocation(pastedData, lastCellCopiedFrom, {row, column})
                             document.execCommand("insertText", false, updatedText)
+                            // Stop data from being pasted into div by event by returning false
                             return false
                         }
                     }
