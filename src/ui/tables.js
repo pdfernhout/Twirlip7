@@ -595,8 +595,9 @@ function displayTable(table) {
 
 function displayTables() {
     const tables = tablesApplication.getTables()
+    tables.sort((a, b) => ("" + a.getName() + " |" + a.uuid).localeCompare(b.getName() + " |" + b.uuid))
     return m("div.ma1", [
-        tables.reverse().map((table) => {
+        tables.map((table) => {
             return displayTable(table)
         }),
         m("div.mt1", [
