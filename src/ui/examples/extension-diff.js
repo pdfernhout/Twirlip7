@@ -93,6 +93,9 @@ const aceDiffStyleSheet =
 }
 .acediff-copy-left div:hover {
     color: #c98100;
+}
+#flex-container {
+    height: 400px;
 }`
     
 function addAceDiffStylesheetIfNeeded() {
@@ -113,7 +116,9 @@ function cleanupAceDiffer() {
     }
 }
 
-require(["vendor/diff_match_patch_uncompressed", "vendor/ace-diff"], function(discard, AceDiff) {
+// ace-diff generates an error related to modules which can be ignored for now
+// TODO: Get this to work with the latest library version in ace-diff folder
+require(["vendor/diff_match_patch", "vendor/ace-diff.js"], function(discard, AceDiff) {
     
     cleanupAceDiffer()
     

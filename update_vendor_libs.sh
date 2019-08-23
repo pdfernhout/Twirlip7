@@ -10,7 +10,7 @@ cp -R node_modules/ace-builds/src-noconflict/* src/ui/vendor/ace-src-noconflict/
 mkdir -p src/ui/vendor/ace-diff/
 cp -R node_modules/ace-diff/dist/* src/ui/vendor/ace-diff/
 
-cp node_modules/diff-match-patch/index.js src/ui/vendor/diff_match_patch_uncompressed.js
+cp node_modules/diff-match-patch/index.js src/ui/vendor/diff_match_patch.js
 
 cp node_modules/dompurify/dist/purify.js src/ui/vendor/
 
