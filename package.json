@@ -11,24 +11,29 @@
   "author": "Paul D. Fernhout",
   "license": "MIT",
   "dependencies": {
-    "body-parser": "1.18.3",
-    "express": "4.16.4",
-    "filenamify": "4.0.0",
-    "mime-types": "2.1.22",
+    "body-parser": "1.19.0",
+    "express": "4.17.1",
+    "filenamify": "4.1.0",
+    "mime-types": "2.1.24",
     "pem": "1.14.2",
-    "push.js": "1.0.9",
     "request": "2.88.0",
     "socket.io": "2.2.0"
   },
   "devDependencies": {
-    "ace-builds": "1.4.3",
-    "dompurify": "0.9.0",
-    "eslint": "5.16.0",
+    "ace-builds": "1.4.5",
+    "ace-diff": "2.3.0",
+    "diff-match-patch": "1.0.4",
+    "dompurify": "1.0.11",
+    "eslint": "6.2.1",
     "font-awesome": "4.7.0",
+    "js-sha256": "0.9.0",
     "marked": "0.7.0",
-    "ospec": "1.2.3",
-    "tachyons": "4.7.0",
-    "text": "requirejs/text",
-    "three.js": "0.77.1"
+    "mithril": "2.0.4",
+    "ospec": "4.0.1",
+    "push.js": "1.0.12",
+    "requirejs": "2.3.6",
+    "requirejs-text": "2.0.15",
+    "tachyons": "4.11.1",
+    "three": "0.107.0"
   }
 }
