@@ -34,7 +34,8 @@ class Pointrel20190820 {
     constructor() {
         this.tripleIndex = {}
         this.indexedTransactions = {}
-        this.latest = null
+        this.latestSHA256 = null
+        this.latestSequence = null
         this.streamId = null
         this._isLoaded = false
         this.backend = StreamBackendUsingServer(m.redraw, this.streamId, userID)
@@ -65,7 +66,7 @@ class Pointrel20190820 {
     sendCurrentTransaction() {
         // TODO -- Faking it for now, copying a little code from processNextSend
         const transaction = this.currentTransaction
-        const latest = this.getLatest()
+        const latest = this.getLatestSHA256()
         // const latestTransaction = latest ? await getTransactionFromCache(latest) : null
         const latestTransaction = latest ? this.indexedTransactions[latest] : null
         const sequence = latestTransaction ? latestTransaction.sequence + 1 : 0 
@@ -78,7 +79,7 @@ class Pointrel20190820 {
         // TODO: sendQueue.push(currentTransaction)
         setTimeout(() => this.backend.addItem(transaction), 10)
         this.currentTransaction = null
-        this.setLatest(sha256)
+        this.setLatest(sha256, transaction)
         // TODO if (!sending) processNextSend()
     }
     
@@ -123,14 +124,16 @@ class Pointrel20190820 {
         // this.indexedTransactions[sha256] = true
     }
 
-    getLatest() {
-        return this.latest
+    getLatestSHA256() {
+        return this.latestSHA256
     }
     
-    setLatest(sha256) {
-        this.latest = sha256
+    setLatest(sha256, newTransaction) {
+        if (newTransaction.sequence === undefined || newTransaction.sequence === null) return
+        if (this.latestSequence !== null && this.latestSequence >= newTransaction.sequence) return
+        this.latestSHA256 = sha256
+        this.latestSequence = newTransaction.sequence
     }
-    
 
     setDefaultApplicationName(name) {
         this.defaultApplicationName = name
@@ -229,9 +232,8 @@ class Pointrel20190820 {
         return this._isLoaded
     }
     
-    getLastSequenceRead() {
-        console.log("TODO getLastSequenceRead")
-        return 0
+    getLatestSequence() {
+        return this.latestSequence === null ? 0 : this.latestSequence
     }
 
     setRedrawFunction(f) {
@@ -255,7 +257,7 @@ class Pointrel20190820 {
                 // console.log("addItem", item)
                 const sha256 = calculateSHA256(JSON.stringify(item))
                 this.addTransactionToTripleIndex(sha256, item)
-                this.setLatest(sha256)
+                this.setLatest(sha256, item)
             }
         })
         try {
@@ -612,12 +614,13 @@ function displayTables() {
 
 const TablesViewer = {
     view: function() {
+        console.log("p.getLatestSequence() ", p.getLatestSequence() )
         const result = m(".main.ma1", [
             p.isOffline() ? m("div.h2.pa1.ba.b--red", "OFFLINE", m("button.ml1", { onclick: p.goOnline }, "Try to go online")) : [],
             nameTracker.displayNameEditor(),
             p.isLoaded() ?
                 displayTables() :
-                "Loading... " + (p.getLastSequenceRead() || "")
+                "Loading... " + (p.getLatestSequence() || "")
         ])
         return result
     }
