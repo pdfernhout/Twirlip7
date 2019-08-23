@@ -1,7 +1,7 @@
 // 3D display -- derived from three.js example: https://www.npmjs.com/package/three
 
 requirejs(["vendor/three"], function(three) {
-    /* global THREE */
+    const THREE = three
     
     var scene, camera, renderer
     var geometry, material, mesh
