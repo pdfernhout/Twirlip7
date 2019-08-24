@@ -16,6 +16,7 @@ async function startup() {
     p.setRedrawFunction(m.redraw)
     await p.updateFromStorage(true)
     if (!p.getLatestSHA256()) {
+        console.log("adding root to new stream")
         p.newTransaction()
         p.addTriple("root", "fileName", "root")
         p.addTriple("root", "isDir", "true")

@@ -249,7 +249,7 @@ export class Pointrel20190820 {
                     resolve()
                 },
                 addItem: (item, isAlreadyStored) => {
-                    // console.log("addItem", item)
+                    console.log("addItem", item)
                     const sha256 = calculateSHA256(JSON.stringify(item))
                     this.addTransactionToTripleIndex(sha256, item)
                     this.setLatest(sha256, item)
@@ -258,7 +258,6 @@ export class Pointrel20190820 {
             try {
                 console.log("backend setup start")
                 this.backend.setup(io)
-                resolve()
             } catch(e) {
                 alert("This app requires a backend server supporting socket.io (i.e. won't work correctly on rawgit)")
                 reject(e)
