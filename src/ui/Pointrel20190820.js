@@ -239,24 +239,30 @@ export class Pointrel20190820 {
         this.backend.configure(this.streamId)
     }
 
-    updateFromStorage() {
-        this.backend.connect({
-            onLoaded: () => {
-                this._isLoaded = true
-                console.log("onLoaded")
-            },
-            addItem: (item, isAlreadyStored) => {
-                // console.log("addItem", item)
-                const sha256 = calculateSHA256(JSON.stringify(item))
-                this.addTransactionToTripleIndex(sha256, item)
-                this.setLatest(sha256, item)
+    // Returns promise that resolves when loaded
+    async updateFromStorage() {
+        return new Promise((resolve, reject) => {
+            this.backend.connect({
+                onLoaded: () => {
+                    this._isLoaded = true
+                    console.log("onLoaded")
+                    resolve()
+                },
+                addItem: (item, isAlreadyStored) => {
+                    // console.log("addItem", item)
+                    const sha256 = calculateSHA256(JSON.stringify(item))
+                    this.addTransactionToTripleIndex(sha256, item)
+                    this.setLatest(sha256, item)
+                }
+            })
+            try {
+                console.log("backend setup start")
+                this.backend.setup(io)
+                resolve()
+            } catch(e) {
+                alert("This app requires a backend server supporting socket.io (i.e. won't work correctly on rawgit)")
+                reject(e)
             }
         })
-        try {
-            console.log("backend setup start")
-            this.backend.setup(io)
-        } catch(e) {
-            alert("This app requires a backend server supporting socket.io (i.e. won't work correctly on rawgit)")
-        }
     }
 }
