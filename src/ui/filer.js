@@ -1,16 +1,21 @@
 "use strict"
 /* eslint-disable no-console */
 
-import p from "./pointrel20171122.js"
-import m from "./mithril.v1.1.6.js"
+// defines m
+import "./vendor/mithril.js"
 
+import NameTracker from "./NameTracker.js"
+
+import { Pointrel20190820 } from "./Pointrel20190820.js"
+
+const p = new Pointrel20190820()
 p.setDefaultApplicationName("filer")
 
 async function startup() {
     p.setShareName("fileSystem:test")
     p.setRedrawFunction(m.redraw)
     await p.updateFromStorage(true)
-    if (!p.getLatest()) {
+    if (!p.getLatestSHA256()) {
         p.newTransaction()
         p.addTriple("root", "fileName", "root")
         p.addTriple("root", "isDir", "true")
@@ -217,7 +222,7 @@ const FileSystemViewer = {
             m("h1.ba.b--blue", { class: "title" }, "Test Virtual Files"),
             p.isOffline() ? m("div.h2.pa1.ba.b--red", "OFFLINE", m("button.ml1", {onclick: p.goOnline }, "Try to go online")) : [],
             p.isLoaded() ?
-                displayFile(root) :
+                m("div", displayFile(root)) :
                 "Loading..."
         ])
     }
