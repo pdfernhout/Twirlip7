@@ -91,6 +91,7 @@ export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", u
         setup,
         configure,
         getStreamId: function() { return streamId },
-        isSetup: function() { return !!socket }
+        isSetup: function() { return !!socket },
+        isOnline: function() { return !!(socket && socket.connected) }
     }
 }

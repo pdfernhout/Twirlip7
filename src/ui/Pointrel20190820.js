@@ -210,10 +210,14 @@ export class Pointrel20190820 {
     }
 
     isOffline() {
-        // console.log("TODO isOffline")
-        return false
+        return !this.backend.isOnline()
     }
-
+    
+    goOnline() {
+        // Not sure what to do here that is similar to Twirlip9
+        console.log("goOnline TODO")
+    }
+ 
     isLoaded() {
         return this._isLoaded
     }

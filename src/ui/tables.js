@@ -359,7 +359,7 @@ function displayTables() {
 
 const TablesViewer = {
     view: function() {
-        console.log("p.getLatestSequence() ", p.getLatestSequence() )
+        // console.log("p.getLatestSequence() ", p.getLatestSequence(),  p.isOffline())
         const result = m(".main.ma1", [
             p.isOffline() ? m("div.h2.pa1.ba.b--red", "OFFLINE", m("button.ml1", { onclick: p.goOnline }, "Try to go online")) : [],
             nameTracker.displayNameEditor(),
