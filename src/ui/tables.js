@@ -3,9 +3,6 @@
 
 "use strict"
 /* eslint-disable no-console */
-/* global io */
-
-// Assumes socket.io loaded from script tag to define io
 
 // defines m
 import "./vendor/mithril.js"

@@ -1,5 +1,7 @@
 /* global io, sha256 */
 
+// Assumes socket.io loaded from script tag to define io
+
 import { StreamBackendUsingServer } from "./StreamBackendUsingServer.js"
 
 // defines sha256
