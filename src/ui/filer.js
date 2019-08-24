@@ -12,7 +12,7 @@ const p = new Pointrel20190820()
 p.setDefaultApplicationName("filer")
 
 async function startup() {
-    p.setShareName("fileSystem:test")
+    p.setStreamId("fileSystem:test")
     p.setRedrawFunction(m.redraw)
     await p.updateFromStorage(true)
     if (!p.getLatestSHA256()) {

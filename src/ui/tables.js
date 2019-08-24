@@ -370,7 +370,7 @@ const TablesViewer = {
 
 async function startup() {
     p.setRedrawFunction(m.redraw)
-    p.setShareName(getTablesName())
+    p.setStreamId(getTablesName())
     await p.updateFromStorage()
     m.redraw()
 }

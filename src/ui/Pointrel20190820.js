@@ -232,10 +232,10 @@ export class Pointrel20190820 {
         this.redrawFunction = f
     }
 
-    setShareName(shareName) {
-        console.log("setShareName", shareName)
-        if (this.streamId === shareName) return
-        this.streamId = shareName
+    setStreamId(streamId) {
+        console.log("setStreamId", streamId)
+        if (this.streamId === streamId) return
+        this.streamId = streamId
         this.backend.configure(this.streamId)
     }
 
