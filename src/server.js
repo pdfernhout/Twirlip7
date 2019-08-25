@@ -146,7 +146,7 @@ const httpServer = http.createServer(app).listen(process.env.PORT || 8080, proce
 })
 
 // Create an HTTPS service
-pem.createCertificate({ days: 120, selfSigned: true }, function(err, keys) {
+pem.createCertificate({ days: 365, selfSigned: true }, function(err, keys) {
     let proposedPort = parseInt(process.env.PORT)
     if (proposedPort) proposedPort++
     const httpsServer = https.createServer({ key: keys.serviceKey, cert: keys.certificate }, app).listen(proposedPort || 8081, process.env.IP || "0.0.0.0", function () {
