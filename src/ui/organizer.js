@@ -16,7 +16,7 @@ p.setDefaultApplicationName("organizer")
 const nameTracker = new NameTracker({
     hashNameField: "name",
     displayNameLabel: "Name",
-    defaultName: "organizer",
+    defaultName: "organizer-test",
     nameChangedCallback: startup
 })
 
