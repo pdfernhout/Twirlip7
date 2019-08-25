@@ -35,8 +35,13 @@ let lastBackgroundClick = null
 
 let sketchViewportHeight = 500
 
+function getCurrentSketchUUID() {
+    return p.findC("sketcher", "current-sketch")
+}
+
 function resetForSketchChange() {
-    sketch = new Sketch(getSketchName())
+    let currentSketch = getCurrentSketchUUID() || p.uuidv4()
+    sketch = new Sketch(currentSketch)
     lastSelectedItem = null
     draggedItem = null
     dragStart = {}
@@ -53,9 +58,9 @@ async function startup() {
 }
 
 async function updateSketch() {
-    resetForSketchChange()
     p.setStreamId(getSketchName())
     await p.updateFromStorage(true)
+    resetForSketchChange()
     m.redraw()
 }
 
@@ -656,14 +661,23 @@ function displaySketch() {
     )
 }
 
+function promptToCreateSketch() {
+    const uuid = prompt("Start a sketch with this UUID?", sketch.uuid)
+    if (!uuid) return
+    sketch.uuid = uuid
+    p.addTriple("sketcher", "current-sketch", uuid)
+}
+
 const SketchViewer = {
     view: function() {
         return m(".main.ma1", [
             p.isOffline() ? m("div.h2.pa1.ba.b--red", "OFFLINE", m("button.ml1", { onclick: p.goOnline }, "Try to go online")) : [],
             nameTracker.displayNameEditor(),
-            p.isLoaded() ?
-                displaySketch() :
-                "Loading... " + (p.getLatestSequence() || "")
+            p.isLoaded()
+                ? getCurrentSketchUUID()
+                    ? displaySketch()
+                    : m("button.ma3", {onclick: promptToCreateSketch}, "No sketch here yet. Click to start a sketch.")
+                : "Loading... " + (p.getLatestSequence() || "")
         ])
     }
 }
