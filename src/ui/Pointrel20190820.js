@@ -20,20 +20,25 @@ let userID = localStorage.getItem("userID") || "anonymous"
 export class Pointrel20190820 {
     
     constructor() {
+        this.clearData()
+
+        this.backend = StreamBackendUsingServer(m.redraw, this.streamId, userID)
+
+        this.redrawFunction = null
+
+        // The "application" name is a debugging hint about what app made the transaction and why
+        // use "app/method" for more details
+        this.defaultApplicationName = "test"
+    }
+
+    clearData() {
         this.tripleIndex = {}
         this.indexedTransactions = {}
         this.latestSHA256 = null
         this.latestSequence = null
         this.streamId = null
         this._isLoaded = false
-        this.backend = StreamBackendUsingServer(m.redraw, this.streamId, userID)
-
-        this.redrawFunction = null
         this.currentTransaction = null
-
-        // The "application" name is a debugging hint about what app made the transaction and why
-        // use "app/method" for more details
-        this.defaultApplicationName = "test"
     }
 
     newTransaction(application) {
@@ -232,9 +237,10 @@ export class Pointrel20190820 {
         this.redrawFunction = f
     }
 
-    setStreamId(streamId) {
+    setStreamId(streamId, keepData) {
         console.log("setStreamId", streamId)
         if (this.streamId === streamId) return
+        if (!keepData) this.clearData()
         this.streamId = streamId
         this.backend.configure(this.streamId)
     }
