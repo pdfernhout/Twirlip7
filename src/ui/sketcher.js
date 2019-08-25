@@ -1,18 +1,28 @@
 "use strict"
 /* eslint-disable no-console */
 
-import NameTracker from "./NameTracker.js"
-import p from "./pointrel20171122.js"
-import m from "./mithril.v1.1.6.js"
+// defines m
+import "./vendor/mithril.js"
 
+import NameTracker from "./NameTracker.js"
+
+import { Pointrel20190820 } from "./Pointrel20190820.js"
+
+const p = new Pointrel20190820()
 p.setDefaultApplicationName("sketcher")
 
 const nameTracker = new NameTracker({
     hashNameField: "sketch",
     displayNameLabel: "Sketch",
-    defaultName: "test3",
+    defaultName: "test",
     nameChangedCallback: updateSketch
 })
+
+function getSketchName() {
+    return "sketch:" + nameTracker.name
+}
+
+let sketch = null
 
 let lastSelectedItem = null
 let draggedItem = null
@@ -26,6 +36,7 @@ let lastBackgroundClick = null
 let sketchViewportHeight = 500
 
 function resetForSketchChange() {
+    sketch = new Sketch(getSketchName())
     lastSelectedItem = null
     draggedItem = null
     dragStart = {}
@@ -43,7 +54,7 @@ async function startup() {
 
 async function updateSketch() {
     resetForSketchChange()
-    p.setShareName("sketch:" + nameTracker.name)
+    p.setStreamId(getSketchName())
     await p.updateFromStorage(true)
     m.redraw()
 }
@@ -334,9 +345,13 @@ class Item {
 }
 
 class Sketch {
+    constructor(uuid) {
+        this.uuid = uuid
+    }
+
     getItems() {
         const result = []
-        const bcMap = p.findBC("sketch", "item")
+        const bcMap = p.findBC(this.uuid, "item")
         for (let key in bcMap) {
             const uuid = bcMap[key]
             if (uuid) result.push(new Item(uuid))
@@ -345,15 +360,15 @@ class Sketch {
     }
 
     addItem(item) {
-        p.addTriple("sketch", {item: item.uuid}, item.uuid)
+        p.addTriple(this.uuid, {item: item.uuid}, item.uuid)
     }
 
     deleteItem(item) {
-        p.addTriple("sketch", {item: item.uuid}, null)
+        p.addTriple(this.uuid, {item: item.uuid}, null)
     }
 
     getExtent() {
-        let extent = JSON.parse(p.findC("sketch", "extent") || "{}")
+        let extent = JSON.parse(p.findC(this.uuid, "extent") || "{}")
         if (!extent.width || !extent.height) {
             extent = {width: 600, height: 200}
         }
@@ -361,7 +376,7 @@ class Sketch {
     }
 
     setExtent(extent) {
-        p.addTriple("sketch", "extent", JSON.stringify(extent))
+        p.addTriple(this.uuid, "extent", JSON.stringify(extent))
     }
 
     setWidth(width) {
@@ -376,8 +391,6 @@ class Sketch {
         this.setExtent(extent)
     }
 }
-
-const sketch = new Sketch()
 
 function calculateBounds() {
     const bounds = {x1: 0, y1: 0, x2: 50, y2: 50}
@@ -650,7 +663,7 @@ const SketchViewer = {
             nameTracker.displayNameEditor(),
             p.isLoaded() ?
                 displaySketch() :
-                "Loading... " + (p.getLastSequenceRead() || "")
+                "Loading... " + (p.getLatestSequence() || "")
         ])
     }
 }
