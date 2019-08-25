@@ -1,10 +1,14 @@
 "use strict"
 /* eslint-disable no-console */
 
-import p from "./pointrel20171122.js"
-import m from "./mithril.v1.1.6.js"
+// defines m
+import "./vendor/mithril.js"
+
 import NameTracker from "./NameTracker.js"
 
+import { Pointrel20190820 } from "./Pointrel20190820.js"
+
+const p = new Pointrel20190820()
 p.setDefaultApplicationName("outliner")
 
 const menuButtonWithStyle = "button.ma1.f7"
@@ -17,13 +21,17 @@ function getOutlinerName() {
     return "outliner:" + nameTracker.name
 }
 
+let root = null
+
 async function startup() {
     // preserve copiedNodeRepresentation but clear cutNode as node triple data is in a different outline
     cutNode = null
 
-    p.setShareName(getOutlinerName())
-    m.redraw()
+    root = new Node("root:" + getOutlinerName())
+
     p.setRedrawFunction(m.redraw)
+    p.setStreamId(getOutlinerName())
+    m.redraw()
     await p.updateFromStorage(true)
     m.redraw()
 }
@@ -95,8 +103,6 @@ class Node {
         p.addTriple(this.uuid, {child: uuid}, null)
     }
 }
-
-const root = new Node("root")
 
 function addNode(parentNode) {
     const contents = prompt("contents?")
@@ -239,7 +245,7 @@ function displayNode(node) {
 
     function cutButton() {
         return m(menuButtonWithStyle, {
-            disabled: node.uuid === "root",
+            disabled: node.uuid === root.uuid,
             onclick: () => {
                 if (deleteNode(node)) {
                     cutNode = node
@@ -341,7 +347,7 @@ function displayNode(node) {
                 editButton(),
                 evalButton(),
                 copyButton(),
-                (node.uuid === "root") ? [] : cutButton(),
+                (node.uuid === root.uuid) ? [] : cutButton(),
                 pasteChildButton(),
                 m(menuButtonWithStyle, {onclick: addNode.bind(null, node, false)}, "Add Child"),
                 isExpandable
@@ -360,7 +366,7 @@ function displayNode(node) {
             []
 
     ].concat(isExpanded ? 
-        sortedNodes.length ? sortedNodes : [] : 
+        sortedNodes.length ? m("div", sortedNodes) : [] : 
         []
     ))
 }
@@ -374,7 +380,7 @@ function displayFormattetText(text) {
 
 function displayOutliner() {
     return m("outliner", [
-        m("div.ma2", [
+        m("div.ma2", {key: "filter"}, [
             "Filter:",
             m("input.w6.ml1.mr1", { value: filterText, onchange: (event) => filterText = event.target.value } ),
             "(regex)",
@@ -387,7 +393,7 @@ function displayOutliner() {
 const NodeSystemViewer = {
     view: function() {
         return m(".main", [
-            m("h1.ba.b--blue", { class: "title" }, "Twirlip9 Outliner"),
+            m("h1.ba.b--blue", { class: "title" }, "Twirlip7 Outliner"),
             p.isOffline() ? m("div.h2.pa1.ba.b--red", "OFFLINE", m("button.ml1", {onclick: p.goOnline }, "Try to go online")) : [],
             nameTracker.displayNameEditor(),
             p.isLoaded() ?
