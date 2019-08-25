@@ -1,10 +1,15 @@
 "use strict"
 /* eslint-disable no-console */
 
+// defines m
+import "./vendor/mithril.js"
+
 import NameTracker from "./NameTracker.js"
-import FileUtils from "./FileUtils.js"
-import p from "./pointrel20171122.js"
-import m from "./mithril.v1.1.6.js"
+import { FileUtils } from "./FileUtils.js"
+
+import { Pointrel20190820 } from "./Pointrel20190820.js"
+
+const p = new Pointrel20190820()
 
 p.setDefaultApplicationName("organizer")
 
@@ -180,7 +185,7 @@ function displayItems() {
     const items = organizer.getItems()
     let index = 0
     return m("div.ma1", [
-        items.reverse().map((item) => {
+        items.map((item) => {
             return displayItem(item, index++)
         }),
         m("div.mt1", [
@@ -198,7 +203,7 @@ const OrganizerViewer = {
             nameTracker.displayNameEditor(),
             p.isLoaded() ?
                 displayItems() :
-                "Loading... " + (p.getLastSequenceRead() || "")
+                "Loading... " + (p.getLatestSequence() || "")
         ])
         // console.log("view done")
         return result
@@ -207,7 +212,7 @@ const OrganizerViewer = {
 
 async function startup() {
     p.setRedrawFunction(m.redraw)
-    p.setShareName(getOrganizerName())
+    p.setStreamId(getOrganizerName())
     await p.updateFromStorage(true)
     m.redraw()
 }

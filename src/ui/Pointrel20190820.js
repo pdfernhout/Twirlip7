@@ -87,7 +87,7 @@ export class Pointrel20190820 {
         if (transaction.type === "triples") {
             const triples = transaction.triples
             // Most recent triples are at end
-            for (let i = triples.length - 1; i >= 0; i--) {
+            for (let i = 0; i < triples.length; i++) {
                 const triple = triples[i]
                 let aIndex = this.tripleIndex[triple.a]
                 if (!aIndex) {
@@ -225,7 +225,7 @@ export class Pointrel20190820 {
     }
     
     getLatestSequence() {
-        return this.latestSequence === null ? 0 : this.latestSequence
+        return this.latestSequence
     }
 
     setRedrawFunction(f) {
