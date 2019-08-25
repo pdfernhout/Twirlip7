@@ -7,6 +7,7 @@
 
 import { StreamBackendUsingServer } from "./StreamBackendUsingServer.js"
 import { HashUtils } from "./HashUtils.js"
+import { FileUtils } from "./FileUtils.js"
 
 // defines m
 import "./vendor/mithril.js"
@@ -162,6 +163,26 @@ function isTextValidJSONObject(text) {
     return isTextValidJSON(text)
 }
 
+function exportStreamAsJSONClicked() {
+    const messagesToExport = []
+
+    messages.forEach(function (message, index) {
+        if (!hasFilterText(message)) return
+        messagesToExport.push(message)
+    })
+
+    FileUtils.saveToFile(streamName + " " + new Date().toISOString(), JSON.stringify(messagesToExport, null, 4), ".json")
+}
+
+function importStreamFromJSONClicked() {
+    FileUtils.loadFromFile(false, (filename, contents, bytes) => {
+        console.log("JSON filename, contents", filename, bytes, contents)
+        for (let transaction of JSON.parse(contents)) {
+            sendMessage(transaction)
+        }
+    })
+}
+
 const TwirlipMonitor = {
     view: function () {
         return m("div.pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
@@ -200,7 +221,9 @@ const TwirlipMonitor = {
                 ),
                 showEntryArea && m("div.dib",
                     m("button.ml2.mt2", {onclick: sendStreamMessage, disabled: !isTextValidJSONObject(newMessageJSONText)}, "Send (ctrl-enter)"),
-                    m("span.ml2", "Enter a valid JSON object {...} below:")
+                    m("span.ml2", "Enter a valid JSON object {...} below:"),
+                    m("button.ml2.mt2", {onclick: exportStreamAsJSONClicked, title: "Export stream as JSON"}, "Export JSON..."),
+                    m("button.ml2.mt2", {onclick: importStreamFromJSONClicked, title: "Import stream from JSON"}, "Import JSON..."),
                 )                    
             ),
             showEntryArea && m("div.pb1.f4",
