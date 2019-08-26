@@ -26,7 +26,7 @@ const pem = require("pem")
 
 const proxyRequest = require("./proxyRequest")
 
-const dataDirectory = __dirname + "/../server-data"
+const dataDirectory = __dirname + "/../../server-data"
 const storageExtension = ".txt"
 
 const messageStorageQueue = []
@@ -69,7 +69,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }))
 
-app.use(express.static(__dirname + "/ui"))
+app.use(express.static(__dirname + "/../ui"))
 
 app.post("/api/proxy", function (request, response) {
     proxyRequest(request, response)

@@ -25,7 +25,7 @@ function proxyRequest(request, response) {
     
     const proxyKeyFileName = "proxyKey.txt"
     
-    const proxyKeyFullPath = path.join(__dirname, "..", proxyKeyFileName)
+    const proxyKeyFullPath = path.join(__dirname, "..", "..", proxyKeyFileName)
     
     fs.readFile(proxyKeyFullPath, function(error, data) {
         if (error) {
