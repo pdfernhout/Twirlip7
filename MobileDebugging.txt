@@ -1,0 +1,4 @@
+Add this to the HTML of any app to get a console on a smartphone:
+
+    <script src="//cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
