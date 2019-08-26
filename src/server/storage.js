@@ -104,21 +104,7 @@ function respondWithReconstructedFile(request, response) {
         }
     }
 
-    // TODO: make this asynchronous
-    let fdMessages = null
-    try {
-        fdMessages = fs.openSync(fileName, "r")
-    } catch (e) {
-        // No file, so no saved data to send
-    }
-    if (fdMessages) {
-        try {
-            forEachLine(fdMessages, collectFileContents)
-        } finally {
-            // TODO Check error result
-            fs.closeSync(fdMessages)
-        }
-    }
+    forEachLine.forEachLineInNamedFile(fileName, collectFileContents)
 
     let reconstruct = ""
     for (let i = 0; i < result["base64-segment-count"]; i++) {

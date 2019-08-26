@@ -4,8 +4,6 @@
 /* eslint-env node */
 /* jslint node: true */
 
-const fs = require("fs")
-
 const SocketIOServer = require("socket.io")
 
 const log = require("./log")
@@ -130,20 +128,7 @@ function listen(clientId, message) {
         sendMessageToClient(clientId, message)
         messagesSent++
     }
-    let fdMessages = null
-    try {
-        fdMessages = fs.openSync(fileName, "r")
-    } catch (e) {
-        // No file, so no saved data to send
-    }
-    if (fdMessages) {
-        try {
-            forEachLine(fdMessages, sendMessage)
-        } finally {
-            // TODO Check error result
-            fs.closeSync(fdMessages)
-        }
-    }
+    forEachLine.forEachLineInNamedFile(fileName, sendMessage)
     log("sending loaded", messagesSent)
     sendMessageToClient(clientId, {command: "loaded", streamId: streamId, messagesSentCount: messagesSent})
 }

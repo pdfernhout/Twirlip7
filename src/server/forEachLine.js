@@ -35,4 +35,26 @@ function forEachLine(fd, callback, maxLines) {
     }
 }
 
-module.exports = forEachLine
+
+function forEachLineInNamedFile(fileName, callback) {
+    // TODO: make this asynchronous
+    let fdMessages = null
+    try {
+        fdMessages = fs.openSync(fileName, "r")
+    } catch (e) {
+        // No file, so no saved data to send
+    }
+    if (fdMessages) {
+        try {
+            forEachLine(fdMessages, callback)
+        } finally {
+            // TODO Check error result
+            fs.closeSync(fdMessages)
+        }
+    }   
+}
+
+module.exports = {
+    forEachLine,
+    forEachLineInNamedFile
+} 
