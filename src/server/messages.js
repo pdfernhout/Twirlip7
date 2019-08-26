@@ -8,7 +8,7 @@ const SocketIOServer = require("socket.io")
 
 const log = require("./log")
 const storage = require("./storage")
-const forEachLine = require("./forEachLine")
+const forEachLineInFile = require("./forEachLineInFile")
 
 const streamToListenerMap = {}
 const listenerToStreamsMap = {}
@@ -128,7 +128,7 @@ function listen(clientId, message) {
         sendMessageToClient(clientId, message)
         messagesSent++
     }
-    forEachLine.forEachLineInNamedFile(fileName, sendMessage)
+    forEachLineInFile.forEachLineInNamedFile(fileName, sendMessage)
     log("sending loaded", messagesSent)
     sendMessageToClient(clientId, {command: "loaded", streamId: streamId, messagesSentCount: messagesSent})
 }

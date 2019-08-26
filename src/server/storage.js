@@ -11,7 +11,7 @@ const mime = require("mime-types")
 const filenamify = require("filenamify")
 
 const log = require("./log")
-const forEachLine = require("./forEachLine")
+const forEachLineInFile = require("./forEachLineInFile")
 
 const dataDirectory = __dirname + "/../../server-data"
 const storageExtension = ".txt"
@@ -104,7 +104,7 @@ function respondWithReconstructedFile(request, response) {
         }
     }
 
-    forEachLine.forEachLineInNamedFile(fileName, collectFileContents)
+    forEachLineInFile.forEachLineInNamedFile(fileName, collectFileContents)
 
     let reconstruct = ""
     for (let i = 0; i < result["base64-segment-count"]; i++) {
