@@ -11,6 +11,7 @@ function success(response, extra) {
     }
     
     for (var key in extra) {
+        // eslint-disable-next-line no-prototype-builtins
         if (extra.hasOwnProperty(key)) {
             result[key] = extra[key]
         }
