@@ -25,6 +25,7 @@ const https = require("https")
 const pem = require("pem")
 
 const proxyRequest = require("./proxyRequest")
+const forEachLine = require("./forEachLine")
 
 const dataDirectory = __dirname + "/../../server-data"
 const storageExtension = ".txt"
@@ -384,32 +385,4 @@ function scheduleMessageWriting() {
 function storeMessage(message) {
     messageStorageQueue.push(message)
     scheduleMessageWriting()
-}
-
-// From: http://stackoverflow.com/questions/7545147/nodejs-synchronization-read-large-file-line-by-line#7545170
-function forEachLine(fd, callback, maxLines) {
-    const bufSize = 64 * 1024
-    const buf = new Buffer(bufSize)
-    let leftOver = ""
-    let lineNum = 0
-    let lines = []
-    let n
-
-    while ((n = fs.readSync(fd, buf, 0, bufSize, null)) !== 0) {
-        lines = buf.toString("utf8", 0 , n).split("\n")
-        // add leftover string from previous read
-        lines[0] = leftOver + lines[0]
-        while (lines.length > 1) {
-            // process all but the last line
-            callback(lines.shift(), lineNum)
-            lineNum++
-            if (maxLines && maxLines >= lineNum) return
-        }
-        // save last line fragment (may be "")
-        leftOver = lines.shift()
-    }
-    if (leftOver) {
-        // process any remaining line
-        callback(leftOver, lineNum)
-    }
 }
