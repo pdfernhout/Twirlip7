@@ -104,6 +104,7 @@ function respondWithReconstructedFile(request, response) {
         }
     }
 
+    // TODO: Make asynchronous
     forEachLineInFile.forEachLineInNamedFile(fileName, collectFileContents)
 
     let reconstruct = ""
