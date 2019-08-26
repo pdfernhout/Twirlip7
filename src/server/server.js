@@ -21,7 +21,7 @@ const pem = require("pem")
 const proxyRequest = require("./proxyRequest")
 const storage = require("./storage")
 const log = require("./log")
-const messages = require("./messages")
+const messageStreams = require("./messageStreams")
 
 const app = express()
 
@@ -63,7 +63,7 @@ app.get("/sha256/:sha256", storage.respondWithReconstructedFile)
 
 // Create an HTTP service.
 const httpServer = http.createServer(app).listen(process.env.PORT || 8080, process.env.IP || "0.0.0.0", function () {
-    messages.io.attach(httpServer)
+    messageStreams.io.attach(httpServer)
     const host = httpServer.address().address
     const port = httpServer.address().port
     log("Twirlip server listening at http://" + host + ":" + port)
@@ -74,7 +74,7 @@ pem.createCertificate({ days: 365, selfSigned: true }, function(err, keys) {
     let proposedPort = parseInt(process.env.PORT)
     if (proposedPort) proposedPort++
     const httpsServer = https.createServer({ key: keys.serviceKey, cert: keys.certificate }, app).listen(proposedPort || 8081, process.env.IP || "0.0.0.0", function () {
-        messages.io.attach(httpsServer)
+        messageStreams.io.attach(httpsServer)
         const host = httpsServer.address().address
         const port = httpsServer.address().port
         log("Twirlip server listening at https://" + host + ":" + port)
