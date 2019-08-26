@@ -157,6 +157,8 @@ pem.createCertificate({ days: 365, selfSigned: true }, function(err, keys) {
     })
 })
 
+// -------------------- Handle socket.io processing
+
 io.on("connection", function(socket) {
     const clientId = socket.id
 
