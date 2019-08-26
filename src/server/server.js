@@ -58,7 +58,7 @@ app.post("/api/proxy", function (request, response) {
     proxyRequest(request, response)
 })
 
-// http://localhost:8080/sha256/somesha?content-type=image/png&title=some%20title
+// Example use: http://localhost:8080/sha256/somesha?content-type=image/png&title=some%20title
 app.get("/sha256/:sha256", storage.respondWithReconstructedFile)
 
 // Create an HTTP service.
