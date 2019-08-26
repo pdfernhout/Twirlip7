@@ -12,36 +12,25 @@
 // Standard nodejs modules
 const fs = require("fs")
 const http = require("http")
-const crypto = require("crypto")
 const url = require("url")
 const mime = require("mime-types")
 const filenamify = require("filenamify")
 
 const express = require("express")
 const bodyParser = require("body-parser")
-const SocketIOServer = require("socket.io")
 
 const https = require("https")
 const pem = require("pem")
 
 const proxyRequest = require("./proxyRequest")
 const forEachLine = require("./forEachLine")
+const storage = require("./storage")
+const log = require("./log")
+const messages = require("./messages")
 
-const dataDirectory = __dirname + "/../../server-data"
 const storageExtension = ".txt"
 
-const messageStorageQueue = []
-let messageStorageTimeout = null
-
-const streamToListenerMap = {}
-const listenerToStreamsMap = {}
-// TODO: const backloggedMessages = {}
-
 const app = express()
-
-function log() {
-    console.log.apply(console, ["[" + new Date().toISOString() + "]"].concat(Array.prototype.slice.call(arguments)))
-}
 
 log("Twirlip7 server started")
 
@@ -82,8 +71,8 @@ app.get("/sha256/:sha256", function (request, response) {
     console.log("/sha256", request.params)
     // response.json({params: request.params, queryData: queryData})
     const sha256Requested = request.params.sha256
-    const sha256OfStorageFile = calculateSha256(JSON.stringify({sha256: sha256Requested}))
-    const fileName = getFilePathForData(sha256OfStorageFile) + storageExtension
+    const sha256OfStorageFile = storage.calculateSha256(JSON.stringify({sha256: sha256Requested}))
+    const fileName = storage.getFilePathForData(sha256OfStorageFile) + storageExtension
 
     // TODO: stream instead of accumulate
     const result = {}
@@ -136,11 +125,9 @@ app.get("/sha256/:sha256", function (request, response) {
     response.end(buffer)
 })
 
-const io = new SocketIOServer()
-
 // Create an HTTP service.
 const httpServer = http.createServer(app).listen(process.env.PORT || 8080, process.env.IP || "0.0.0.0", function () {
-    io.attach(httpServer)
+    messages.io.attach(httpServer)
     const host = httpServer.address().address
     const port = httpServer.address().port
     log("Twirlip server listening at http://" + host + ":" + port)
@@ -151,238 +138,9 @@ pem.createCertificate({ days: 365, selfSigned: true }, function(err, keys) {
     let proposedPort = parseInt(process.env.PORT)
     if (proposedPort) proposedPort++
     const httpsServer = https.createServer({ key: keys.serviceKey, cert: keys.certificate }, app).listen(proposedPort || 8081, process.env.IP || "0.0.0.0", function () {
-        io.attach(httpsServer)
+        messages.io.attach(httpsServer)
         const host = httpsServer.address().address
         const port = httpsServer.address().port
         log("Twirlip server listening at https://" + host + ":" + port)
     })
 })
-
-// -------------------- Handle socket.io processing
-
-io.on("connection", function(socket) {
-    const clientId = socket.id
-
-    const address = socket.request.connection.remoteAddress
-    log(address, "socket.io connection", clientId)
-
-    socket.on("disconnect", function() {
-        log(address, "socket.io disconnect", clientId)
-    })
-
-    socket.on("twirlip", function (message) {
-        log(address, "socket.io message", clientId, message)
-        processMessage(clientId, message)
-    })
-})
-
-function keyForStreamId(streamId) {
-    return JSON.stringify(streamId)
-}
-
-function sendMessageToAllClients(message) {
-    // log("sendMessageToAllClients", JSON.stringify(message));
-    // io.emit("twirlip", message); // This would send to all clients -- even ones not listening on stream
-    const key = keyForStreamId(message.streamId)
-    const streams = streamToListenerMap[key]
-    if (streams) {
-        for (let clientId in streams) {
-            if (streams[clientId]) {
-                sendMessageToClient(clientId, message)
-            }
-        }
-    }
-}
-
-function sendMessageToClient(clientId, message) {
-    io.sockets.to(clientId).emit("twirlip", message)
-}
-
-function setListenerState(clientId, streamId, state) {
-    const key = keyForStreamId(streamId)
-    let listeners = streamToListenerMap[key]
-    if (!listeners) {
-        listeners = {}
-        streamToListenerMap[key] = listeners
-    }
-
-    if (state === undefined) {
-        delete listeners[clientId]
-    } else {
-        listeners[clientId] = state
-    }
-
-    let streams = listenerToStreamsMap[clientId]
-    if (!streams) {
-        streams = {}
-        listenerToStreamsMap[streamId] = streams
-    }
-
-    if (state === undefined) {
-        delete streams[streamId]
-    } else {
-        streams[streamId] = state
-    }
-}
-
-/* Commands for messages:
-    listen -- start listening for messages after (optionally) getting all previous messages from a stream
-    unlisten -- stop getting messages from a stream
-    insert -- add a message to a stream
-    remove -- remove one specific message from a stream (or act as if that happened)
-    reset -- remove everything stored in stream to start over (or act as if that happened)
-*/
-
-function processMessage(clientId, message) {
-    const command = message.command
-    if (command === "listen") {
-        listen(clientId, message)
-    } else if (command === "unlisten") {
-        unlisten(clientId, message)
-    } else if (command === "insert") {
-        insert(clientId, message)
-    } else if (command === "remove") {
-        remove(clientId, message)
-    } else if (command === "reset") {
-        reset(clientId, message)
-    //} else if (command === "directory") {
-    //    directory(clientId, message)
-    } else {
-        log("unsupported command", command, message)
-    }
-}
-
-function listen(clientId, message) {
-    // TODO Handle only sending some recent messages or no previous messages
-    const streamId = message.streamId
-    const fromIndex = message.fromIndex || 0
-    let messageCount = 0
-    let messagesSent = 0
-
-    log("listen", clientId, streamId, fromIndex)
-
-    setListenerState(clientId, streamId, "listening")
-
-    const fileName = getStorageFileNameForMessage(message)
-
-    // TODO: Make this asynchronous
-    // TODO: Also  if asynchronous, maybe queue new messages for a client for sending later until this is done to preserve order
-    function sendMessage(messageString) {
-        if (messageCount < fromIndex) return
-        messageCount++
-        // TODO: Handle errors
-        const message = JSON.parse(messageString)
-        // log("listen sendMessage", clientId, message)
-        sendMessageToClient(clientId, message)
-        messagesSent++
-    }
-    let fdMessages = null
-    try {
-        fdMessages = fs.openSync(fileName, "r")
-    } catch (e) {
-        // No file, so no saved data to send
-    }
-    if (fdMessages) {
-        try {
-            forEachLine(fdMessages, sendMessage)
-        } finally {
-            // TODO Check error result
-            fs.closeSync(fdMessages)
-        }
-    }
-    log("sending loaded", messagesSent)
-    sendMessageToClient(clientId, {command: "loaded", streamId: streamId, messagesSentCount: messagesSent})
-}
-
-function unlisten(clientId, message) {
-    const streamId = message.streamId
-    log("unlisten (unfinished)", streamId)
-    setListenerState(clientId, streamId, undefined)
-}
-
-function insert(clientId, message) {
-    const streamId = message.streamId
-    log("insert", clientId, streamId, message.item)
-    storeMessage(message)
-    sendMessageToAllClients(message)
-}
-
-function remove(clientId, message) {
-    const streamId = message.streamId
-    log("remove (unfinished)", streamId)
-    storeMessage(message)
-    sendMessageToAllClients(message)
-}
-
-function reset(clientId, message) {
-    const streamId = message.streamId
-    log("reset", streamId)
-    // TODO: Perhaps should clear out file?
-    storeMessage(message)
-    sendMessageToAllClients(message)
-}
-
-// File reading and writing
-
-function calculateSha256(value) {
-    const sha256 = crypto.createHash("sha256")
-    sha256.update(value, "utf8")
-    const result = sha256.digest("hex")
-    return result
-}
-
-function getFilePathForData(sha256, createPath) {
-    const segments = [dataDirectory]
-    // TODO: Use asynchronous directory creation
-    segments.push(sha256.substring(0, 2))
-    if (createPath && !fs.existsSync(segments.join("/"))) {
-        fs.mkdirSync(segments.join("/"))
-    }
-    segments.push(sha256.substring(2, 4))
-    if (createPath && !fs.existsSync(segments.join("/"))) {
-        fs.mkdirSync(segments.join("/"))
-    }
-    segments.push(sha256.substring(4, 6))
-    if (createPath && !fs.existsSync(segments.join("/"))) {
-        fs.mkdirSync(segments.join("/"))
-    }
-    segments.push(sha256)
-    const result = segments.join("/")
-    return result
-}
-
-function getStorageFileNameForMessage(message, createPath) {
-    const key = keyForStreamId(message.streamId)
-    const sha256 = calculateSha256(key)
-    return getFilePathForData(sha256, createPath) + storageExtension
-}
-
-// TODO: Could schedule up to one active write per file for more throughput...
-function writeNextMessage() {
-    if (!messageStorageQueue.length) return
-    const message = messageStorageQueue.shift()
-    const lineToWrite = JSON.stringify(message) + "\n"
-    const fileName = getStorageFileNameForMessage(message, "createPath")
-    // TODO: Do we need to datasync to be really sure data is written?
-    fs.appendFile(fileName, lineToWrite, function (err) {
-        if (err) {
-            log("Problem writing file", err)
-            return
-        }
-        scheduleMessageWriting()
-    })
-}
-
-function scheduleMessageWriting() {
-    if (!messageStorageTimeout) {
-        messageStorageTimeout = setTimeout(function () {
-            messageStorageTimeout = null
-            writeNextMessage()
-        }, 0)
-    }
-}
-
-function storeMessage(message) {
-    messageStorageQueue.push(message)
-    scheduleMessageWriting()
-}
