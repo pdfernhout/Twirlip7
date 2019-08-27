@@ -9,11 +9,17 @@ const crypto = require("crypto")
 const url = require("url")
 const mime = require("mime-types")
 const filenamify = require("filenamify")
+const path = require("path")
+
+const { promisify } = require("util")
+const exists = promisify(fs.exists)
+const mkdir = promisify(fs.mkdir)
+const appendFile = promisify(fs.appendFile)
 
 const log = require("./log")
 const forEachLineInFile = require("./forEachLineInFile")
 
-const dataDirectory = __dirname + "/../../server-data"
+const dataDirectory = path.normalize(__dirname + "/../../server-data")
 const storageExtension = ".txt"
 
 const messageStorageQueue = []
@@ -26,21 +32,35 @@ function calculateSha256(value) {
     return result
 }
 
-function getFilePathForData(sha256, createPath) {
+async function ensureFilePathForSHA256(sha256) {
     const segments = [dataDirectory]
-    // TODO: Use asynchronous directory creation
+
+    let directoryName
+
     segments.push(sha256.substring(0, 2))
-    if (createPath && !fs.existsSync(segments.join("/"))) {
-        fs.mkdirSync(segments.join("/"))
+    directoryName = segments.join("/")
+    if (! await exists(directoryName)) {
+        await mkdir(directoryName)
     }
+
     segments.push(sha256.substring(2, 4))
-    if (createPath && !fs.existsSync(segments.join("/"))) {
-        fs.mkdirSync(segments.join("/"))
+    directoryName = segments.join("/")
+    if (! await exists(directoryName)) {
+        await mkdir(directoryName)
     }
+
     segments.push(sha256.substring(4, 6))
-    if (createPath && !fs.existsSync(segments.join("/"))) {
-        fs.mkdirSync(segments.join("/"))
+    directoryName = segments.join("/")
+    if (! await exists(directoryName)) {
+        await mkdir(directoryName)
     }
+}
+
+function getFilePathForData(sha256) {
+    const segments = [dataDirectory]
+    segments.push(sha256.substring(0, 2))
+    segments.push(sha256.substring(2, 4))
+    segments.push(sha256.substring(4, 6))
     segments.push(sha256)
     const result = segments.join("/")
     return result
@@ -50,26 +70,34 @@ function keyForStreamId(streamId) {
     return JSON.stringify(streamId)
 }
 
-function getStorageFileNameForMessage(message, createPath) {
+function getStorageFileNameForSHA256(sha256) {
+    return getFilePathForData(sha256) + storageExtension
+}
+
+function getStorageFileNameForMessage(message) {
     const key = keyForStreamId(message.streamId)
     const sha256 = calculateSha256(key)
-    return getFilePathForData(sha256, createPath) + storageExtension
+    return getFilePathForData(sha256) + storageExtension
 }
 
 // TODO: Could schedule up to one active write per file for more throughput...
-function writeNextMessage() {
+async function writeNextMessage() {
     if (!messageStorageQueue.length) return
     const message = messageStorageQueue.shift()
     const lineToWrite = JSON.stringify(message) + "\n"
-    const fileName = getStorageFileNameForMessage(message, "createPath")
-    // TODO: Do we need to datasync to be really sure data is written?
-    fs.appendFile(fileName, lineToWrite, function (err) {
-        if (err) {
-            log("Problem writing file", err)
-            return
-        }
-        scheduleMessageWriting()
-    })
+    const key = keyForStreamId(message.streamId)
+    const sha256 = calculateSha256(key)
+    const fileName = getStorageFileNameForSHA256(sha256)
+    await ensureFilePathForSHA256(sha256)
+    // TODO: Do we need to do this with a fd and datasync to be really sure data is written to storage?
+    try {
+        await appendFile(fileName, lineToWrite)
+    } catch (err) {  
+        log("Problem writing file", err)
+        // Should we not keep trying to store data even if an error?
+        // return
+    }
+    scheduleMessageWriting()
 }
 
 function scheduleMessageWriting() {
@@ -94,7 +122,7 @@ function respondWithReconstructedFile(request, response) {
     const sha256OfStorageFile = calculateSha256(JSON.stringify({sha256: sha256Requested}))
     const fileName = getFilePathForData(sha256OfStorageFile) + storageExtension
 
-    // TODO: stream instead of accumulate
+    // TODO: stream instead of accumulate as otherwise may use a lot of memory for big files -- but base64 incomplete issue
     const result = {}
 
     function collectFileContents(messageString) {
@@ -104,37 +132,39 @@ function respondWithReconstructedFile(request, response) {
         }
     }
 
-    // TODO: Make asynchronous
-    forEachLineInFile.forEachLineInNamedFile(fileName, collectFileContents)
+    forEachLineInFile.forEachLineInNamedFile(fileName, collectFileContents, 0).then(() => {
 
-    let reconstruct = ""
-    for (let i = 0; i < result["base64-segment-count"]; i++) {
-        reconstruct += result["base64-segment:" + i]
-    }
+        let reconstruct = ""
+        for (let i = 0; i < result["base64-segment-count"]; i++) {
+            reconstruct += result["base64-segment:" + i]
+        }
 
-    let buffer = Buffer.from(reconstruct, "base64")
+        let buffer = Buffer.from(reconstruct, "base64")
 
-    console.log("reconstruct.length", reconstruct.length)
-    console.log("binary length", buffer.byteLength)
+        console.log("reconstruct.length", reconstruct.length)
+        console.log("binary length", buffer.byteLength)
 
-    const contentType = queryData["content-type"] || mime.lookup(result["filename"])
-    console.log("contentType", contentType, result["filename"])
+        const contentType = queryData["content-type"] || mime.lookup(result["filename"])
+        console.log("contentType", contentType, result["filename"])
 
-    const cleanFileName = filenamify(Buffer.from(queryData["filename"] || result["filename"] || "download.dat").toString("ascii"), {replacement: "_"})
+        const cleanFileName = filenamify(Buffer.from(queryData["filename"] || result["filename"] || "download.dat").toString("ascii"), {replacement: "_"})
 
-    const disposition = queryData["content-disposition"] === "attachment" ? "attachment" : "inline"
+        const disposition = queryData["content-disposition"] === "attachment" ? "attachment" : "inline"
 
-    response.writeHead(200, {
-        "Content-Type": contentType || "",
-        "Content-Disposition": disposition + "; filename=" + cleanFileName
+        response.writeHead(200, {
+            "Content-Type": contentType || "",
+            "Content-Disposition": disposition + "; filename=" + cleanFileName
+        })
+
+        response.end(buffer)
+    }).catch(error => {
+        response.sendStatus(500)
+        throw error
     })
-
-    response.end(buffer)
 }
 
 module.exports ={
     calculateSha256,
-    getFilePathForData,
     keyForStreamId,
     getStorageFileNameForMessage,
     storeMessage,

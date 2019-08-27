@@ -5,24 +5,30 @@
 /* jslint node: true */
 
 const fs = require("fs")
+const { promisify } = require("util")
+const read = promisify(fs.read)
+const open = promisify(fs.open)
+const close = promisify(fs.close)
 
-// From: http://stackoverflow.com/questions/7545147/nodejs-synchronization-read-large-file-line-by-line#7545170
-function forEachLine(fd, callback, maxLines) {
+// Derived from: http://stackoverflow.com/questions/7545147/nodejs-synchronization-read-large-file-line-by-line#7545170
+async function forEachLine(fd, lineCallback, maxLines) {
     const bufSize = 64 * 1024
     const buf = Buffer.alloc(bufSize)
     let leftOver = ""
     let lineNum = 0
     let lines = []
-    let n
 
-    // TODO: make this not synchronous
-    while ((n = fs.readSync(fd, buf, 0, bufSize, null)) !== 0) {
-        lines = buf.toString("utf8", 0 , n).split("\n")
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        const readResult = await read(fd, buf, 0, bufSize, null)
+        if (readResult.bytesRead === 0) break
+        lines = buf.toString("utf8", 0 , readResult.bytesRead).split("\n")
         // add leftover string from previous read
         lines[0] = leftOver + lines[0]
         while (lines.length > 1) {
             // process all but the last line
-            callback(lines.shift(), lineNum)
+            const line = lines.shift()
+            lineCallback(line, lineNum)
             lineNum++
             if (maxLines && maxLines >= lineNum) return
         }
@@ -31,27 +37,27 @@ function forEachLine(fd, callback, maxLines) {
     }
     if (leftOver) {
         // process any remaining line
-        callback(leftOver, lineNum)
+        lineCallback(leftOver, lineNum)
     }
 }
 
 
-function forEachLineInNamedFile(fileName, callback) {
-    // TODO: make this asynchronous
-    let fdMessages = null
+async function forEachLineInNamedFile(fileName, lineCallback, maxLines) {
+    let fd = null
     try {
-        fdMessages = fs.openSync(fileName, "r")
+        fd = await open(fileName, "r")
     } catch (e) {
+        console.log("error opening file", e)
         // No file, so no saved data to send
     }
-    if (fdMessages) {
+    if (fd) {
         try {
-            forEachLine(fdMessages, callback)
+            await forEachLine(fd, lineCallback, maxLines)
         } finally {
             // TODO Check error result
-            fs.closeSync(fdMessages)
+            await close(fd)
         }
-    }   
+    }
 }
 
 module.exports = {

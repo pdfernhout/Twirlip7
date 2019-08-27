@@ -11,6 +11,7 @@
 
 // Standard nodejs modules
 const http = require("http")
+const path = require("path")
 
 const express = require("express")
 const bodyParser = require("body-parser")
@@ -52,7 +53,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }))
 
-app.use(express.static(__dirname + "/../ui"))
+app.use(express.static(path.normalize(__dirname + "/../ui")))
 
 app.post("/api/proxy", function (request, response) {
     proxyRequest(request, response)

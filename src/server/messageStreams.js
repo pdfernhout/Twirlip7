@@ -117,8 +117,7 @@ function listen(clientId, message) {
 
     const fileName = storage.getStorageFileNameForMessage(message)
 
-    // TODO: Make this asynchronous
-    // TODO: Also  if asynchronous, maybe queue new messages for a client for sending later until this is done to preserve order
+    // TODO: If asynchronous, ideally queue new messages for a client for sending later until this is done to preserve order?
     function sendMessage(messageString) {
         if (messageCount < fromIndex) return
         messageCount++
@@ -128,9 +127,14 @@ function listen(clientId, message) {
         sendMessageToClient(clientId, message)
         messagesSent++
     }
-    forEachLineInFile.forEachLineInNamedFile(fileName, sendMessage)
-    log("sending loaded", messagesSent)
-    sendMessageToClient(clientId, {command: "loaded", streamId: streamId, messagesSentCount: messagesSent})
+    forEachLineInFile.forEachLineInNamedFile(fileName, sendMessage, 0).then(() => {
+        log("sending loaded", messagesSent)
+        sendMessageToClient(clientId, {command: "loaded", streamId: streamId, messagesSentCount: messagesSent})
+    }).catch(error => {
+        sendMessageToClient(clientId, {command: "loadingError", streamId: streamId})
+        sendMessageToClient(clientId, {command: "loaded", streamId: streamId, messagesSentCount: messagesSent})
+        throw error
+    })
 }
 
 function unlisten(clientId, message) {
