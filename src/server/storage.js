@@ -1,4 +1,4 @@
-// File reading and writing
+// File reading and writing of messages for streams
 
 "use strict"
 /* eslint-env node */
@@ -163,7 +163,7 @@ function respondWithReconstructedFile(request, response) {
     })
 }
 
-module.exports ={
+module.exports = {
     calculateSha256,
     keyForStreamId,
     getStorageFileNameForMessage,
