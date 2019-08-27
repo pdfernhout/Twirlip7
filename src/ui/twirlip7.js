@@ -16,8 +16,7 @@ function userIDChange(event) {
 const TwirlipAppList = {
     view: function () {
         return m("div.ma4",
-            m("div.pa3.f3", "Thank you for trying the Twirlip7 information organizer."),
-            m("div.pa3.f3", "The Twirlip project helps you organize information you find interesting and make it accessible and useful to yourself or others you want to share with."),
+            m("div.pa3.f3", "Twirlip7 helps you organize information you find interesting and make it accessible and useful to yourself or others you want to share with."),
             m("div.pa3", 
                 m("span.ma3",
                     "User ID:",

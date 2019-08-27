@@ -76,7 +76,7 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
         if (Twirlip7.NotebookUsingLocalStorage.itemCount() === 0) {
             show(function () {
                 return [
-                    m("div", "Thank you for trying Twirlip7's programmable notebook and Mithril.js playground. To get started with some example code snippets:"),
+                    m("div", "You are using Twirlip7's programmable notebook and Mithril.js playground. To get started with some example code snippets:"),
                     m("div", "* Make sure \"local storage\" is selected in the dropdown to the right of \"Notebook\"."),
                     m("div", "* Click on the \"Notebook operations\" dropdown at the bottom of the page and select \"Show example notebook\". The text panel should fill up."),
                     m("div", "* Click \"Merge notebook\" (also under \"Notebook operations\"). The item count will change from \"of 0\" to \"of 52\" or such."),
