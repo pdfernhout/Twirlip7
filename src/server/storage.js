@@ -112,7 +112,7 @@ function respondWithReconstructedFile(request, response) {
         reconstruct += result["base64-segment:" + i]
     }
 
-    let buffer = new Buffer(reconstruct, "base64")
+    let buffer = Buffer.from(reconstruct, "base64")
 
     console.log("reconstruct.length", reconstruct.length)
     console.log("binary length", buffer.byteLength)

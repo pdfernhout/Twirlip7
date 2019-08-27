@@ -9,7 +9,7 @@ const fs = require("fs")
 // From: http://stackoverflow.com/questions/7545147/nodejs-synchronization-read-large-file-line-by-line#7545170
 function forEachLine(fd, callback, maxLines) {
     const bufSize = 64 * 1024
-    const buf = new Buffer(bufSize)
+    const buf = Buffer.alloc(bufSize)
     let leftOver = ""
     let lineNum = 0
     let lines = []
