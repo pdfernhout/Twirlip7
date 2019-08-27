@@ -6,10 +6,7 @@ const requestAPI = require("request")
 const respond = require("./respond")
 const fs = require("fs")
 const path = require("path")
-
-function log() {
-    console.log.apply(console, ["[" + new Date().toISOString() + "]"].concat(Array.prototype.slice.call(arguments)))
-}
+const log = require("./log")
 
 // TODO: Retrieve the requested web resource -- very unsafe:
 // TODO: user should be authenticated and trusted or requests should be restricted to local ones
