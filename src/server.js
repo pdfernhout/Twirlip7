@@ -1,4 +1,6 @@
-// Stub to load server from original (deprecated) location
+#!/usr/bin/env node
+
+// Stub (deprecated) so can load server from new location without updating scripts
 
 "use strict"
 /* eslint-env node */

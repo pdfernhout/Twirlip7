@@ -2,7 +2,7 @@
 
 // Test at: http://localhost:8080
 // Set DEBUG=* for low-level socket-io debugging:
-// DEBUG=* node server/twirlip-server.js
+// DEBUG=* node server/twirlip7-server.js
 
 /* eslint-env node */
 /*jslint node: true */
