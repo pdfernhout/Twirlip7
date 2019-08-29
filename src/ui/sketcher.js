@@ -290,7 +290,7 @@ class Item {
                     "stroke-width": this.getStrokeWidth(), 
                     fill: this.getFill()
                 }, 
-                onpointerdown: itemMouseDown.bind(this, this) 
+                onpointerdown: itemMouseDown.bind(this, this)
             })
         } else if (type === "circle") {
             return m("circle", {
@@ -646,7 +646,10 @@ function displaySketch() {
                     "font-weight": "400",
                     "font-size": "16px",
                     "font-size-adjust": "none",
-                    "font-stretch": "100%"
+                    "font-stretch": "100%",
+                    style: {
+                        "touch-action": "none"
+                    },
                 },
                 m("defs", svgMarkers()),
                 m("rect", {
