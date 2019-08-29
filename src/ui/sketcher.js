@@ -290,7 +290,7 @@ class Item {
                     "stroke-width": this.getStrokeWidth(), 
                     fill: this.getFill()
                 }, 
-                onmousedown: itemMouseDown.bind(this, this) 
+                onpointerdown: itemMouseDown.bind(this, this) 
             })
         } else if (type === "circle") {
             return m("circle", {
@@ -303,7 +303,7 @@ class Item {
                     "stroke-width": this.getStrokeWidth(), 
                     fill: this.getFill()
                 }, 
-                onmousedown: itemMouseDown.bind(this, this) 
+                onpointerdown: itemMouseDown.bind(this, this) 
             })
         } else if (type === "line") {
             const arrows = this.getArrows()
@@ -320,7 +320,7 @@ class Item {
                 },
                 "marker-end": (arrows === "end" || arrows === "both") ? "url(#arrow-start)" : null,
                 "marker-start": (arrows === "start" || arrows === "both") ? "url(#arrow-end)" : null,
-                onmousedown: itemMouseDown.bind(this, this) 
+                onpointerdown: itemMouseDown.bind(this, this) 
             })
         } else if (type === "text") {
             return m("text", {
@@ -332,7 +332,7 @@ class Item {
                 width: Math.max(10, bounds.x2 - bounds.x1),
                 height: Math.max(10, bounds.y2 - bounds.y1),
                 // "inline-size": "250px",
-                onmousedown: itemMouseDown.bind(this, this) 
+                onpointerdown: itemMouseDown.bind(this, this) 
             },
             splitText(this.getText(), bounds)
             )
@@ -468,7 +468,7 @@ function drawItems() {
                 stroke: "#006600",
                 fill: "#000000"
             },
-            onmousedown: handleMouseDown.bind(lastSelectedItem, name)
+            onpointerdown: handleMouseDown.bind(lastSelectedItem, name)
         })
     }
 
@@ -637,9 +637,9 @@ function displaySketch() {
                 {
                     width: extent.width,
                     height: extent.height,
-                    onmousedown: sketchMouseDown,
-                    onmousemove: sketchMouseMove,
-                    onmouseup: sketchMouseUp,
+                    onpointerdown: sketchMouseDown,
+                    onpointermove: sketchMouseMove,
+                    onpointerup: sketchMouseUp,
                     "font-family": "Times New Roman",
                     "font-style": "normal",
                     "font-variant": "normal",
