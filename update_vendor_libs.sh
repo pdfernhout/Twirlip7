@@ -25,6 +25,8 @@ cp -R node_modules/font-awesome/fonts/* src/ui/vendor/font-awesome/fonts
 
 cp node_modules/marked/lib/marked.js src/ui/vendor/
 
+cp node_modules/pepjs/dist/pep.js src/ui/vendor/
+
 cp node_modules/push.js/bin/push.js src/ui/vendor/
 
 cp node_modules/requirejs/require.js src/ui/vendor/
