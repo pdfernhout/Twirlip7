@@ -33,7 +33,16 @@ let draggedHandle = null
 let newBounds = null
 let lastBackgroundClick = null
 
+let isScribbling = false
+let scribblePoints = null
+let scribbleSegments = []
+
 let sketchViewportHeight = 500
+
+// Rounding choices to reduce noise in JSON files...
+// const round = value => Math.round(value)
+// const round = value => Math.round(value * 100) / 100
+const round = value => value
 
 function getCurrentSketchUUID() {
     return p.findC("sketcher", "current-sketch")
@@ -65,6 +74,7 @@ async function updateSketch() {
 }
 
 function itemMouseDown(item, event) {
+    if (isScribbling) return
     draggedItem = item
     draggedHandle = null
     newBounds = null
@@ -75,7 +85,7 @@ function itemMouseDown(item, event) {
     } else {
         lastSelectedItem = item
     }
-    dragStart = { x: event.clientX, y: event.clientY }
+    dragStart = { x: round(event.clientX), y: round(event.clientY) }
     boundsStart = item.getBounds()
     lastDelta = {x: 0, y: 0}
     // Prevent switching into drag-and-drop sometimes
@@ -84,12 +94,13 @@ function itemMouseDown(item, event) {
 
 // For a drag handle
 function handleMouseDown(handle, event) {
+    if (isScribbling) return
     if (!lastSelectedItem) return
     draggedHandle = handle
     draggedItem = null
     newBounds = null
     lastBackgroundClick = null
-    dragStart = { x: event.clientX, y: event.clientY }
+    dragStart = { x: round(event.clientX), y: round(event.clientY) }
     boundsStart = lastSelectedItem.getBounds()
     lastDelta = {x: 0, y: 0}
     // Prevent switching into drag-and-drop sometimes
@@ -100,13 +111,19 @@ function sketchMouseDown(event) {
     // This happens even when item or handle has a mouse down
     // Reset selection if mouse down outside of any item or handle
     if (!draggedItem && !draggedHandle) lastSelectedItem = null
-    lastBackgroundClick = { x: event.offsetX, y: event.offsetY }
+    lastBackgroundClick = { x: round(event.offsetX), y: round(event.offsetY) }
+    if (isScribbling) {
+        scribblePoints = [{ x: round(event.offsetX), y: round(event.offsetY) }]
+        scribbleSegments.push(scribblePoints)
+    }
 }
 
 function sketchMouseMove(event) {
-    if (draggedItem) { 
-        const dx = event.clientX - dragStart.x
-        const dy = event.clientY - dragStart.y
+    if (isScribbling && scribblePoints) {
+        scribblePoints.push({ x: round(event.offsetX), y: round(event.offsetY) })
+    } else if (draggedItem) { 
+        const dx = round(event.clientX) - dragStart.x
+        const dy = round(event.clientY) - dragStart.y
         if (lastDelta.x === dx && lastDelta.y === dy) {
             event.redraw = false
             return
@@ -119,8 +136,8 @@ function sketchMouseMove(event) {
         newBounds = bounds
         lastDelta = {x: dx, y: dy}
     } else if (draggedHandle) {
-        const dx = event.clientX - dragStart.x
-        const dy = event.clientY - dragStart.y
+        const dx = round(event.clientX) - dragStart.x
+        const dy = round(event.clientY) - dragStart.y
         if (lastDelta.x === dx && lastDelta.y === dy) {
             event.redraw = false
             return
@@ -150,7 +167,9 @@ function sketchMouseMove(event) {
 }
 
 function sketchMouseUp() {
-    if (newBounds) {
+    if (isScribbling) {
+        scribblePoints = null
+    } else if (newBounds) {
         if (draggedItem) {
             draggedItem.setBounds(newBounds)
         } else if (draggedHandle && lastSelectedItem) {
@@ -264,6 +283,15 @@ class Item {
         p.addTriple(this.uuid, "fill", text)
     }
 
+    // To support sketch of segments of polylines
+    getExtraData() {
+        return p.findC(this.uuid, "extraData") || null
+    }
+
+    setExtraData(extraData) {
+        p.addTriple(this.uuid, "extraData", extraData)
+    }
+
     getArrows() {
         return p.findC(this.uuid, "arrows") || "none"
     }
@@ -322,6 +350,17 @@ class Item {
                 "marker-start": (arrows === "start" || arrows === "both") ? "url(#arrow-end)" : null,
                 onpointerdown: itemMouseDown.bind(this, this) 
             })
+        } else if (type === "polylines") {
+            const segments = this.getExtraData() || [[]]
+            return m("g", {
+                transform: "translate(" + bounds.x1 + "," + bounds.y1 + ")",
+                key: this.uuid,
+                onpointerdown: itemMouseDown.bind(this, this)
+            }, drawPolylines(segments, {
+                stroke: this.getStroke(),
+                "stroke-width": this.getStrokeWidth(), 
+                fill: this.getFill()
+            }))
         } else if (type === "text") {
             return m("text", {
                 key: this.uuid,
@@ -347,6 +386,15 @@ class Item {
             )
         }
     }
+}
+
+function drawPolylines(segments, style) {
+    return segments.map(sketchSegment => {
+        return m("polyline", {
+            points: sketchSegment.map(point => "" +  point.x + "," + point.y).join(" "),
+            style: style ? style : "fill:none;stroke:black;stroke-width:3" 
+        })
+    })
 }
 
 class Sketch {
@@ -408,6 +456,35 @@ function calculateBounds() {
     return bounds
 }
 
+function calculateBoundsForScribble(segments) {
+    const bounds = {x1: 0, y1: 0, x2: 50, y2: 50}
+    if (segments.length && segments[0].length) {
+        const firstPoint = segments[0][0]
+        bounds.x1 = firstPoint.x
+        bounds.x2 = firstPoint.x
+        bounds.y1 = firstPoint.y
+        bounds.y2 = firstPoint.y
+    }
+    for (let segment of segments) {
+        for (let point of segment) {
+            bounds.x1 = point.x < bounds.x1 ? point.x : bounds.x1
+            bounds.x2 = point.x > bounds.x2 ? point.x : bounds.x2
+            bounds.y1 = point.y < bounds.y1 ? point.y : bounds.y1
+            bounds.y2 = point.y > bounds.y2 ? point.y : bounds.y2
+        }
+    }
+    return bounds
+}
+
+function adjustPointsForScribble(segments, offset) {
+    for (let segment of segments) {
+        for (let point of segment) {
+            point.x -= offset.x
+            point.y -= offset.y
+        }
+    }
+}
+
 function addRectangle() {
     p.newTransaction("sketcher/addRectangle")
     const item = new Item()
@@ -434,6 +511,32 @@ function addLine() {
     item.setStrokeWidth("5")
     sketch.addItem(item)
     p.sendCurrentTransaction()
+}
+
+function addFreehandScribble() {
+    if (isScribbling) {
+        isScribbling = false
+        scribblePoints = null
+        if (!scribbleSegments.length) return
+        console.log(JSON.stringify(scribbleSegments, null, 4))
+        p.newTransaction("sketcher/addPolylines")
+        const item = new Item()
+        item.setType("polylines")
+        item.setStrokeWidth("3")
+        item.setStroke("#000000")
+        item.setFill("none")
+        const bounds = calculateBoundsForScribble(scribbleSegments)
+        item.setBounds(bounds)
+        adjustPointsForScribble(scribbleSegments, {x: bounds.x1, y:bounds.y1})
+        item.setExtraData(scribbleSegments)
+        scribbleSegments = []
+        sketch.addItem(item)
+        p.sendCurrentTransaction()
+    } else {
+        isScribbling = true
+        scribbleSegments = []
+        scribblePoints = null
+    }
 }
 
 function addText() {
@@ -493,7 +596,8 @@ function drawItems() {
 
     return [
         drawnItems,
-        selection()
+        selection(),
+        isScribbling ? drawPolylines(scribbleSegments) : []
     ]
 }
 
@@ -512,7 +616,9 @@ function lowerItem() {
 function deleteItem() {
     const item = lastSelectedItem
     if (!item) return
-    if (!confirm("Delete " + item.getType() + "?")) return
+    let itemType = item.getType()
+    if (itemType === "polylines") itemType = "freehand scribble"
+    if (!confirm("Delete " + itemType + "?")) return
     lastSelectedItem = null
     sketch.deleteItem(item)
 }
@@ -529,6 +635,7 @@ function exportSketchText() {
             strokeWidth: item.getStrokeWidth(),
             fill: item.getFill(),
             arrows: item.getArrows(),
+            extraData: item.getExtraData()
         }, null, 4)
     }
 
@@ -542,7 +649,8 @@ function exportSketchText() {
 
 function displaySelectedItemProperties() {
     const item = lastSelectedItem
-    if (!item) return m("div.mt2", [
+    if (!item) return m("div.mt2.relative", [
+        isScribbling ? m("span.absolute.pl2", "Scribbling...") : [],
         m("span.tr.w5.dib", "Sketch width"), m("input.ml1", { value: sketch.getExtent().width, onchange: (event) => sketch.setWidth(event.target.value) }),
         m("br"),
         m("span.tr.w5.dib", "Sketch height"), m("input.ml1", { value: sketch.getExtent().height, onchange: (event) => sketch.setHeight(event.target.value) }),
@@ -557,14 +665,16 @@ function displaySelectedItemProperties() {
     ])
     const arrows = item.getArrows()
     return m("div.mt2", [
-        m("span.tr.w4.dib", "Fill"), m("input.ml1", { value: item.getFill(), onchange: (event) => item.setFill(event.target.value) }),
+        // m("span.tr.w5.dib", type),
+        // m("br"),
+        m("span.tr.w5.dib", "Fill"), m("input.ml1", { value: item.getFill(), onchange: (event) => item.setFill(event.target.value) }),
         m("br"),
-        m("span.tr.w4.dib", "Stroke"), m("input.ml1", { value: item.getStroke(), onchange: (event) => item.setStroke(event.target.value) }),
+        m("span.tr.w5.dib", "Stroke"), m("input.ml1", { value: item.getStroke(), onchange: (event) => item.setStroke(event.target.value) }),
         m("br"),
-        m("span.tr.w4.dib", "Stroke width"), m("input.ml1", { value: item.getStrokeWidth(), onchange: (event) => item.setStrokeWidth(event.target.value) }),
+        m("span.tr.w5.dib", "Stroke width"), m("input.ml1", { value: item.getStrokeWidth(), onchange: (event) => item.setStrokeWidth(event.target.value) }),
         (type === "line") ? [
             m("br"),
-            m("span.tr.w4.dib", "Arrows"), m("select.ml1", { value: arrows, onchange: (event) => item.setArrows(event.target.value) }, [
+            m("span.tr.w5.dib", "Arrows"), m("select.ml1", { value: arrows, onchange: (event) => item.setArrows(event.target.value) }, [
                 m("option", {value: "none", selected: arrows === "none" }, "none"),
                 m("option", {value: "start", selected: arrows === "start" }, "start"),
                 m("option", {value: "end", selected: arrows === "end" }, "end"),
@@ -576,10 +686,11 @@ function displaySelectedItemProperties() {
 
 function displayActions() {
     return m("div.mt1.mb1", [
-        m("button", { onclick: addRectangle }, "Add Rectangle"),
-        m("button.ml1", { onclick: addCircle }, "Add Circle"),
-        m("button.ml1", { onclick: addText }, "Add Text"),
-        m("button.ml1", { onclick: addLine }, "Add Line"),
+        m("button", { onclick: addRectangle }, "Rectangle"),
+        m("button.ml1", { onclick: addCircle }, "Circle"),
+        m("button.ml1", { onclick: addText }, "Text"),
+        m("button.ml1", { onclick: addLine }, "Line"),
+        m("button.ml1.w4" + (isScribbling ? ".bg-light-blue" : ""), { onclick: addFreehandScribble }, isScribbling ? "<Finish>": "Freehand"),
         m("button.ml3", { onclick: raiseItem }, "Raise"),
         m("button.ml1", { onclick: lowerItem }, "Lower"),
         m("button.ml3", { onclick: deleteItem }, "Delete"),
@@ -655,7 +766,7 @@ function displaySketch() {
                 m("rect", {
                     width: extent.width,
                     height: extent.height,
-                    style: { fill: "none", stroke: "#006600" } 
+                    style: { fill: "none", stroke: isScribbling ? "#33FFFF" : "#006600" } 
                 }),
                 drawItems()
             )
