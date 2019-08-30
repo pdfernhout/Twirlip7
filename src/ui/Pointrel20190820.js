@@ -68,7 +68,6 @@ export class Pointrel20190820 {
         const sha256 = calculateSHA256(JSON.stringify(this.currentTransaction))
         this.addTransactionToTripleIndex(sha256, this.currentTransaction)
 
-        console.log("TODO sendCurrentTransaction")
         // TODO: sendQueue.push(currentTransaction)
         setTimeout(() => this.backend.addItem(transaction), 10)
         this.currentTransaction = null
@@ -86,7 +85,7 @@ export class Pointrel20190820 {
             return
         }
         if (this.indexedTransactions[sha256]) {
-            console.log("transaction already indexed", sha256, transaction)
+            // console.log("transaction already indexed", sha256, transaction)
             return
         }
         if (transaction.type === "triples") {
@@ -164,7 +163,7 @@ export class Pointrel20190820 {
     }
     
     addTriple(a, b, c) {
-        console.log("addTriple", a, b, c)
+        // console.log("addTriple", a, b, c)
     
         const triple = {a, b, c}
     
@@ -255,7 +254,7 @@ export class Pointrel20190820 {
                     resolve()
                 },
                 addItem: (item, isAlreadyStored) => {
-                    console.log("addItem", item)
+                    // console.log("addItem", item)
                     const sha256 = calculateSHA256(JSON.stringify(item))
                     this.addTransactionToTripleIndex(sha256, item)
                     this.setLatest(sha256, item)
