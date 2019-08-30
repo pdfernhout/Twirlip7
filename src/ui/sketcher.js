@@ -24,14 +24,21 @@ function getSketchName() {
 
 let sketch = null
 
-let lastSelectedItem = null
-let draggedItem = null
-let dragStart = {}
-let boundsStart = {}
-let lastDelta = {}
-let draggedHandle = null
-let newBounds = null
-let lastBackgroundClick = null
+let selectedItems
+let draggedHandle
+let isDragging 
+let dragStart
+let dragDelta
+
+function initDragInformation() {
+    selectedItems = []
+    draggedHandle = null // { item: null, handleName: "x1y1", originalBounds: null }
+    isDragging = false
+    dragStart = { x: 0, y:0 }
+    dragDelta = { x: 0, y:0 }
+}
+
+initDragInformation()
 
 let isScribbling = false
 let scribblePoints = null
@@ -51,14 +58,7 @@ function getCurrentSketchUUID() {
 function resetForSketchChange() {
     let currentSketch = getCurrentSketchUUID() || p.uuidv4()
     sketch = new Sketch(currentSketch)
-    lastSelectedItem = null
-    draggedItem = null
-    dragStart = {}
-    boundsStart = {}
-    lastDelta = {}
-    draggedHandle = null
-    newBounds = null
-    lastBackgroundClick = null
+    initDragInformation()
 }
 
 async function startup() {
@@ -73,45 +73,111 @@ async function updateSketch() {
     m.redraw()
 }
 
-function itemMouseDown(item, event) {
+function isItemSelected(item) {
+    return selectedItems.some(selectedItem => selectedItem.uuid === item.uuid)
+}
+
+function deselectAllItems() {
+    selectedItems = []
+}
+
+function selectItem(item) {
+    if (isItemSelected(item)) return
+    const index = selectedItems.indexOf(item)
+    selectedItems.push(item)
+}
+
+function unselectItem(item) {
+    const index = selectedItems.findIndex(selectedItem => selectedItem.uuid === item.uuid)
+    if (index > -1) {
+        selectedItems.splice(index, 1)
+    }
+}
+
+function copyRectWithDelta(rect, delta) {
+    return {
+        x1: rect.x1 + delta.x,
+        y1: rect.y1 + delta.y,
+        x2: rect.x2 + delta.x,
+        y2: rect.y2 + delta.y
+    }
+}
+
+function copyRectWithHandleDelta(rect, handleName, delta) {
+    const bounds = {
+        x1: rect.x1,
+        y1: rect.y1,
+        x2: rect.x2,
+        y2: rect.y2
+    }
+    if (handleName === "x1y1" || handleName === "x1y2") bounds.x1 += delta.x
+    if (handleName === "x1y1" || handleName === "x2y1") bounds.y1 += delta.y
+    if (handleName === "x2y1" || handleName === "x2y2") bounds.x2 += delta.x
+    if (handleName === "x1y2" || handleName === "x2y2") bounds.y2 += delta.y
+
+    // Limit bounds to positive area
+    bounds.x1 = Math.min(bounds.x1, 0)
+    bounds.y1 = Math.min(bounds.y1, 0)
+    bounds.x2 = Math.max(bounds.x2, 0)
+    bounds.y2 = Math.max(bounds.y2, 0)
+
+    return bounds
+}
+
+function mouseDownInItem(item, event) {
     if (isScribbling) return
-    draggedItem = item
+    isDragging = true
     draggedHandle = null
-    newBounds = null
-    lastBackgroundClick = null
-    if (event.ctrlKey && lastSelectedItem && lastSelectedItem.uuid === item.uuid) {
-        lastSelectedItem = null
-        return
+    if (event.ctrlKey) {
+        if (isItemSelected(item)) {
+            unselectItem(item)
+            return
+        } else {
+            // Unselect first to move item to end of selected items
+            unselectItem(item)
+            selectItem(item)
+        }
+    } else if (event.shiftKey) {
+        selectItem(item)
     } else {
-        lastSelectedItem = item
+        deselectAllItems()
+        selectItem(item)
     }
     dragStart = { x: round(event.clientX), y: round(event.clientY) }
-    boundsStart = item.getBounds()
-    lastDelta = {x: 0, y: 0}
+    dragDelta = {x: 0, y: 0}
     // Prevent switching into drag-and-drop sometimes
     event.preventDefault()
 }
+
+// TODO: Can both a handle and an item get a mouse down for the same event? What happens?
 
 // For a drag handle
-function handleMouseDown(handle, event) {
+function mouseDownInHandle(item, handleName, event) {
     if (isScribbling) return
-    if (!lastSelectedItem) return
-    draggedHandle = handle
-    draggedItem = null
-    newBounds = null
-    lastBackgroundClick = null
+    if (selectedItems.length > 1 || !isItemSelected(item)) return
+    isDragging = true
+    draggedHandle = { item, handleName, originalBounds: item.getBounds() }
+    // TODO: change this to support resizing multiple items
+    deselectAllItems()
     dragStart = { x: round(event.clientX), y: round(event.clientY) }
-    boundsStart = lastSelectedItem.getBounds()
-    lastDelta = {x: 0, y: 0}
+    dragDelta = { x: 0, y: 0 }
     // Prevent switching into drag-and-drop sometimes
     event.preventDefault()
 }
 
-function sketchMouseDown(event) {
+function mouseDownInSketch(event) {
     // This happens even when item or handle has a mouse down
+
     // Reset selection if mouse down outside of any item or handle
-    if (!draggedItem && !draggedHandle) lastSelectedItem = null
-    lastBackgroundClick = { x: round(event.offsetX), y: round(event.offsetY) }
+    if (!isDragging) {
+        if (!event.ctrlKey && !event.shiftKey) deselectAllItems()
+        isDragging = true
+    }
+
+    // TODO: duplicating initializing dragStart and dragDelta in other functions
+    dragStart = { x: round(event.offsetX), y: round(event.offsetY) }
+    dragDelta = { x: 0, y: 0 }
+
     if (isScribbling) {
         scribblePoints = [{ x: round(event.offsetX), y: round(event.offsetY) }]
         scribbleSegments.push(scribblePoints)
@@ -121,62 +187,48 @@ function sketchMouseDown(event) {
 function sketchMouseMove(event) {
     if (isScribbling && scribblePoints) {
         scribblePoints.push({ x: round(event.offsetX), y: round(event.offsetY) })
-    } else if (draggedItem) { 
+    } else if (isDragging && selectedItems.length) { 
         const dx = round(event.clientX) - dragStart.x
         const dy = round(event.clientY) - dragStart.y
-        if (lastDelta.x === dx && lastDelta.y === dy) {
+        // console.log("mouse move drag", dx, dy, event)
+        if (dragDelta.x === dx && dragDelta.y === dy) {
             event.redraw = false
             return
         }
-        const bounds = draggedItem.getBounds()
-        bounds.x1 = boundsStart.x1 + dx
-        bounds.y1 = boundsStart.y1 + dy
-        bounds.x2 = boundsStart.x2 + dx
-        bounds.y2 = boundsStart.y2 + dy
-        newBounds = bounds
-        lastDelta = {x: dx, y: dy}
-    } else if (draggedHandle) {
+        dragDelta = {x: dx, y: dy}
+    } else if (isDragging && draggedHandle) {
         const dx = round(event.clientX) - dragStart.x
         const dy = round(event.clientY) - dragStart.y
-        if (lastDelta.x === dx && lastDelta.y === dy) {
+        if (dragDelta.x === dx && dragDelta.y === dy) {
             event.redraw = false
             return
         }
-        const bounds = lastSelectedItem.getBounds()
-        const type = lastSelectedItem.getType()
+        // const bounds = draggedHandle.item.getBounds()
+        // TODO: Decide if not needed -- Used to not limit line to only positive: const type = draggedHandle.item.getType()
 
-        if (draggedHandle === "x1y1" || draggedHandle === "x1y2") bounds.x1 = boundsStart.x1 + dx
-        if (draggedHandle === "x1y1" || draggedHandle === "x2y1") bounds.y1 = boundsStart.y1 + dy
-        if (draggedHandle === "x2y1" || draggedHandle === "x2y2") bounds.x2 = boundsStart.x2 + dx
-        if (draggedHandle === "x1y2" || draggedHandle === "x2y2") bounds.y2 = boundsStart.y2 + dy
-
-        if (type !== "line") {
-            // Limit bounds to positive area
-            bounds.x1 = Math.min(bounds.x1, boundsStart.x2 + 1)
-            bounds.y1 = Math.min(bounds.y1, boundsStart.y2 + 1)
-            bounds.x2 = Math.max(bounds.x2, boundsStart.x1 + 1)
-            bounds.y2 = Math.max(bounds.y2, boundsStart.y1 + 1)
-        }
-
-        newBounds = bounds
-        lastDelta = {x: dx, y: dy}
+        dragDelta = { x: dx, y: dy }
     } else {
         // Optimization: no need to redraw in Mithril
         event.redraw = false
     }
+    // console.log("dragDelta", dragDelta)
 }
 
 function sketchMouseUp() {
     if (isScribbling) {
         scribblePoints = null
-    } else if (newBounds) {
-        if (draggedItem) {
-            draggedItem.setBounds(newBounds)
-        } else if (draggedHandle && lastSelectedItem) {
-            lastSelectedItem.setBounds(newBounds)
+    } else if (isDragging && dragDelta.x !== 0 && dragDelta.y !== 0) {
+        if (draggedHandle) {
+            const newBounds = copyRectWithDelta(draggedHandle.item.getBounds(), dragDelta)
+            draggedHandle.item.setBounds(newBounds)
+        } else {
+            selectedItems.forEach(item => {
+                const newBounds = copyRectWithDelta(item.getBounds(), dragDelta)
+                item.setBounds(newBounds)
+            })
         }
     }
-    draggedItem = null
+    isDragging = false
     draggedHandle = null
 }
 
@@ -226,15 +278,7 @@ class Item {
     getBounds() {
         let bounds = JSON.parse(p.findC(this.uuid, "bounds") || "{}")
         if (!bounds || (!bounds.x1 && !bounds.y1 && !bounds.x2 && !bounds.y2)) {
-            bounds = {x1: 0, y1: 0, x2: 20, y2: 20}
-        }
-        if (newBounds) {
-            // Check if there are temporary new bounds if this item is being moved or resized
-            if (draggedItem && draggedItem.uuid === this.uuid) {
-                bounds = newBounds
-            } else if (draggedHandle && lastSelectedItem && lastSelectedItem.uuid === this.uuid) {
-                bounds = newBounds
-            }
+            bounds =  {x1: 0, y1: 0, x2: 20, y2: 20 }
         }
         return bounds
     }
@@ -301,9 +345,17 @@ class Item {
         p.addTriple(this.uuid, "arrows", arrows)
     }
 
-    draw() {
+    // dragOffset and dragHandleName may both be undefined -- used for drawing while dragging
+    draw(dragOffset, dragHandleName) {
         const type = this.getType()
+
         let bounds = this.getBounds()
+        if (dragHandleName) {
+            bounds = copyRectWithHandleDelta(bounds, dragHandleName, dragOffset)
+        } else if (dragOffset) {
+            bounds = copyRectWithDelta(bounds, dragOffset)
+        }
+        // console.log("bounds", this.uuid, bounds)
 
         if (type === "rectangle") {
             return m("rect", {
@@ -318,7 +370,7 @@ class Item {
                     "stroke-width": this.getStrokeWidth(), 
                     fill: this.getFill()
                 }, 
-                onpointerdown: itemMouseDown.bind(this, this)
+                onpointerdown: mouseDownInItem.bind(this, this)
             })
         } else if (type === "circle") {
             return m("circle", {
@@ -331,7 +383,7 @@ class Item {
                     "stroke-width": this.getStrokeWidth(), 
                     fill: this.getFill()
                 }, 
-                onpointerdown: itemMouseDown.bind(this, this) 
+                onpointerdown: mouseDownInItem.bind(this, this) 
             })
         } else if (type === "line") {
             const arrows = this.getArrows()
@@ -348,14 +400,14 @@ class Item {
                 },
                 "marker-end": (arrows === "end" || arrows === "both") ? "url(#arrow-start)" : null,
                 "marker-start": (arrows === "start" || arrows === "both") ? "url(#arrow-end)" : null,
-                onpointerdown: itemMouseDown.bind(this, this) 
+                onpointerdown: mouseDownInItem.bind(this, this) 
             })
         } else if (type === "polylines") {
             const segments = this.getExtraData() || [[]]
             return m("g", {
                 transform: "translate(" + bounds.x1 + "," + bounds.y1 + ")",
                 key: this.uuid,
-                onpointerdown: itemMouseDown.bind(this, this)
+                onpointerdown: mouseDownInItem.bind(this, this)
             }, drawPolylines(segments, {
                 stroke: this.getStroke(),
                 "stroke-width": this.getStrokeWidth(), 
@@ -371,7 +423,7 @@ class Item {
                 width: Math.max(10, bounds.x2 - bounds.x1),
                 height: Math.max(10, bounds.y2 - bounds.y1),
                 // "inline-size": "250px",
-                onpointerdown: itemMouseDown.bind(this, this) 
+                onpointerdown: mouseDownInItem.bind(this, this) 
             },
             splitText(this.getText(), bounds)
             )
@@ -413,17 +465,17 @@ class Sketch {
     }
 
     addItem(item) {
-        p.addTriple(this.uuid, {item: item.uuid}, item.uuid)
+        p.addTriple(this.uuid, { item: item.uuid }, item.uuid)
     }
 
     deleteItem(item) {
-        p.addTriple(this.uuid, {item: item.uuid}, null)
+        p.addTriple(this.uuid, { item: item.uuid }, null)
     }
 
     getExtent() {
         let extent = JSON.parse(p.findC(this.uuid, "extent") || "{}")
         if (!extent.width || !extent.height) {
-            extent = {width: 600, height: 200}
+            extent = { width: 600, height: 200 }
         }
         return extent
     }
@@ -446,18 +498,12 @@ class Sketch {
 }
 
 function calculateBounds() {
-    const bounds = {x1: 0, y1: 0, x2: 50, y2: 50}
-    if (lastBackgroundClick) {
-        bounds.x1 += lastBackgroundClick.x
-        bounds.x2 += lastBackgroundClick.x
-        bounds.y1 += lastBackgroundClick.y
-        bounds.y2 += lastBackgroundClick.y
-    }
-    return bounds
+    // TODO: change how app works so place new items when click
+    return { x1: 0, y1: 0, x2: 50, y2: 50 }
 }
 
 function calculateBoundsForScribble(segments) {
-    const bounds = {x1: 0, y1: 0, x2: 50, y2: 50}
+    const bounds = { x1: 0, y1: 0, x2: 50, y2: 50 }
     if (segments.length && segments[0].length) {
         const firstPoint = segments[0][0]
         bounds.x1 = firstPoint.x
@@ -562,7 +608,8 @@ function drawItems() {
         throw new Error("uuids of different items in list should not be the same")
     }
 
-    function handle(name, x, y) {
+    function drawHandle(item, name, x, y) {
+        if (y === undefined) throw new Error("bug")
         return  m("circle", {
             cx: x,
             cy: y,
@@ -571,27 +618,29 @@ function drawItems() {
                 stroke: "#006600",
                 fill: "#000000"
             },
-            onpointerdown: handleMouseDown.bind(lastSelectedItem, name)
+            onpointerdown: mouseDownInHandle.bind(item, name)
         })
     }
 
     function selection() {
-        const item = lastSelectedItem
-        if (!item) return []
-        const bounds = item.getBounds()
-        const type = item.getType()
-        return m("g", [
-            handle("x1y1", bounds.x1, bounds.y1),
-            (type !== "line") ? handle("x1y2", bounds.x1, bounds.y2) : [],
-            (type !== "line") ? handle("x2y1", bounds.x2, bounds.y1) : [],
-            handle("x2y2", bounds.x2, bounds.y2),
-        ])
+        return selectedItems.map(item => {
+            const itemBounds = item.getBounds()
+            const bounds = isDragging ? copyRectWithDelta(itemBounds, dragDelta) : itemBounds
+            const type = item.getType()
+            return m("g", [
+                drawHandle(item, "x1y1", bounds.x1, bounds.y1),
+                (type !== "line") ? drawHandle(item, "x1y2", bounds.x1, bounds.y2) : [],
+                (type !== "line") ? drawHandle(item, "x2y1", bounds.x2, bounds.y1) : [],
+                drawHandle(item, "x2y2", bounds.x2, bounds.y2),
+            ])
+        })
     }
 
     const items = sketch.getItems()
     const sortedItems = items.sort(compare)
     const drawnItems = sortedItems.map((item) => {
-        return item.draw()
+        const isItemDragged = isItemSelected(item) || (draggedHandle && draggedHandle.item.uuid === item.uuid)
+        return item.draw(isItemDragged ? dragDelta : null, isItemDragged && draggedHandle && draggedHandle.handleName)
     })
 
     return [
@@ -602,25 +651,18 @@ function drawItems() {
 }
 
 function raiseItem() {
-    const item = lastSelectedItem
-    if (!item) return
-    item.setLayer(item.getLayer() + 1)
+    selectedItems.forEach(item => item.setLayer(item.getLayer() + 1))
 }
 
 function lowerItem() {
-    const item = lastSelectedItem
-    if (!item) return
-    item.setLayer(item.getLayer() - 1)
+    selectedItems.forEach(item => item.setLayer(item.getLayer() - 1))
 }
 
 function deleteItem() {
-    const item = lastSelectedItem
-    if (!item) return
-    let itemType = item.getType()
-    if (itemType === "polylines") itemType = "freehand scribble"
-    if (!confirm("Delete " + itemType + "?")) return
-    lastSelectedItem = null
-    sketch.deleteItem(item)
+    if (!selectedItems.length) return
+    if (!confirm("Delete " + selectedItems.length + " item(s)?")) return
+    selectedItems.forEach(item => sketch.deleteItem(item))
+    deselectAllItems()
 }
 
 function exportSketchText() {
@@ -648,7 +690,8 @@ function exportSketchText() {
 }
 
 function displaySelectedItemProperties() {
-    const item = lastSelectedItem
+    // TODO: Add support for changing all selections at once
+    const item = selectedItems.length ? selectedItems[selectedItems.length - 1] : null
     if (!item) return m("div.mt2.relative", [
         isScribbling ? m("span.absolute.pl2", "Scribbling...") : [],
         m("span.tr.w5.dib", "Sketch width"), m("input.ml1", { value: sketch.getExtent().width, onchange: (event) => sketch.setWidth(event.target.value) }),
@@ -748,7 +791,7 @@ function displaySketch() {
                 {
                     width: extent.width,
                     height: extent.height,
-                    onpointerdown: sketchMouseDown,
+                    onpointerdown: mouseDownInSketch,
                     onpointermove: sketchMouseMove,
                     onpointerup: sketchMouseUp,
                     "font-family": "Times New Roman",
