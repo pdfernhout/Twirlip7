@@ -41,8 +41,8 @@ let sketchViewportHeight = 500
 
 // Rounding choices to reduce noise in JSON files...
 // const round = value => Math.round(value)
-// const round = value => Math.round(value * 100) / 100
-const round = value => value
+const round = value => Math.round(value * 100) / 100
+// const round = value => value
 
 function getCurrentSketchUUID() {
     return p.findC("sketcher", "current-sketch")
