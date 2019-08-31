@@ -49,6 +49,9 @@ const TwirlipAppList = {
                 m("a.ma3", {href: "sketcher.html"}, "Sketcher"),
             ),
             m("div.ma3",
+                m("a.ma3", {href: "synchronizer.html"}, "Synchronizer"),
+            ),
+            m("div.ma3",
                 m("a.ma3", {href: "monitor.html"}, "Stream Monitor"),
             ),
         )
