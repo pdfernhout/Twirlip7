@@ -12,10 +12,14 @@ import { FileUtils } from "./FileUtils.js"
 // defines m
 import "./vendor/mithril.js"
 
-let streamName = "{\"chatRoom\": \"sync-test\"}"
+let streamName1 = "{\"chatRoom\": \"sync-test\"}"
+let streamName2 = ""
 
-let serverURL = localStorage.getItem("synchronize-serverURL") || ""
-const messages = []
+let serverURL1 = localStorage.getItem("synchronize-serverURL1") || ""
+let serverURL2 = localStorage.getItem("synchronize-serverURL2") || ""
+
+const messages1 = []
+const messages2 = []
 
 // filterText is split into tags by spaces and used to filter by a logical "and" to include displayed items
 let filterText = ""
@@ -23,66 +27,85 @@ let filterText = ""
 // hideText is split into tags by spaces and used to filter by a logical "OR" to hide displayed items
 let hideText = ""
 
-let messagesDiv = null
+let messagesDiv1 = null
+let messagesDiv2 = null
 
 function startup() {
-    streamName = HashUtils.getHashParams()["stream"] || streamName
+    streamName1 = HashUtils.getHashParams()["stream"] || streamName1
     window.onhashchange = () => updateStreamNameFromHash()
     updateHashForStreamName()
 }
 
 function updateTitleForStreamName() {
-    document.title = streamName.replace(/[{}":]/g, "") + " -- Twirlip7 Synchronizer"
+    document.title = streamName1.replace(/[{}":]/g, "") + " -- Twirlip7 Synchronizer"
 }
 
 function updateStreamNameFromHash() {
     const hashParams = HashUtils.getHashParams()
     console.log("updateStreamNameFromHash", hashParams)
     const newStreamName = hashParams["stream"]
-    if (newStreamName !== streamName) {
-        streamName = newStreamName
+    if (newStreamName !== streamName1) {
+        streamName1 = newStreamName
         resetMessagesForStreamNameChange()
         updateTitleForStreamName()
         if (!isTextValidJSON(newStreamName)) {
             console.log("invalid JSON stream name in hash", newStreamName)
             return
         }
-        backend.configure(JSON.parse(streamName))
+        backend1.configure(JSON.parse(streamName1))
     }
 }
 
 function updateHashForStreamName() {
     const hashParams = HashUtils.getHashParams()
-    hashParams["stream"] = streamName
+    hashParams["stream"] = streamName1
     HashUtils.setHashParams(hashParams)
     updateTitleForStreamName()
 }
 
-function streamNameChange(event) {
+function streamNameChange1(event) {
     resetMessagesForStreamNameChange()
-    streamName = event.target.value
+    streamName1 = event.target.value
     updateHashForStreamName()
-    if (!isTextValidJSON(streamName)) {
-        console.log("invalid JSON stream name in hash", streamName)
+    if (!isTextValidJSON(streamName1)) {
+        console.log("invalid JSON stream name in hash", streamName1)
         return
     }
-    backend.configure(JSON.parse(streamName))
+    backend1.configure(JSON.parse(streamName1))
+}
+
+function streamNameChange2(event) {
+    resetMessagesForStreamNameChange()
+    streamName2 = event.target.value
+    updateHashForStreamName()
+    if (streamName2 && !isTextValidJSON(streamName2)) {
+        console.log("invalid JSON stream name in hash", streamName2)
+        return
+    }
+    backend2.configure(JSON.parse(streamName2 || streamName1))
 }
 
 function resetMessagesForStreamNameChange() {
-    messages.splice(0)
+    messages1.splice(0)
+    messages2.splice(0)
 }
 
-function serverURLChange(event) {
-    serverURL = event.target.value
+function serverURLChange1(event) {
+    serverURL1 = event.target.value
     // backend.configure(undefined, serverURL)
-    localStorage.setItem("synchronize-serverURL", serverURL)
+    localStorage.setItem("synchronize-serverURL1", serverURL1)
+}
+
+function serverURLChange2(event) {
+    serverURL2 = event.target.value
+    // backend.configure(undefined, serverURL)
+    localStorage.setItem("synchronize-serverURL2", serverURL2)
 }
 
 function sendMessage(message) {
     // Call addItem after a delay to give socket.io a chance to reconnect
     // as socket.io will timeout if a prompt (or alert?) is up for very long
-    setTimeout(() => backend.addItem(message), 10)
+    setTimeout(() => backend1.addItem(message), 10)
 }
 
 function hasFilterText(message) {
@@ -121,12 +144,12 @@ function isTextValidJSON(text) {
 function exportStreamAsJSONClicked() {
     const messagesToExport = []
 
-    messages.forEach(function (message, index) {
+    messages1.forEach(function (message, index) {
         if (!hasFilterText(message)) return
         messagesToExport.push(message)
     })
 
-    FileUtils.saveToFile(streamName + " " + new Date().toISOString(), JSON.stringify(messagesToExport, null, 4), ".json")
+    FileUtils.saveToFile(streamName1 + " " + new Date().toISOString(), JSON.stringify(messagesToExport, null, 4), ".json")
 }
 
 function importStreamFromJSONClicked() {
@@ -138,44 +161,66 @@ function importStreamFromJSONClicked() {
     })
 }
 
+function viewMessageList(messages) {
+    return m("div",
+        {
+            oncreate: (vnode) => {
+                // TODO: Improve brittle way to save node for scrolling
+                if (messages === messages1) {
+                    messagesDiv1 = (vnode.dom)
+                } else {
+                    messagesDiv2 = (vnode.dom)
+                }
+            },
+        },
+        messages.map(function (message, index) {
+            if (!hasFilterText(message)) return []
+            return m("div", [
+                m("hr.b--light-gray"),
+                m("div", "#" + index),
+                m("pre", JSON.stringify(message, null, 4))
+            ])
+        })
+    )
+}
+
 const TwirlipSynchronizer = {
     view: function () {
         return m("div.pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
             m("h4.tc", "Twirlip Synchronizer"),
             m("div.mb3.center",
                 m("div",
-                    m("span.dib.tr.w3", "Server"),
-                    m("input.ml2.pl2", {style: "width: 30rem", value: serverURL, onchange: serverURLChange, title: "The remote server URL"})
+                    m("span.dib.tr.w3", "Server A"),
+                    m("input.ml2.pl2", {style: "width: 30rem", value: serverURL1, onchange: serverURLChange1, title: "The first server URL"}),
+                    m("span.dib.tr.w3.ml3", "Server B"),
+                    m("input.ml2.pl2", {style: "width: 30rem", value: serverURL2, onchange: serverURLChange2, title: "The second server URL; leave blank for the one you are on"})
                 ),
                 m("div.mt1",
-                    m("span.dib.tr.w3", "Stream"),
-                    m("input.ml2.pl2" + (!isTextValidJSON(streamName) ? ".orange" : ""), {style: "width: 30rem", value: streamName, onchange: streamNameChange})
+                    m("span.dib.tr.w3", "Stream A"),
+                    m("input.ml2.pl2" + (!isTextValidJSON(streamName1) ? ".orange" : ""), {style: "width: 30rem", value: streamName1, onchange: streamNameChange1}),
+                    m("span.dib.tr.w3.ml3", "Stream B"),
+                    m("input.ml2.pl2" + (!isTextValidJSON(streamName2) ? ".orange" : ""), {style: "width: 30rem", value: streamName2, onchange: streamNameChange2, title: "The same as Stream A if left blank"})
                 ),
                 m("div.mt3",
-                    m("span.dib.tr.w3" + (filterText ? ".green" : ""), "Show"),
-                    m("input.ml2" + (filterText ? ".green" : ""), {value: filterText, oninput: (event) => { filterText = event.target.value; scrollToBottomLater() }, title: "Only display messages with all entered words"}),
-                    m("span.dib.tr.w3" + (hideText ? ".orange" : ""), "Hide"),
-                    m("input.ml2" + (hideText ? ".orange" : ""), {value: hideText, oninput: (event) => { hideText = event.target.value; scrollToBottomLater() }, title: "Hide messages with any entered words"}),
-                ),
+                    m("div.ma3.center.w-60",
+                        m("span.dib.tr.w3" + (filterText ? ".green" : ""), "Show"),
+                        m("input.ml2.w5" + (filterText ? ".green" : ""), {value: filterText, oninput: (event) => { filterText = event.target.value; scrollToBottomLater() }, title: "Only display messages with all entered words"}),
+                        m("span.dib.tr.w3" + (hideText ? ".orange" : ""), "Hide"),
+                        m("input.ml2.w5" + (hideText ? ".orange" : ""), {value: hideText, oninput: (event) => { hideText = event.target.value; scrollToBottomLater() }, title: "Hide messages with any entered words"}),
+                    )
+                )
             ),
-            m("div.overflow-auto.flex-auto",
-                {
-                    oncreate: (vnode) => {
-                        messagesDiv = (vnode.dom)
-                    },
-                },
-                messages.map(function (message, index) {
-                    if (!hasFilterText(message)) return []
-                    return m("div", [
-                        m("hr.b--light-gray"),
-                        m("div", "#" + index),
-                        m("pre", JSON.stringify(message, null, 4))
-                    ])
-                })
+            m("div.overflow-auto.flex-auto.cf",
+                m("div.fl.w-50.ba.overflow-hidden",
+                    viewMessageList(messages1)
+                ),
+                m("div.fl.w-50.ba.overflow-hidden",
+                    viewMessageList(messages2)
+                )
             ),
             m("div",
-                m("button.ml2.mt2", {onclick: exportStreamAsJSONClicked, title: "Export stream as JSON"}, "Export JSON..."),
-                m("button.ml2.mt2", {onclick: importStreamFromJSONClicked, title: "Import stream from JSON"}, "Import JSON..."),                 
+                m("button.ml2.mt2", {onclick: exportStreamAsJSONClicked, title: "Export stream A as JSON"}, "Export JSON..."),
+                m("button.ml2.mt2", {onclick: importStreamFromJSONClicked, title: "Import stream A from JSON"}, "Import JSON..."),                 
             ),
         ])
     }
@@ -186,11 +231,12 @@ let isLoaded = false
 function scrollToBottomLater() {
     setTimeout(() => {
         // Scroll to bottom when loaded everything
-        if (messagesDiv) messagesDiv.scrollTop = messagesDiv.scrollHeight + 10000
+        if (messagesDiv1) messagesDiv1.scrollTop = messagesDiv1.scrollHeight + 10000
+        if (messagesDiv2) messagesDiv2.scrollTop = messagesDiv2.scrollHeight + 10000
     }, 0)
 }
 
-const streamNameResponder = {
+const streamNameResponder1 = {
     onLoaded: () => {
         isLoaded = true
         console.log("onLoaded")
@@ -198,35 +244,71 @@ const streamNameResponder = {
     },
     addItem: (item, isAlreadyStored) => {
         // console.log("addItem", item)
-        messages.push(item)
+        messages1.push(item)
         const itemIsNotFiltered = hasFilterText(item)
         if (isLoaded) {
             // Only scroll if scroll is already near bottom and not filtering to avoid messing up browsing previous items
-            if (itemIsNotFiltered && messagesDiv && (messagesDiv.scrollTop >= (messagesDiv.scrollHeight - messagesDiv.clientHeight - 300))) {
+            if (itemIsNotFiltered && messagesDiv1 && (messagesDiv1.scrollTop >= (messagesDiv1.scrollHeight - messagesDiv1.clientHeight - 300))) {
                 setTimeout(() => {
                     // Add some because height may not include new item
-                    messagesDiv.scrollTop = messagesDiv.scrollHeight + 10000
+                    messagesDiv1.scrollTop = messagesDiv1.scrollHeight + 10000
+                }, 100)
+            }
+        }
+    }
+}
+const streamNameResponder2 = {
+    onLoaded: () => {
+        isLoaded = true
+        console.log("onLoaded")
+        scrollToBottomLater()
+    },
+    addItem: (item, isAlreadyStored) => {
+        // console.log("addItem", item)
+        messages2.push(item)
+        const itemIsNotFiltered = hasFilterText(item)
+        if (isLoaded) {
+            // Only scroll if scroll is already near bottom and not filtering to avoid messing up browsing previous items
+            if (itemIsNotFiltered && messagesDiv2 && (messagesDiv2.scrollTop >= (messagesDiv2.scrollHeight - messagesDiv2.clientHeight - 300))) {
+                setTimeout(() => {
+                    // Add some because height may not include new item
+                    messagesDiv2.scrollTop = messagesDiv2.scrollHeight + 10000
                 }, 100)
             }
         }
     }
 }
 
+
 startup()
 
 let initialObject = {}
 try {
-    initialObject = JSON.parse(streamName)
+    initialObject = JSON.parse(streamName1)
 } catch (e) {
-    console.log("not valid JSON for hash", streamName)
+    console.log("not valid JSON for hash", streamName1)
 }
-const backend = StreamBackendUsingServer(m.redraw, initialObject, undefined, serverURL)
+const backend1 = StreamBackendUsingServer(m.redraw, initialObject, undefined, serverURL1)
 
-backend.connect(streamNameResponder)
+backend1.connect(streamNameResponder1)
 try {
-    backend.setup(io)
+    backend1.setup(io)
 } catch(e) {
-    alert("This Monitor app requires a backend server supporting socket.io (i.e. won't work correctly on rawgit)")
+    alert("This Synchronizer app requires a backend server supporting socket.io (i.e. won't work correctly on rawgit)")
+}
+
+try {
+    initialObject = JSON.parse(streamName2 || streamName1)
+} catch (e) {
+    console.log("not valid JSON for hash", streamName1)
+}
+const backend2 = StreamBackendUsingServer(m.redraw, initialObject, undefined, serverURL2)
+
+backend2.connect(streamNameResponder2)
+try {
+    backend2.setup(io)
+} catch(e) {
+    // alert("This Synchronizer app requires a backend server supporting socket.io (i.e. won't work correctly on rawgit)")
 }
 
 m.mount(document.body, TwirlipSynchronizer)
