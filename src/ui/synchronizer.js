@@ -46,7 +46,7 @@ function updateStreamNameFromHash() {
     const newStreamName = hashParams["stream"]
     if (newStreamName !== streamName1) {
         streamName1 = newStreamName
-        resetMessagesForStreamNameChange()
+        resetMessagesForStreamNameChange1()
         updateTitleForStreamName()
         if (!isTextValidJSON(newStreamName)) {
             console.log("invalid JSON stream name in hash", newStreamName)
@@ -64,7 +64,7 @@ function updateHashForStreamName() {
 }
 
 function streamNameChange1(event) {
-    resetMessagesForStreamNameChange()
+    resetMessagesForStreamNameChange1()
     streamName1 = event.target.value
     updateHashForStreamName()
     if (!isTextValidJSON(streamName1)) {
@@ -75,7 +75,7 @@ function streamNameChange1(event) {
 }
 
 function streamNameChange2(event) {
-    resetMessagesForStreamNameChange()
+    resetMessagesForStreamNameChange2()
     streamName2 = event.target.value
     updateHashForStreamName()
     if (streamName2 && !isTextValidJSON(streamName2)) {
@@ -85,8 +85,11 @@ function streamNameChange2(event) {
     backend2.configure(JSON.parse(streamName2 || streamName1))
 }
 
-function resetMessagesForStreamNameChange() {
+function resetMessagesForStreamNameChange1() {
     messages1.splice(0)
+}
+
+function resetMessagesForStreamNameChange2() {
     messages2.splice(0)
 }
 
