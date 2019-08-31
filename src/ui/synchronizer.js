@@ -75,12 +75,16 @@ function streamNameChange1(event) {
         return
     }
     backend1.configure(JSON.parse(streamName1))
+    if (!streamName2) {
+        resetMessagesForStreamNameChange2()
+        backend2.configure(JSON.parse(streamName1))
+    }
 }
 
 function streamNameChange2(event) {
     resetMessagesForStreamNameChange2()
     streamName2 = event.target.value
-    updateHashForStreamName()
+    // updateHashForStreamName()
     if (streamName2 && !isTextValidJSON(streamName2)) {
         console.log("invalid JSON stream name in hash", streamName2)
         return
