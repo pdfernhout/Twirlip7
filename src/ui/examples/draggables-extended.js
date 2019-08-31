@@ -34,5 +34,5 @@ Twirlip7.show(() => {
             },
             onclick: () => alert("Hello from draggable #" + number)
         }, "Drag me! " + number))
-      )
+    )
 }, ".bg-blue.br4")

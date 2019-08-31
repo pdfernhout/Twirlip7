@@ -1,3 +1,4 @@
+/* eslint-disable quotes */
 // HTML dragging example better -- works in Firefox but has an offset issue with Chrome
 
 const draggables = { 
@@ -46,5 +47,5 @@ Twirlip7.show(() => {
                     action(context)
             }: (() => undefined)
         }, draggables[number].name || ("Drag me! " + number)))
-      )
+    )
 }, ".bg-blue.br4")

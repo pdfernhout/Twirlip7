@@ -11,7 +11,7 @@ function onmousedownCircle(event) {
 }
 
 function onmousemoveCircle(event) {
-    if (draggedItem) { 
+    if (draggedItem) {
         const dx = event.clientX - dragStart.x
         const dy = event.clientY - dragStart.y
         const newX = objectStart.x + dx
@@ -31,36 +31,36 @@ Twirlip7.show(() => {
         height: 200,
         onmousemove: onmousemoveCircle,
         onmouseup: onmouseupCircle,
-    },
+    }, [
         m("rect[height='200'][width='600'][x='0'][y='0']", {
-            style: {"stroke": "black", "fill": "none", "stroke-width": "1"},
+            style: { "stroke": "black", "fill": "none", "stroke-width": "1" },
         }),
         m("circle", {
-            cx: 100, 
-            cy: 100, 
-            r: 50, 
-            stroke: "green", 
-            "stroke-width": 4, 
+            cx: 100,
+            cy: 100,
+            r: 50,
+            stroke: "green",
+            "stroke-width": 4,
             fill: "orange",
             onmousedown: onmousedownCircle,
         }),
         m("circle", {
-            cx: 200, 
-            cy: 100, 
-            r: 40, 
-            stroke: "blue", 
-            "stroke-width": 2, 
+            cx: 200,
+            cy: 100,
+            r: 40,
+            stroke: "blue",
+            "stroke-width": 2,
             fill: "yellow",
             onmousedown: onmousedownCircle,
         }),
         m("circle", {
-            cx: 400, 
-            cy: 100, 
-            r: 60, 
-            stroke: "orange", 
-            "stroke-width": 7, 
+            cx: 400,
+            cy: 100,
+            r: 60,
+            stroke: "orange",
+            "stroke-width": 7,
             fill: "green",
             onmousedown: onmousedownCircle,
         })
-    )
+    ])
 })

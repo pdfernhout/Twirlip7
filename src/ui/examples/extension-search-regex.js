@@ -10,7 +10,7 @@ let matchRegex = false
 let matchWordBoundary = false
 
 function escapeRegExp(str) {
-    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&")
+    return str.replace(/[-[\]/{}()*+?.\\^$|]/g, "\\$&")
 }
 
 function getValueForItem(item) {
