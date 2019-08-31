@@ -1,4 +1,3 @@
-/* global marked, Push, sha256 */
 /* eslint-disable no-console */
 
 "use strict"
