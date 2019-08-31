@@ -14,7 +14,6 @@ import "./vendor/mithril.js"
 
 let streamName = "{\"chatRoom\": \"sync-test\"}"
 let userID = localStorage.getItem("userID") || "anonymous"
-let newMessageJSONText = ""
 const messages = []
 
 // filterText is split into tags by spaces and used to filter by a logical "and" to include displayed items
@@ -24,8 +23,6 @@ let filterText = ""
 let hideText = ""
 
 let messagesDiv = null
-
-let showEntryArea = false
 
 function startup() {
     streamName = HashUtils.getHashParams()["stream"] || streamName
@@ -81,48 +78,10 @@ function userIDChange(event) {
     localStorage.setItem("userID", userID)
 }
 
-function newMessageJSONTextChange(event) {
-    newMessageJSONText = event.target.value
-}
-
-function sendStreamMessage() {
-
-    const newMessage = JSON.parse(newMessageJSONText)
-
-    sendMessage(newMessage)
-    // newMessageJSONText = ""
-    if (!hasFilterText(newMessage)) {
-        setTimeout(() => alert("The message you just added is currently\nnot displayed due to show/hide filtering."))
-        /*
-        filterText = ""
-        hideText = "
-        */
-    }
-    setTimeout(() => {
-        // Scroll to bottom always when sending -- but defer it just in case was filtering
-        if (messagesDiv) {
-            messagesDiv.scrollTop = messagesDiv.scrollHeight
-        }
-    }, 0)
-}
-
 function sendMessage(message) {
     // Call addItem after a delay to give socket.io a chance to reconnect
     // as socket.io will timeout if a prompt (or alert?) is up for very long
     setTimeout(() => backend.addItem(message), 10)
-}
-
-function sendIfCtrlEnter(event, text, callbackToSendMessage) {
-    if (isTextValidJSONObject(newMessageJSONText) && text.trim() && event.key === "Enter" && event.ctrlKey ) {
-        callbackToSendMessage()
-        return false
-    }
-    event.redraw = false
-    return true
-}
-
-function textAreaKeyDown(event) {
-    return sendIfCtrlEnter(event, newMessageJSONText, sendStreamMessage)
 }
 
 function hasFilterText(message) {
@@ -158,11 +117,6 @@ function isTextValidJSON(text) {
     }
 }
 
-function isTextValidJSONObject(text) {
-    if (text[0] !== "{") return false
-    return isTextValidJSON(text)
-}
-
 function exportStreamAsJSONClicked() {
     const messagesToExport = []
 
@@ -183,7 +137,7 @@ function importStreamFromJSONClicked() {
     })
 }
 
-const TwirlipMonitor = {
+const TwirlipSynchronizer = {
     view: function () {
         return m("div.pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
             m("h4.tc", "Twirlip Synchronizer"),
@@ -215,20 +169,9 @@ const TwirlipMonitor = {
                 })
             ),
             m("div",
-                m("span.ml2",  { title: "Show entry area" },
-                    m("input[type=checkbox].ma1", { checked: showEntryArea, onchange: (event) => showEntryArea = event.target.checked }),
-                    "entry area"
-                ),
-                showEntryArea && m("div.dib",
-                    m("button.ml2.mt2", {onclick: sendStreamMessage, disabled: !isTextValidJSONObject(newMessageJSONText)}, "Send (ctrl-enter)"),
-                    m("span.ml2", "Enter a valid JSON object {...} below:"),
-                    m("button.ml2.mt2", {onclick: exportStreamAsJSONClicked, title: "Export stream as JSON"}, "Export JSON..."),
-                    m("button.ml2.mt2", {onclick: importStreamFromJSONClicked, title: "Import stream from JSON"}, "Import JSON..."),
-                )                    
+                m("button.ml2.mt2", {onclick: exportStreamAsJSONClicked, title: "Export stream as JSON"}, "Export JSON..."),
+                m("button.ml2.mt2", {onclick: importStreamFromJSONClicked, title: "Import stream from JSON"}, "Import JSON..."),                 
             ),
-            showEntryArea && m("div.pb1.f4",
-                m("textarea.h4.w-80.ma1.ml3", {value: newMessageJSONText, oninput: newMessageJSONTextChange, onkeydown: textAreaKeyDown}),
-            )
         ])
     }
 }
@@ -281,4 +224,4 @@ try {
     alert("This Monitor app requires a backend server supporting socket.io (i.e. won't work correctly on rawgit)")
 }
 
-m.mount(document.body, TwirlipMonitor)
+m.mount(document.body, TwirlipSynchronizer)
