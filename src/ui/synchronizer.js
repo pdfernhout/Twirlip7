@@ -220,7 +220,7 @@ try {
 } catch (e) {
     console.log("not valid JSON for hash", streamName)
 }
-const backend = StreamBackendUsingServer(m.redraw, initialObject)
+const backend = StreamBackendUsingServer(m.redraw, initialObject, undefined, serverURL)
 
 backend.connect(streamNameResponder)
 try {

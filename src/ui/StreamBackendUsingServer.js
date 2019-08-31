@@ -1,7 +1,7 @@
 "use strict"
 
 // returns position + 1 for item reference to avoid first item being "0"
-export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", userId = "anonymous") {
+export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", userId = "anonymous", serverURL = "") {
     let socket = null
     let messagesReceivedCount = 0
     let responder = null
@@ -50,7 +50,7 @@ export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", u
     function setup(io) {
         console.log("setup", streamId, io)
         // TODO: Concern: Want to get all messages, but new messages may be added while waiting
-        socket = io()
+        socket = io(serverURL)
 
         socket.on("twirlip", function(message) {
             // console.log("twirlip", message)
