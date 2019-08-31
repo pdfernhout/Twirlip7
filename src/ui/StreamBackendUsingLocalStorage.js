@@ -1,5 +1,5 @@
 "use strict"
-/* global localStorage, sha256 */
+/* global sha256 */
 
 // import sha256 from "./vendor/sha256.js"
 
