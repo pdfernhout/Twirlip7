@@ -30,6 +30,9 @@ let hideText = ""
 let messagesDiv1 = null
 let messagesDiv2 = null
 
+let messageToShow = null
+let messageLabel = ""
+
 function startup() {
     streamName1 = HashUtils.getHashParams()["stream"] || streamName1
     window.onhashchange = () => updateStreamNameFromHash()
@@ -180,7 +183,10 @@ function viewMessageList(messages) {
             if (!hasFilterText(message)) return []
             return m("div", [
                 m("hr.b--light-gray"),
-                m("div", "#" + index),
+                m("div", "#" + index, m("button.ml2", {onclick: () => {
+                    messageToShow = message
+                    messageLabel = (messages === messages1 ? "A" : "B") + "#" + index
+                }}, "Show")),
                 m("pre", JSON.stringify(message, null, 4))
             ])
         })
@@ -213,7 +219,11 @@ const TwirlipSynchronizer = {
                     )
                 )
             ),
-            m("div.overflow-auto.flex-auto.cf",
+            m("div.overflow-auto.flex-auto.cf" + (messageToShow ? "" : ".dn"), 
+                m("div", messageLabel, m("button.ml2", {onclick: () => messageToShow = null}, "Close X"),),
+                m("pre", { style: "white-space: pre-wrap"}, JSON.stringify(messageToShow, null, 4))
+            ),
+            m("div.overflow-auto.flex-auto.cf" + (!messageToShow ? "" : ".dn"),
                 m("div.fl.w-50.ba.overflow-hidden",
                     viewMessageList(messages1)
                 ),
