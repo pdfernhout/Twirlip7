@@ -1,10 +1,8 @@
 "use strict"
 
-/* global location, ace, io */
+/* global ace */
 
 // Assumes ace is imported from script tag with noconflict version
-
-// Assumes io is imported from socket.io
 
 // Mithril only needs to be imported once in the application as it sets a global "m"
 import "./vendor/mithril.js"
@@ -147,8 +145,6 @@ function setupTwirlip7Global() {
 }
 
 function startLoadingFromServer() {
-    // Try to load socket.io, which may fail
-    // requirejs(["/socket.io/socket.io.js"], function(io) {
     NotebookUsingServer.setOnLoadedCallback(function() {
         // assuming callback will always be done before get here to go to initialKeyToGoTo
         if (launchItem) {
@@ -163,19 +159,7 @@ function startLoadingFromServer() {
         }
     })
     console.log("about to setup link to server", new Date().toISOString())
-    NotebookUsingServer.setup(io)
-    /*
-    }).catch(error => {
-        console.log("No socket.io available -- server function disabled")
-        callback()
-        m.redraw()
-    })
-    */
-    /*
-    callback()
-    m.redraw()
-    */
-
+    NotebookUsingServer.setup()
 }
 
 function runStartupItem(itemId) {

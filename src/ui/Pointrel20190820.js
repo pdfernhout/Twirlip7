@@ -1,6 +1,4 @@
-/* global io, sha256 */
-
-// Assumes socket.io loaded from script tag to define io
+/* global sha256 */
 
 import { StreamBackendUsingServer } from "./StreamBackendUsingServer.js"
 
@@ -262,7 +260,7 @@ export class Pointrel20190820 {
             })
             try {
                 console.log("backend setup start")
-                this.backend.setup(io)
+                this.backend.setup()
             } catch(e) {
                 alert("This app requires a backend server supporting socket.io (i.e. won't work correctly on rawgit)")
                 reject(e)

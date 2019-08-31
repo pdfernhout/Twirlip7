@@ -1,9 +1,7 @@
-/* global io, marked, Push, sha256 */
+/* global marked, Push, sha256 */
 /* eslint-disable no-console */
 
 "use strict"
-
-// Assumes socket.io loaded from script tag to define io
 
 import { StreamBackendUsingServer } from "./StreamBackendUsingServer.js"
 import { HashUtils } from "./HashUtils.js"
@@ -276,7 +274,7 @@ const backend = StreamBackendUsingServer(m.redraw, initialObject, userID)
 
 backend.connect(streamNameResponder)
 try {
-    backend.setup(io)
+    backend.setup()
 } catch(e) {
     alert("This Monitor app requires a backend server supporting socket.io (i.e. won't work correctly on rawgit)")
 }

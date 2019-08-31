@@ -50,7 +50,7 @@ Resources must have been created with a specific format. The resource files must
 
             const upload = StreamBackendUsingServer(m.redraw, {sha256: null}, userID)
             upload.connect(uploadResponder)
-            upload.setup(io)
+            upload.setup()
             */
 
             function chunkSubstr(str, size) {
@@ -166,8 +166,8 @@ See StreamBackendUsingServer.js for API details:
         if (redrawCallback) redrawCallback()
     }
 
-    function setup(io) {
-        console.log("setup", io)
+    function setup() {
+        console.log("setup")
         // TODO: Concern: Want to get all messages, but new messages may be added while waiting
         socket = io()
 

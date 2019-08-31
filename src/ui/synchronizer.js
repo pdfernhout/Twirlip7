@@ -1,9 +1,7 @@
-/* global io, marked, Push, sha256 */
+/* global marked, Push, sha256 */
 /* eslint-disable no-console */
 
 "use strict"
-
-// Assumes socket.io loaded from script tag to define io
 
 import { StreamBackendUsingServer } from "./StreamBackendUsingServer.js"
 import { HashUtils } from "./HashUtils.js"
@@ -309,7 +307,7 @@ const backend1 = StreamBackendUsingServer(m.redraw, initialObject, undefined, se
 
 backend1.connect(streamNameResponder1)
 try {
-    backend1.setup(io)
+    backend1.setup()
 } catch(e) {
     alert("This Synchronizer app requires a backend server supporting socket.io (i.e. won't work correctly on rawgit)")
 }
@@ -323,7 +321,7 @@ const backend2 = StreamBackendUsingServer(m.redraw, initialObject, undefined, se
 
 backend2.connect(streamNameResponder2)
 try {
-    backend2.setup(io)
+    backend2.setup()
 } catch(e) {
     // alert("This Synchronizer app requires a backend server supporting socket.io (i.e. won't work correctly on rawgit)")
 }

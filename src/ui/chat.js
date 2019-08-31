@@ -1,9 +1,7 @@
-/* global m, io, marked, Push, sha256 */
+/* global marked, Push, sha256 */
 /* eslint-disable no-console */
 
 "use strict"
-
-// Assumes socket.io loaded from script tag to define io
 
 import { StreamBackendUsingServer } from "./StreamBackendUsingServer.js"
 import { HashUtils } from "./HashUtils.js"
@@ -239,7 +237,7 @@ function uploadDocumentClicked() {
 
         const upload = StreamBackendUsingServer(m.redraw, {sha256: null}, userID)
         upload.connect(uploadResponder)
-        upload.setup(io)
+        upload.setup()
         */
 
         function chunkSubstr(str, size) {
@@ -480,7 +478,7 @@ const backend = StreamBackendUsingServer(m.redraw, {chatRoom}, userID)
 
 backend.connect(chatRoomResponder)
 try {
-    backend.setup(io)
+    backend.setup()
 } catch(e) {
     alert("This Chat app requires a backend server supporting socket.io (i.e. won't work correctly on rawgit)")
 }

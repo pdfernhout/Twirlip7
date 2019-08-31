@@ -142,8 +142,8 @@ export function Stream(store) {
         return newLocation
     }
 
-    function setup(io) {
-        if (store && store.setup) store.setup(io)
+    function setup() {
+        if (store && store.setup) store.setup()
     }
 
     function setOnLoadedCallback(callback) {

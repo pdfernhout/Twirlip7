@@ -109,11 +109,9 @@ After pasting, load it using "Update Diagram from JSON" button.
 **************************************/
 
 /* eslint-disable no-console */
-/* global CompendiumIcons, m, window, prompt, confirm, io */
+/* global CompendiumIcons */
 
 "use strict"
-
-// Assumes socket.io loaded from script tag to define io
 
 import { StreamBackendUsingServer } from "./StreamBackendUsingServer.js"
 import { HashUtils } from "./HashUtils.js"
@@ -800,7 +798,7 @@ const backend = StreamBackendUsingServer(m.redraw, {ibisDiagram: diagramUUID}, u
 
 backend.connect(diagramResponder)
 try {
-    backend.setup(io)
+    backend.setup()
 } catch(e) {
     alert("This IBIS app requires a backend server supporting socket.io (i.e. won't work correctly on rawgit)")
 }

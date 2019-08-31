@@ -1,5 +1,8 @@
 "use strict"
 
+// Assumes socket.io loaded from script tag to define io
+/* global io */
+
 // returns position + 1 for item reference to avoid first item being "0"
 export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", userId = "anonymous", serverURL = "") {
     let socket = null
@@ -47,8 +50,8 @@ export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", u
         if (redrawCallback) redrawCallback()
     }
 
-    function setup(io) {
-        console.log("setup", streamId, io)
+    function setup() {
+        console.log("setup", streamId)
         // TODO: Concern: Want to get all messages, but new messages may be added while waiting
         socket = io(serverURL)
 
