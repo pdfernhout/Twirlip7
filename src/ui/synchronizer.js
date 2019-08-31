@@ -9,6 +9,11 @@ import { FileUtils } from "./FileUtils.js"
 // defines m
 import "./vendor/mithril.js"
 
+// defines sha256
+import "./vendor/sha256.js"
+// eslint-disable-next-line no-undef
+const calculateSHA256 = sha256
+
 let streamName1 = "{\"chatRoom\": \"sync-test\"}"
 let streamName2 = ""
 
@@ -29,6 +34,27 @@ let messagesDiv2 = null
 
 let messageToShow = null
 let messageLabel = ""
+
+// TODO: This toast code was copied from the NotebookView and should ideally be made into a module
+const toastMessages = []
+function toast(message, delay) {
+    function removeToastAfterDelay() {
+        setTimeout(function() {
+            toastMessages.shift()
+            if ( toastMessages.length ) { removeToastAfterDelay() }
+            m.redraw()
+        }, toastMessages[0].delay)
+    }
+    if (delay === undefined) { delay = 3000 }
+    toastMessages.push({message, delay})
+    if ( toastMessages.length === 1) { removeToastAfterDelay() }
+}
+function viewToast() {
+    return m(".toastDiv.fixed.top-2.left-2.pa2.fieldset.bg-gold.pl3.pr3.tc.o-90.z-max",
+        { hidden: toastMessages.length === 0 },
+        toastMessages.length ? toastMessages[0].message : ""
+    )
+}
 
 function startup() {
     streamName1 = HashUtils.getHashParams()["stream"] || streamName1
@@ -168,6 +194,33 @@ function importStreamFromJSONClicked() {
     })
 }
 
+function synchronizeSourceToDestination(sourceMessages, destinationMessages, destinationBackend, directionLabel) {
+    const destSHAs = {}
+    let copiedCount = 0
+
+    destinationMessages.forEach(message => destSHAs[calculateSHA256(JSON.stringify(message))] = true) 
+    sourceMessages.forEach(message => {
+        const sha256 = calculateSHA256(JSON.stringify(message))
+        if (!destSHAs[sha256]) {
+            console.log("copying", sha256)
+            destinationBackend.addItem(message)
+            copiedCount++
+            destSHAs[sha256] = true
+        }
+    })
+    toast("Copied " + copiedCount + " message" + (copiedCount === 1 ? "" : "s") + " to " + directionLabel, 2000)
+}
+
+function synchronizeAToB() {
+    console.log("synchronizeAToB")
+    synchronizeSourceToDestination(messages1, messages2, backend2, "B")
+}
+
+function synchronizeBToA() {
+    console.log("synchronizeBToA")
+    synchronizeSourceToDestination(messages2, messages1, backend1, "A")
+}
+
 function viewMessageList(messages) {
     return m("div",
         {
@@ -197,6 +250,7 @@ function viewMessageList(messages) {
 const TwirlipSynchronizer = {
     view: function () {
         return m("div.pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
+            viewToast(),
             m("h4.tc", "Twirlip Synchronizer"),
             m("div.mb3.center",
                 m("div",
@@ -210,6 +264,14 @@ const TwirlipSynchronizer = {
                     m("input.ml2.pl2" + (!isTextValidJSON(streamName1) ? ".orange" : ""), {style: "width: 30rem", value: streamName1, onchange: streamNameChange1}),
                     m("span.dib.tr.w3.ml3", "Stream B"),
                     m("input.ml2.pl2" + (!isTextValidJSON(streamName2) ? ".orange" : ""), {style: "width: 30rem", value: streamName2, onchange: streamNameChange2, title: "The same as Stream A if left blank"})
+                ),
+                m("div.mt1.center.cf",
+                    m("div.w-50.fl",
+                        m("button.ml6", {onclick: synchronizeBToA}, "<= Synchronize B to A"),
+                    ),
+                    m("div.w-50.fl",
+                        m("button.ml6", {onclick: synchronizeAToB}, "=> Synchronize A to B"),
+                    ),
                 ),
                 m("div.mt3",
                     m("div.ma3.center.w-60",
