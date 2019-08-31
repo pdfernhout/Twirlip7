@@ -13,7 +13,8 @@ import { FileUtils } from "./FileUtils.js"
 import "./vendor/mithril.js"
 
 let streamName = "{\"chatRoom\": \"sync-test\"}"
-let userID = localStorage.getItem("userID") || "anonymous"
+
+let serverURL = localStorage.getItem("synchronize-serverURL") || ""
 const messages = []
 
 // filterText is split into tags by spaces and used to filter by a logical "and" to include displayed items
@@ -72,10 +73,10 @@ function resetMessagesForStreamNameChange() {
     messages.splice(0)
 }
 
-function userIDChange(event) {
-    userID = event.target.value
-    backend.configure(undefined, userID)
-    localStorage.setItem("userID", userID)
+function serverURLChange(event) {
+    serverURL = event.target.value
+    // backend.configure(undefined, serverURL)
+    localStorage.setItem("synchronize-serverURL", serverURL)
 }
 
 function sendMessage(message) {
@@ -141,15 +142,19 @@ const TwirlipSynchronizer = {
     view: function () {
         return m("div.pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
             m("h4.tc", "Twirlip Synchronizer"),
-            m("div.mb3",
-                m("span.dib.tr", "Stream:"),
-                m("input.ml2" + (!isTextValidJSON(streamName) ? ".orange" : ""), {style: "width: 30rem", value: streamName, onchange: streamNameChange}),
-                m("span.dib.tr.ml2", "User:"),
-                m("input.w4.ml2", {value: userID, onchange: userIDChange, title: "Your user id or handle"}),
-                m("div.dib",
-                    m("span.ml2" + (filterText ? ".green" : ""), "Show:"),
+            m("div.mb3.center",
+                m("div",
+                    m("span.dib.tr.w3", "Server:"),
+                    m("input.ml2.pl2", {style: "width: 30rem", value: serverURL, onchange: serverURLChange, title: "The remote server URL"})
+                ),
+                m("div.mt1",
+                    m("span.dib.tr.w3", "Stream:"),
+                    m("input.ml2.pl2" + (!isTextValidJSON(streamName) ? ".orange" : ""), {style: "width: 30rem", value: streamName, onchange: streamNameChange})
+                ),
+                m("div.mt3",
+                    m("span.dib.tr.w3" + (filterText ? ".green" : ""), "Show:"),
                     m("input.ml2" + (filterText ? ".green" : ""), {value: filterText, oninput: (event) => { filterText = event.target.value; scrollToBottomLater() }, title: "Only display messages with all entered words"}),
-                    m("span.ml2" + (hideText ? ".orange" : ""), "Hide:"),
+                    m("span.dib.tr.w3" + (hideText ? ".orange" : ""), "Hide:"),
                     m("input.ml2" + (hideText ? ".orange" : ""), {value: hideText, oninput: (event) => { hideText = event.target.value; scrollToBottomLater() }, title: "Hide messages with any entered words"}),
                 ),
             ),
@@ -197,7 +202,7 @@ const streamNameResponder = {
         const itemIsNotFiltered = hasFilterText(item)
         if (isLoaded) {
             // Only scroll if scroll is already near bottom and not filtering to avoid messing up browsing previous items
-            if (itemIsNotFiltered && messagesDiv && (item.userID === userID || messagesDiv.scrollTop >= (messagesDiv.scrollHeight - messagesDiv.clientHeight - 300))) {
+            if (itemIsNotFiltered && messagesDiv && (messagesDiv.scrollTop >= (messagesDiv.scrollHeight - messagesDiv.clientHeight - 300))) {
                 setTimeout(() => {
                     // Add some because height may not include new item
                     messagesDiv.scrollTop = messagesDiv.scrollHeight + 10000
@@ -215,7 +220,7 @@ try {
 } catch (e) {
     console.log("not valid JSON for hash", streamName)
 }
-const backend = StreamBackendUsingServer(m.redraw, initialObject, userID)
+const backend = StreamBackendUsingServer(m.redraw, initialObject)
 
 backend.connect(streamNameResponder)
 try {
