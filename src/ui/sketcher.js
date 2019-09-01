@@ -311,7 +311,7 @@ class Item {
     getBounds() {
         let bounds = JSON.parse(p.findC(this.uuid, "bounds") || "{}")
         if (!bounds || (!bounds.x1 && !bounds.y1 && !bounds.x2 && !bounds.y2)) {
-            bounds =  {x1: 0, y1: 0, x2: 20, y2: 20 }
+            bounds =  { x1: 0, y1: 0, x2: 20, y2: 20 }
         }
         return bounds
     }
@@ -640,7 +640,7 @@ function rectForGroupSelection() {
     }
 }
 
-function drawItems() {
+function drawItems(items, deltaForExport) {
     function compare(a, b) {
         const aLayer = a.getLayer()
         const bLayer = b.getLayer()
@@ -697,18 +697,17 @@ function drawItems() {
         return []
     }
 
-    const items = sketch.getItems()
     const sortedItems = items.sort(compare)
     const drawnItems = sortedItems.map((item) => {
         const isItemDragged = isDragging && wasMouseDownOnItemOrHandle && (isItemSelected(item) || (draggedHandle && draggedHandle.item.uuid === item.uuid))
-        return item.draw(isItemDragged ? dragDelta : null, isItemDragged && draggedHandle && draggedHandle.handleName)
+        return item.draw(isItemDragged ? dragDelta : deltaForExport, isItemDragged && draggedHandle && draggedHandle.handleName)
     })
 
     return [
         drawnItems,
-        drawSelections(),
-        drawGroupSelection(),
-        isScribbling ? drawPolylines(scribbleSegments) : []
+        !deltaForExport && drawSelections(),
+        !deltaForExport && drawGroupSelection(),
+        !deltaForExport && isScribbling ? drawPolylines(scribbleSegments) : []
     ]
 }
 
@@ -749,6 +748,51 @@ function exportSketchText() {
     const texts = items.map(item => "==== " + item.uuid + " ====\n" + textForItem(item))
     console.log("texts", texts.join("\n\n"))
     alert("Exported text to console")
+}
+
+function calculateBoundsForItems(items) {
+    if (!items.length) return {x1: 0, y1: 0, x2: 0, y2: 0}
+    const totalBounds = items[0].getBounds()
+    items.forEach(item => {
+        const itemBounds = item.getBounds()
+        // LInes can be reversed, so need to consider both extents
+        totalBounds.x1 = Math.min(totalBounds.x1, itemBounds.x1, itemBounds.x2)
+        totalBounds.y1 = Math.min(totalBounds.y1, itemBounds.y1, itemBounds.y2)
+        totalBounds.x2 = Math.max(totalBounds.x2, itemBounds.x1, itemBounds.x2)
+        totalBounds.y2 = Math.max(totalBounds.y2, itemBounds.y1, itemBounds.y2)
+    })
+    /* If wanted to have integert bounds
+    totalBounds.x1 = Math.floor(totalBounds.x1)
+    totalBounds.y1 = Math.floor(totalBounds.y1)
+    totalBounds.x2 = Math.ceil(totalBounds.x2)
+    totalBounds.y2 = Math.ceil(totalBounds.y2)
+    */
+    return totalBounds
+}
+
+// From: https://stackoverflow.com/questions/31593297/using-execcommand-javascript-to-copy-hidden-text-to-clipboard#
+function setClipboard(value) {
+    var tempInput = document.createElement("input")
+    tempInput.style = "position: absolute; left: -1000px; top: -1000px"
+    tempInput.value = value
+    document.body.appendChild(tempInput)
+    tempInput.select()
+    document.execCommand("copy")
+    document.body.removeChild(tempInput)
+}
+
+function copySVG() {
+    if (selectedItems.length === 0) return alert("nothing selected")
+    const boundsForSelected = calculateBoundsForItems(selectedItems)
+    const deltaForExport = { x: -boundsForSelected.x1, y: -boundsForSelected.y1 }
+    const itemContent = drawItems(selectedItems, deltaForExport)
+    const temporaryNode = document.createElement("svg")
+    temporaryNode.setAttribute("width", Math.ceil(boundsForSelected.x2 - boundsForSelected.x1))
+    temporaryNode.setAttribute("height", Math.ceil(boundsForSelected.y2 - boundsForSelected.y1))
+    m.render(temporaryNode, itemContent)
+    const svgAsText = temporaryNode.outerHTML
+    // console.log(svgAsText)
+    setClipboard(svgAsText)
 }
 
 function displaySelectedItemProperties() {
@@ -800,6 +844,7 @@ function displayActions() {
         m("button.ml1", { onclick: lowerItem }, "Lower"),
         m("button.ml3", { onclick: deleteItem }, "Delete"),
         m("button.ml3", { onclick: exportSketchText }, "Export Text"),
+        m("button.ml3", { onclick: copySVG, title: "Copy selected SVG into clipboard"}, "Copy SVG"),
     ])
 }
 
@@ -873,7 +918,7 @@ function displaySketch() {
                     height: extent.height,
                     style: { fill: "none", stroke: isScribbling ? "#33FFFF" : "#006600" } 
                 }),
-                drawItems()
+                drawItems(sketch.getItems())
             )
         ),
         displaySelectedItemProperties()
