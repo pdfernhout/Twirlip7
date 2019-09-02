@@ -9,6 +9,7 @@ import { HashUtils } from "./HashUtils.js"
 import "./vendor/mithril.js"
 
 const ephemeralStreamPrefix = "__EPHEMERAL:"
+const timeslice_ms = 100
 
 let streamNameSuffix = "test"
 let userID = localStorage.getItem("userID") || "anonymous"
@@ -66,6 +67,92 @@ function sendMessage(message) {
     backend.addItem(message)
 }
 
+let mediaRecorder
+
+function setup() {
+    if (!navigator.mediaDevices) {
+        alert("media not supported in this browser")
+        return
+    }
+    
+    const constraints = { audio: true }
+    return navigator.mediaDevices.getUserMedia(constraints).then(stream => {
+        mediaRecorder = new MediaRecorder(stream)
+        mediaRecorder.ondataavailable = onRecorderData
+        // mediaRecorder.onstop = onRecorderStop
+        console.log("state", mediaRecorder.state)
+        m.redraw()
+    }).catch(function(err) {
+        console.log("An error occurred: " + err)
+    })
+}
+
+function recordClick() {
+    mediaRecorder.start(timeslice_ms)
+    console.log("recorder started")
+    console.log("state", mediaRecorder.state)
+}
+
+function stopClick() {
+    mediaRecorder.stop()
+    console.log("recorder stopped")
+    console.log("state", mediaRecorder.state)
+}
+
+// from: https://stackoverflow.com/questions/9267899/arraybuffer-to-base64-encoded-string
+function arrayBufferToBase64( buffer ) {
+    var binary = ""
+    var bytes = new Uint8Array( buffer )
+    var len = bytes.byteLength
+    for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode( bytes[ i ] )
+    }
+    return window.btoa( binary )
+}
+
+// From: https://stackoverflow.com/questions/21797299/convert-base64-string-to-arraybuffer
+function base64ToArrayBuffer(base64) {
+    var binary_string =  window.atob(base64)
+    var len = binary_string.length
+    var bytes = new Uint8Array( len )
+    for (var i = 0; i < len; i++)        {
+        bytes[i] = binary_string.charCodeAt(i)
+    }
+    return bytes.buffer
+}
+
+async function onRecorderData(event) {
+    const timestamp = new Date().toISOString()
+    const buffer = await event.data.arrayBuffer()
+    const newMessage = { timestamp, userID, audioChunk: {
+        type: event.data.type,
+        size: event.data.size,
+        bytesBase64: arrayBufferToBase64(buffer)
+    }}
+    console.log(newMessage, event)
+    sendMessage(newMessage)
+    // m.redraw()
+}
+
+let audioURL
+
+// TODO: buffering
+// TODO: Mixing audio streams
+
+// const messagesToPlay = []
+
+function playMessage(message) {
+    const buffer = base64ToArrayBuffer(message.audioChunk.bytesBase64)
+    const chunk = Blob(buffer, {type: message.audioChunk.type})
+    const blob = new Blob([chunk], { "type" : "audio/ogg; codecs=opus" })
+    audioURL = URL.createObjectURL(blob)
+
+    const element = document.getElementById("audioPlayer")
+    element.stop()
+    element.src = audioURL
+    element.play()
+}
+
 const TwirlipIntercom = {
     view: function () {
         return m("div.pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
@@ -76,9 +163,18 @@ const TwirlipIntercom = {
                 m("span.dib.tr.ml2", "User:"),
                 m("input.w4.ml2", {value: userID, onchange: userIDChange, title: "Your user id or handle"}),
             ),
-            m("div",
-                m("button", {onclick: () => isRecording = !isRecording}, isRecording ? "Push to mute" : "Push to talk")
-            )
+            mediaRecorder && m("div",
+                m("audio#audioPlayer", {controls: false}),
+                m("button", {onclick: () => {
+                    isRecording = !isRecording
+                    if (isRecording) {
+                        recordClick()
+                    } else {
+                        stopClick()
+                    }
+                }}, isRecording ? "Push to mute" : "Push to talk")
+            ),
+            !mediaRecorder && "Starting up..."
         ])
     }
 }
@@ -88,12 +184,15 @@ const streamNameResponder = {
         console.log("onLoaded")
     },
     addItem: (item, isAlreadyStored) => {
-        // console.log("addItem", item)
-        messages.push(item)
+        console.log("addItem", item)
+        if (item.userID !== userID) playMessage(item)
+        // messagesToPlay.push(message)
+        // messages.push(item)
     }
 }
 
 startup()
+setup()
 
 const backend = StreamBackendUsingServer(m.redraw, ephemeralStreamPrefix + streamNameSuffix, userID)
 
