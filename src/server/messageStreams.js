@@ -4,6 +4,8 @@
 /* eslint-env node */
 /* jslint node: true */
 
+const ephemeralStreamPrefix = "__EPHEMERAL:"
+
 const SocketIOServer = require("socket.io")
 
 const log = require("./log")
@@ -36,10 +38,10 @@ function sendMessageToAllClients(message) {
     // log("sendMessageToAllClients", JSON.stringify(message));
     // io.emit("twirlip", message); // This would send to all clients -- even ones not listening on stream
     const key = storage.keyForStreamId(message.streamId)
-    const streams = streamToListenerMap[key]
-    if (streams) {
-        for (let clientId in streams) {
-            if (streams[clientId]) {
+    const listeners = streamToListenerMap[key]
+    if (listeners) {
+        for (let clientId in listeners) {
+            if (listeners[clientId]) {
                 sendMessageToClient(clientId, message)
             }
         }
@@ -67,7 +69,7 @@ function setListenerState(clientId, streamId, state) {
     let streams = listenerToStreamsMap[clientId]
     if (!streams) {
         streams = {}
-        listenerToStreamsMap[streamId] = streams
+        listenerToStreamsMap[clientId] = streams
     }
 
     if (state === undefined) {
@@ -104,6 +106,10 @@ function processMessage(clientId, message) {
     }
 }
 
+function isEphemeralStream(message) {
+    return (typeof message.streamId === "string" && message.streamId.startsWith(ephemeralStreamPrefix))
+}
+
 function listen(clientId, message) {
     // TODO Handle only sending some recent messages or no previous messages
     const streamId = message.streamId
@@ -114,6 +120,13 @@ function listen(clientId, message) {
     log("listen", clientId, streamId, fromIndex)
 
     setListenerState(clientId, streamId, "listening")
+
+    if (isEphemeralStream(message)) {
+        // don't save stream to file (typically for presence or voice chat)
+        log("emphemeral stream connect: " + message.streamId)
+        sendMessageToClient(clientId, {command: "loaded", streamId: streamId, messagesSentCount: 0})
+        return
+    }
 
     const fileName = storage.getStorageFileNameForMessage(message)
 
@@ -146,7 +159,11 @@ function unlisten(clientId, message) {
 function insert(clientId, message) {
     const streamId = message.streamId
     log("insert", clientId, streamId, message.item)
-    storage.storeMessage(message)
+    if (!isEphemeralStream(message)) {
+        storage.storeMessage(message)
+    } else {
+        // console.log("not storing ephemeral message for: ", message.streamId)
+    }
     sendMessageToAllClients(message)
 }
 
