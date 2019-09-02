@@ -12,12 +12,9 @@ const ephemeralStreamPrefix = "__EPHEMERAL:"
 
 let streamNameSuffix = "test"
 let userID = localStorage.getItem("userID") || "anonymous"
-let newMessageJSONText = ""
 const messages = []
 
-let messagesDiv = null
-
-let showEntryArea = false
+let isRecording = false
 
 function startup() {
     streamNameSuffix = HashUtils.getHashParams()["channel"] || streamNameSuffix
@@ -69,10 +66,10 @@ function sendMessage(message) {
     backend.addItem(message)
 }
 
-const TwirlipMonitor = {
+const TwirlipIntercom = {
     view: function () {
         return m("div.pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
-            // m("h4.tc", "Twirlip Intercom"),
+            m("h4", "Twirlip Intercom"),
             m("div.mb3",
                 m("span.dib.tr", "Stream:"),
                 m("input.ml2", {style: "width: 30rem", value: streamNameSuffix, onchange: streamNameChange}),
@@ -80,26 +77,15 @@ const TwirlipMonitor = {
                 m("input.w4.ml2", {value: userID, onchange: userIDChange, title: "Your user id or handle"}),
             ),
             m("div",
-                m("button", {onclick: () => alert("unfinished")}, "Push to talk")
+                m("button", {onclick: () => isRecording = !isRecording}, isRecording ? "Push to mute" : "Push to talk")
             )
         ])
     }
 }
 
-let isLoaded = false
-
-function scrollToBottomLater() {
-    setTimeout(() => {
-        // Scroll to bottom when loaded everything
-        if (messagesDiv) messagesDiv.scrollTop = messagesDiv.scrollHeight + 10000
-    }, 0)
-}
-
 const streamNameResponder = {
     onLoaded: () => {
-        isLoaded = true
         console.log("onLoaded")
-        scrollToBottomLater()
     },
     addItem: (item, isAlreadyStored) => {
         // console.log("addItem", item)
@@ -118,4 +104,4 @@ try {
     alert("This Intercom app requires a backend server supporting socket.io (i.e. won't work correctly on rawgit)")
 }
 
-m.mount(document.body, TwirlipMonitor)
+m.mount(document.body, TwirlipIntercom)
