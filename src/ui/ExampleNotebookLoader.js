@@ -9,13 +9,16 @@ export const ExampleNotebookLoader = {
     async loadFile(fileName) {
         const fullFileName = "examples/" + fileName
 
-        const fileContentsStream = await fetch(fullFileName)
-        return await fileContentsStream.text()
+        const response = await fetch(fullFileName)
+        const result = await response.text()
+        m.redraw()
+        return result
     },
 
     async loadAllFiles(progressCallback, doneCallback) {
-        const configFileContentsStream = await fetch("examples/" + exampleNotebookConfigurationFileName)
-        const configFileContents = await configFileContentsStream.text()
+        const response = await fetch("examples/" + exampleNotebookConfigurationFileName)
+        const configFileContents = await response.text()
+        m.redraw()
         // console.log("configFileContents", configFileContents)
         ExampleNotebookLoader.loader(configFileContents, progressCallback, doneCallback)
     },
@@ -41,7 +44,8 @@ export const ExampleNotebookLoader = {
 
         for (let i = 0; i < inputLines.length; i++) {
             const inputLine = inputLines[i]
-            progressCallback("Loading line " + (i + 1) + " of " + inputLines.length)
+            progressCallback("Processing example config file line " + (i + 1) + " of " + inputLines.length)
+            m.redraw()
             if (!inputLine) continue
             if (inputLine.startsWith("//")) continue
             if (inputLine.startsWith("{")) {
@@ -66,5 +70,6 @@ export const ExampleNotebookLoader = {
         }
 
         doneCallback(output)
+        m.redraw()
     }
 }
