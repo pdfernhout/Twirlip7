@@ -265,7 +265,16 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
 
     function setEditorContents(newContents, keepUndo) {
         isEditorContentsBeingSetByApplication = true
-        editor.setValue(newContents)
+        if (typeof newContents !== "string") {
+            console.error("setEditorContents: newContents should be a string", newContents)
+            newContents = ""
+        }
+        try {
+            editor.setValue(newContents)
+        } catch(e) {
+            console.log("setEditorContents: error for newContents", newContents)
+            console.log(e)
+        }
         isEditorContentsBeingSetByApplication = false
         editor.selection.clearSelection()
         editor.selection.moveCursorFileStart()
