@@ -6,21 +6,18 @@ const exampleNotebookConfigurationFileName = "_exampleNotebookConfiguration.txt"
 
 export const ExampleNotebookLoader = {
 
-    loadFile(fileName) {
+    async loadFile(fileName) {
         const fullFileName = "examples/" + fileName
 
-        return new Promise((resolve) => {
-            m.request({method: "GET", url: fullFileName, deserialize: value => value}).then(function (fileContents) {
-                resolve(fileContents)
-            })
-        })
+        const fileContentsStream = await fetch(fullFileName)
+        return await fileContentsStream.text()
     },
 
-    loadAllFiles(progressCallback, doneCallback) {
-        m.request({method: "GET", url: "examples/" + exampleNotebookConfigurationFileName, deserialize: value => value}).then(function (configFileContents) {
-            // console.log("configFileContents", configFileContents)
-            ExampleNotebookLoader.loader(configFileContents, progressCallback, doneCallback)
-        })
+    async loadAllFiles(progressCallback, doneCallback) {
+        const configFileContentsStream = await fetch("examples/" + exampleNotebookConfigurationFileName)
+        const configFileContents = await configFileContentsStream.text()
+        // console.log("configFileContents", configFileContents)
+        ExampleNotebookLoader.loader(configFileContents, progressCallback, doneCallback)
     },
 
     async loader(configFileContents, progressCallback, doneCallback) {
