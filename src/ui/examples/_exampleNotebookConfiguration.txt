@@ -116,6 +116,9 @@ notebook-adding.js
 ibis_icons.js
 ibis_application.js
 
+// Sound
+sound-recorder.js
+
 // Extending the editor
 {"entity": "Twirlip7 extensions"}
 extension-simple.js
