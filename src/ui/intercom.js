@@ -67,7 +67,7 @@ function sendMessage(message) {
     backend.addItem(message)
 }
 
-let mediaRecorder
+let mediaRecorder = "TODO"
 
 function setup() {
     if (!navigator.mediaDevices) {
@@ -141,25 +141,30 @@ let audioURL
 
 // const messagesToPlay = []
 
+const audioContext = new AudioContext()
+const source = audioContext.createBufferSource()
+const audioBuffer = audioContext.createBuffer(1, 44100 * 10, 44100)
+source.buffer = audioBuffer
+// console.log("audioContext", audioContext, source, audioBuffer)
+
+const channelBuffer = audioBuffer.getChannelData(0)
+// Put white noise into buffer for testing
+for (let i = 0; i < channelBuffer.length; i++) {
+    // Math.random() is in [0; 1.0]
+    // audio needs to be in [-1.0; 1.0]
+    channelBuffer[i] = Math.random() * 2 - 1
+}
+source.connect(audioContext.destination)
+
 async function playMessage(message) {
     const buffer = base64ToArrayBuffer(message.audioChunk.bytesBase64)
     console.log("buffer", buffer)
-    const blob = new Blob([buffer], {type: message.audioChunk.type})
-    console.log("made blob", blob)
-    audioURL = URL.createObjectURL(blob)
-
-    const element = document.getElementById("audioPlayer")
-    // element.pause()
-    element.src = audioURL
-    /*
-    try {
-        const playResult = await element.play()
-        console.log("playResult", playResult)
-    } catch(e) {
-        console.log("play error", e)
-    }
-    */
+    // const blob = new Blob([buffer], {type: message.audioChunk.type})
+    // console.log("made blob", blob)
+    // source.buffer = audioBuffer
 }
+
+let playing = false
 
 const TwirlipIntercom = {
     view: function () {
@@ -172,16 +177,20 @@ const TwirlipIntercom = {
                 m("input.w4.ml2", {value: userID, onchange: userIDChange, title: "Your user id or handle"}),
             ),
             mediaRecorder && m("div",
-                m("audio#audioPlayer", {controls: false}),
                 m("button", {onclick: () => {
-                    const element = document.getElementById("audioPlayer")
-                    if (element.paused) element.play()
+                    if (!playing) {
+                        source.start(0)
+                        playing = true
+                        console.log("started playing", channelBuffer.length)
+                    }
+                    /*
                     isRecording = !isRecording
                     if (isRecording) {
                         recordClick()
                     } else {
                         stopClick()
                     }
+                    */
                 }}, isRecording ? "Push to mute" : "Push to talk")
             ),
             !mediaRecorder && "Starting up..."
@@ -203,7 +212,7 @@ const streamNameResponder = {
 }
 
 startup()
-setup()
+// setup()
 
 const backend = StreamBackendUsingServer(m.redraw, ephemeralStreamPrefix + streamNameSuffix, userID)
 
