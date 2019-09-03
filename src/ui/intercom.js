@@ -141,7 +141,7 @@ let audioURL
 
 // const messagesToPlay = []
 
-function playMessage(message) {
+async function playMessage(message) {
     const buffer = base64ToArrayBuffer(message.audioChunk.bytesBase64)
     console.log("buffer", buffer)
     const blob = new Blob([buffer], {type: message.audioChunk.type})
@@ -149,9 +149,16 @@ function playMessage(message) {
     audioURL = URL.createObjectURL(blob)
 
     const element = document.getElementById("audioPlayer")
-    element.pause()
+    // element.pause()
     element.src = audioURL
-    element.play()
+    /*
+    try {
+        const playResult = await element.play()
+        console.log("playResult", playResult)
+    } catch(e) {
+        console.log("play error", e)
+    }
+    */
 }
 
 const TwirlipIntercom = {
@@ -167,6 +174,8 @@ const TwirlipIntercom = {
             mediaRecorder && m("div",
                 m("audio#audioPlayer", {controls: false}),
                 m("button", {onclick: () => {
+                    const element = document.getElementById("audioPlayer")
+                    if (element.paused) element.play()
                     isRecording = !isRecording
                     if (isRecording) {
                         recordClick()
