@@ -143,12 +143,13 @@ let audioURL
 
 function playMessage(message) {
     const buffer = base64ToArrayBuffer(message.audioChunk.bytesBase64)
-    const chunk = Blob(buffer, {type: message.audioChunk.type})
-    const blob = new Blob([chunk], { "type" : "audio/ogg; codecs=opus" })
+    console.log("buffer", buffer)
+    const blob = new Blob([buffer], {type: message.audioChunk.type})
+    console.log("made blob", blob)
     audioURL = URL.createObjectURL(blob)
 
     const element = document.getElementById("audioPlayer")
-    element.stop()
+    element.pause()
     element.src = audioURL
     element.play()
 }
@@ -185,7 +186,8 @@ const streamNameResponder = {
     },
     addItem: (item, isAlreadyStored) => {
         console.log("addItem", item)
-        if (item.userID !== userID) playMessage(item)
+        // if (item.userID !== userID)
+        playMessage(item)
         // messagesToPlay.push(message)
         // messages.push(item)
     }
