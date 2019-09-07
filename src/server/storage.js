@@ -18,6 +18,7 @@ const appendFile = promisify(fs.appendFile)
 
 const log = require("./log")
 const forEachLineInFile = require("./forEachLineInFile")
+const CanonicalJSON = require("./CanonicalJSON")
 
 const { config } = require("./configLoader")
 
@@ -72,7 +73,7 @@ function getFilePathForData(sha256) {
 }
 
 function keyForStreamId(streamId) {
-    return JSON.stringify(streamId)
+    return CanonicalJSON.stringify(streamId)
 }
 
 function getStorageFileNameForSHA256(sha256) {
