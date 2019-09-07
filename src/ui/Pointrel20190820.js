@@ -65,12 +65,13 @@ export class Pointrel20190820 {
         // TODO -- Faking it for now, copying a little code from processNextSend
         const transaction = this.currentTransaction
         const latest = this.getLatestSHA256()
+        // TODO: Issue when using alternateStreamId -- what should the sequence be?
         // const latestTransaction = latest ? await getTransactionFromCache(latest) : null
         const latestTransaction = latest ? this.indexedTransactions[latest] : null
         const sequence = latestTransaction ? latestTransaction.sequence + 1 : 0 
         transaction.previous = latest
         transaction.sequence = sequence    
-        const sha256 = calculateSHA256(JSON.stringify(this.currentTransaction))
+        const sha256 = calculateSHA256(CanonicalJSON.stringify(this.currentTransaction))
         this.addTransactionToTripleIndex(sha256, this.currentTransaction)
 
         // TODO: sendQueue.push(currentTransaction)
@@ -261,7 +262,7 @@ export class Pointrel20190820 {
                 },
                 addItem: (item, isAlreadyStored) => {
                     // console.log("addItem", item)
-                    const sha256 = calculateSHA256(JSON.stringify(item))
+                    const sha256 = calculateSHA256(CanonicalJSON.stringify(item))
                     this.addTransactionToTripleIndex(sha256, item)
                     this.setLatest(sha256, item)
                 }
