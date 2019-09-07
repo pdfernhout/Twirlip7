@@ -13,7 +13,13 @@ export function uuidv4() {
     })
 }
 
+import { CanonicalJSON } from "./CanonicalJSON.js"
+
 let userID = localStorage.getItem("userID") || "anonymous"
+
+function makeKey(jsonObject) {
+    return CanonicalJSON.stringify(jsonObject)
+}
 
 export class Pointrel20190820 {
     
@@ -91,21 +97,19 @@ export class Pointrel20190820 {
             // Most recent triples are at end
             for (let i = 0; i < triples.length; i++) {
                 const triple = triples[i]
-                let aIndex = this.tripleIndex[triple.a]
+
+                const aKey = makeKey(triple.a)
+                let aIndex = this.tripleIndex[aKey]
                 if (!aIndex) {
                     aIndex = {}
-                    this.tripleIndex[triple.a] = aIndex
+                    this.tripleIndex[aKey] = aIndex
                 }
-                const bJSON = JSON.stringify(triple.b)
-                let bIndex = aIndex[bJSON]
-                if (!bIndex) {
+
+                const bKey = makeKey(triple.b)
+                let bIndex = aIndex[bKey]
+                if (!bIndex || bIndex.sequence < transaction.sequence) {
                     bIndex = {c: triple.c, sequence: transaction.sequence}
-                    aIndex[bJSON] = bIndex
-                } else {
-                    if (bIndex.sequence < transaction.sequence) {
-                        bIndex.c = triple.c
-                        bIndex.sequence = transaction.sequence
-                    }
+                    aIndex[bKey] = bIndex
                 }
             }
         }
@@ -150,10 +154,11 @@ export class Pointrel20190820 {
         */
     
         // console.log("this.tripleIndex", this.tripleIndex)
-        const aIndex = this.tripleIndex[a]
+        const aKey = makeKey(a)
+        const aIndex = this.tripleIndex[aKey]
         if (aIndex) {
-            const bJSON = JSON.stringify(b)
-            const bIndex = aIndex[bJSON]
+            const bKey = makeKey(b)
+            const bIndex = aIndex[bKey]
             if (bIndex) return bIndex.c
         }
     
@@ -178,6 +183,8 @@ export class Pointrel20190820 {
     findBC(a, setId) {
         const result = {}
 
+        const aKey = makeKey(a)
+
         /*
         // first check any pending transactions -- most recent are at end
         for (let queueIndex = sendQueue.length - 1; queueIndex >= 0; queueIndex--) {
@@ -187,10 +194,10 @@ export class Pointrel20190820 {
                 // Most recent triples are at end
                 for (let i = triples.length - 1; i >= 0; i--) {
                     const triple = triples[i]
-                    const bJSON = JSON.stringify(triple.b)
-                    if (triple.a === a && result[bJSON] === undefined) {
+                    const bKey = JSON.stringify(triple.b)
+                    if (makeKey(triple.a) === aKey && result[bKey] === undefined) {
                         if (!setId || triple.b[setId]) {
-                            result[bJSON] = triple.c
+                            result[bKey] = triple.c
                         }
                     }
                 }
@@ -198,13 +205,13 @@ export class Pointrel20190820 {
         }
         */
 
-        const aIndex = this.tripleIndex[a]
+        const aIndex = this.tripleIndex[aKey]
         if (aIndex) {
             const keys = Object.keys(aIndex)
-            for (let bJSON of keys) {
-                if (result[bJSON] === undefined) {
-                    if (!setId || JSON.parse(bJSON)[setId]) {
-                        result[bJSON] = aIndex[bJSON].c
+            for (let bKey of keys) {
+                if (result[bKey] === undefined) {
+                    if (!setId || JSON.parse(bKey)[setId]) {
+                        result[bKey] = aIndex[bKey].c
                     }
                 }
             }
