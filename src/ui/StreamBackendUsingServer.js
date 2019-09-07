@@ -11,6 +11,7 @@ export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", u
     let messagesReceivedCount = 0
     let responder = null
     let redrawCallback = aRedrawCallback
+    let listeningOnStreams = {}
 
     streamId = JSON.parse(CanonicalJSON.stringify(streamId))
 
@@ -33,26 +34,29 @@ export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", u
 
     function requestAllMessages() {
         console.log("requestAllMessages", messagesReceivedCount)
+        listeningOnStreams[CanonicalJSON.stringify(streamId)] = true
         sendMessage({command: "listen", streamId: streamId, fromIndex: messagesReceivedCount})
     }
 
     function messageReceived(message) {
         // console.log("messageReceived", message)
         if (message.command === "insert") {
-            messagesReceivedCount++
+            if (message.streamId === streamId) messagesReceivedCount++
             responder.addItem(message.item, "isFromServer")
         } else if (message.command === "remove") {
-            messagesReceivedCount++
+            if (message.streamId === streamId) messagesReceivedCount++
             console.log("TODO: Remove message not handled")
         } else if (message.command === "reset") {
-            messagesReceivedCount++
+            if (message.streamId === streamId) messagesReceivedCount++
             // TODO: Should handle timestamps somehow, so earlier messages before last reset are rejected
             // clearItems()
             console.log("TODO: clear items not handled")
         } else if (message.command === "loaded") {
             // Don't increment messagesReceivedCount as "loaded" is an advisory meta message from server
-            console.log("all server data loaded", messagesReceivedCount, new Date().toISOString())
-            responder.onLoaded()
+            if (message.streamId === streamId) {
+                console.log("all server data loaded", messagesReceivedCount, new Date().toISOString())
+                responder.onLoaded()
+            }
         }
         if (redrawCallback) redrawCallback()
     }
@@ -64,7 +68,7 @@ export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", u
 
         socket.on("twirlip", function(message) {
             // console.log("twirlip", message)
-            if (CanonicalJSON.stringify(message.streamId) === CanonicalJSON.stringify(streamId)) {
+            if (listeningOnStreams[CanonicalJSON.stringify(message.streamId)]) {
                 messageReceived(message)
             }
         })
@@ -81,12 +85,22 @@ export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", u
 
     function disconnect() {
         sendMessage({command: "unlisten", streamId: streamId})
+        listeningOnStreams[CanonicalJSON.stringify(streamId)] = false
+    }
+
+    // bypasses stream configuration
+    function loadFile(uuid) {
+        uuid = JSON.parse(CanonicalJSON.stringify(uuid))
+        listeningOnStreams[CanonicalJSON.stringify(uuid)] = true
+        sendMessage({command: "listen", streamId: uuid, fromIndex: 0})
     }
 
     function configure(streamIdNew, userIdNew) {
         if (streamIdNew !== undefined) {
             if (socket) sendMessage({command: "unlisten", streamId: streamId})
+            listeningOnStreams[CanonicalJSON.stringify(streamId)] = false
             streamId = JSON.parse(CanonicalJSON.stringify(streamIdNew))
+            listeningOnStreams[CanonicalJSON.stringify(streamId)] = true
             messagesReceivedCount = 0
             if (socket) requestAllMessages()
         }
@@ -99,6 +113,7 @@ export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", u
         sendInsertItemMessage,
         connect,
         setup,
+        loadFile,
         configure,
         getStreamId: function() { return streamId },
         isSetup: function() { return !!socket },
