@@ -60,7 +60,8 @@ export class Pointrel20190820 {
         }
     }
     
-    sendCurrentTransaction() {
+    // alternateStreamId is optional
+    sendCurrentTransaction(alternateStreamId) {
         // TODO -- Faking it for now, copying a little code from processNextSend
         const transaction = this.currentTransaction
         const latest = this.getLatestSHA256()
@@ -73,7 +74,7 @@ export class Pointrel20190820 {
         this.addTransactionToTripleIndex(sha256, this.currentTransaction)
 
         // TODO: sendQueue.push(currentTransaction)
-        setTimeout(() => this.backend.addItem(transaction), 10)
+        setTimeout(() => this.backend.addItem(transaction, alternateStreamId), 10)
         this.currentTransaction = null
         this.setLatest(sha256, transaction)
         // TODO if (!sending) processNextSend()

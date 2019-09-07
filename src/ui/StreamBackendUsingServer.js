@@ -10,8 +10,9 @@ export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", u
     let responder = null
     let redrawCallback = aRedrawCallback
 
-    function addItem(item) {
-        sendInsertItemMessage(item)
+    // alternateStreamId is optional
+    function addItem(item, alternateStreamId) {
+        sendInsertItemMessage(item, alternateStreamId)
     }
 
     // =============== socket.io communications
@@ -20,6 +21,7 @@ export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", u
         socket.emit("twirlip", message)
     }
 
+    // alternateStreamId is optional
     function sendInsertItemMessage(item, alternateStreamId) {
         sendMessage({command: "insert", streamId: alternateStreamId || streamId, item: item, userId: userId, timestamp: new Date().toISOString()})
     }
