@@ -205,8 +205,8 @@ function displayItemContents(item) {
             m("button.f6.mr1", { onclick: () => showHeaders[item.uuid] = !showHeaders[item.uuid] }, "Headers"),
         ] : [],
         m("span", "UUID: ", " ", JSON.stringify(item.uuid)),
-        showHeaders[item.uuid] ? m("pre", headers) : [],
-        m("pre", rest),
+        showHeaders[item.uuid] ? m("pre", {style: "white-space: pre-wrap"}, headers) : [],
+        m("pre", {style: "white-space: pre-wrap"}, rest),
     ])
 
 }
