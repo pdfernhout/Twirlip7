@@ -3,12 +3,16 @@
 // Assumes socket.io loaded from script tag to define io
 /* global io */
 
+import { CanonicalJSON } from "./CanonicalJSON.js"
+
 // returns position + 1 for item reference to avoid first item being "0"
 export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", userId = "anonymous", serverURL = "") {
     let socket = null
     let messagesReceivedCount = 0
     let responder = null
     let redrawCallback = aRedrawCallback
+
+    streamId = JSON.parse(CanonicalJSON.stringify(streamId))
 
     // alternateStreamId is optional
     function addItem(item, alternateStreamId) {
@@ -23,6 +27,7 @@ export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", u
 
     // alternateStreamId is optional
     function sendInsertItemMessage(item, alternateStreamId) {
+        if (alternateStreamId !== undefined) alternateStreamId = JSON.parse(CanonicalJSON.stringify(alternateStreamId))
         sendMessage({command: "insert", streamId: alternateStreamId || streamId, item: item, userId: userId, timestamp: new Date().toISOString()})
     }
 
@@ -59,7 +64,7 @@ export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", u
 
         socket.on("twirlip", function(message) {
             // console.log("twirlip", message)
-            if (JSON.stringify(message.streamId) === JSON.stringify(streamId)) {
+            if (CanonicalJSON.stringify(message.streamId) === CanonicalJSON.stringify(streamId)) {
                 messageReceived(message)
             }
         })
@@ -81,7 +86,7 @@ export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", u
     function configure(streamIdNew, userIdNew) {
         if (streamIdNew !== undefined) {
             if (socket) sendMessage({command: "unlisten", streamId: streamId})
-            streamId = streamIdNew
+            streamId = JSON.parse(CanonicalJSON.stringify(streamIdNew))
             messagesReceivedCount = 0
             if (socket) requestAllMessages()
         }
