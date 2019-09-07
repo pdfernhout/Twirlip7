@@ -1,30 +1,51 @@
-// Derived from: https://github.com/mirkokiefer/canonical-json/blob/master/index2.js
-// Note that this approach depends on object keys maintaining their order,
-// which is not guaranteed by the JavaScript standards but most browsers support it
 
-function isObject(a) {
-    return Object.prototype.toString.call(a) === "[object Object]"
-}
+// FROM Apache-licensed: https://github.com/cyberphone/json-canonicalization
+// See also: https://github.com/mirkokiefer/canonical-json/issues/11
 
-function copyObjectWithSortedKeys(object) {
-    if (isObject(object)) {
-        var newObj = {}
-        var keysSorted = Object.keys(object).sort()
-        var key
-        for (var i = 0, len = keysSorted.length; i < len; i++) {
-            key = keysSorted[i]
-            newObj[key] = copyObjectWithSortedKeys(object[key])
+const canonicalize = function(object) {
+    var buffer = ""
+    serialize(object)
+    return buffer
+    
+    function serialize(object) {
+        if (object !== null && typeof object === "object") {
+            if (Array.isArray(object)) {
+                buffer += "["
+                let next = false
+                // Array - Maintain element order
+                object.forEach((element) => {
+                    if (next) {
+                        buffer += ","
+                    }
+                    next = true
+                    // Recursive call
+                    serialize(element)
+                })
+                buffer += "]"
+            } else {
+                buffer += "{"
+                let next = false
+                // Object - Sort properties before serializing
+                Object.keys(object).sort().forEach((property) => {
+                    if (next) {
+                        buffer += ","
+                    }
+                    next = true
+                    // Properties are just strings - Use ES6
+                    buffer += JSON.stringify(property)
+                    buffer += ":"
+                    // Recursive call
+                    serialize(object[property])
+                })
+                buffer += "}"
+            }
+        } else {
+            // Primitive data type - Use ES6
+            buffer += JSON.stringify(object)
         }
-        return newObj
-    } else if (Array.isArray(object)) {
-        return object.map(copyObjectWithSortedKeys)
-    } else {
-        return object
     }
 }
 
 export const CanonicalJSON = {
-    stringify: function(object) {
-        return JSON.stringify(copyObjectWithSortedKeys(object))
-    }
+    stringify: canonicalize
 }
