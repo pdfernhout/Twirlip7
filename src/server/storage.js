@@ -19,7 +19,12 @@ const appendFile = promisify(fs.appendFile)
 const log = require("./log")
 const forEachLineInFile = require("./forEachLineInFile")
 
-const dataDirectory = path.normalize(__dirname + "/../../server-data")
+const { config } = require("./configLoader")
+
+const dataDirectory = path.normalize(__dirname + "/../../" + config.dataDirectory)
+
+log("Using dataDirectory:", dataDirectory)
+
 const storageExtension = ".txt"
 
 const messageStorageQueue = []
