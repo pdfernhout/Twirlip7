@@ -62,7 +62,14 @@ class Item {
 
     getDate() {
         let result = p.findC(this.uuid, "date") || ""
-        if (result) return new Date(Date.parse(result)).toISOString().replace("T", " ")
+        if (result) {
+            try {
+                result = new Date(Date.parse(result)).toISOString().replace("T", " ")
+            } catch (e) {
+                // Do nothing
+            }
+        }
+        return result
     }
 
     setDate(title) {
@@ -121,8 +128,13 @@ function importMailbox() {
             email = "From " + email
             // console.log("email", email)
             const subject = email.match(/^Subject: ([^\n]*)/m)
-            const messageId = email.match(/^Message-ID: <([^>]*)/m)[1]
-            if (!messageId) throw new Error("missing message ID")
+            const messageIdMatcher = email.match(/^Message-ID: <([^>]*)/m)
+            let messageId 
+            if (messageIdMatcher) messageId = messageIdMatcher[1]
+            if (!messageId) {
+                console.log("missing message ID", email)
+                messageId = p.uuidv4()
+            }
 
             const title = subject ? subject[1] : ""
 
