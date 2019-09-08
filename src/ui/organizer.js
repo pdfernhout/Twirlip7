@@ -222,8 +222,8 @@ function isUUIDMatch(a, b) {
 
 function displayItem(item, index) {
     const from = item.getFrom()
-    const fromName = (from.split(" <")[0] || "").replace(/"/g, "") || ""
-    const fromEmail = "<" + (from.split(" <")[1] || ">") || ""
+    const fromEmail = "<" + (from.split(" (")[0] || "").replace(/"/g, "") + ">"
+    const fromName = "(" + from.split(" (")[1] || ""
     const date = item.getDate()
     return m("div.mt1", {key: JSON.stringify(item.uuid)}, [
         m("button.f6", {onclick: () => {
