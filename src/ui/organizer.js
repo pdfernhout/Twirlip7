@@ -26,6 +26,9 @@ function getOrganizerName() {
     return "organizer:" + nameTracker.name
 }
 
+const sortOptions = ["order", "date", "subject", "from"]
+let sortBy = "order"
+
 const bodyLoaded = {}
 
 class Item {
@@ -58,7 +61,8 @@ class Item {
     }
 
     getDate() {
-        return p.findC(this.uuid, "date") || ""
+        let result = p.findC(this.uuid, "date") || ""
+        if (result) return new Date(Date.parse(result)).toISOString().replace("T", " ")
     }
 
     setDate(title) {
@@ -240,10 +244,35 @@ function displayItem(item, index) {
     ])
 }
 
+function sortItems(items) {
+    if (sortBy === "order") return
+    if (sortBy === "date") return items.sort((a, b) => a.getDate().localeCompare(b.getDate()))
+    if (sortBy === "subject") return items.sort((a, b) => {
+        let result = a.getTitle().localeCompare(b.getTitle())
+        if (result === 0) result = a.getDate().localeCompare(b.getDate())
+        return result
+    })
+    if (sortBy === "from") return items.sort((a, b) => {
+        let result = a.getFrom().localeCompare(b.getFrom())
+        if (result === 0) result = a.getDate().localeCompare(b.getDate())
+        return result
+    })
+    throw new Error("unexpected sort")
+}
+
 function displayItems() {
     const items = organizer.getItems()
     let index = 0
+    sortItems(items)
     return m("div.ma1", [
+        m("div",
+            "Sort by:",
+            m("select.ma1", {onchange: event => sortBy = event.target.value},
+                sortOptions.map(key => {
+                    return m("option", {value: key, selected: sortBy === key}, key)
+                })
+            ),
+        ),
         items.map((item) => {
             return displayItem(item, index++)
         }),
