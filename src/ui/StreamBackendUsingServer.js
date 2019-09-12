@@ -38,22 +38,28 @@ export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", u
         sendMessage({command: "listen", streamId: streamId, fromIndex: messagesReceivedCount})
     }
 
+    function isMatchingStreamId(a, b) {
+        // TODO: Optimize
+        return CanonicalJSON.stringify(a) === CanonicalJSON.stringify(b)
+    }
+
     function messageReceived(message) {
         // console.log("messageReceived", message)
         if (message.command === "insert") {
-            if (message.streamId === streamId) messagesReceivedCount++
+            if (isMatchingStreamId(message.streamId, streamId)) messagesReceivedCount++
             responder.addItem(message.item, "isFromServer")
         } else if (message.command === "remove") {
-            if (message.streamId === streamId) messagesReceivedCount++
+            if (isMatchingStreamId(message.streamId, streamId)) messagesReceivedCount++
             console.log("TODO: Remove message not handled")
         } else if (message.command === "reset") {
-            if (message.streamId === streamId) messagesReceivedCount++
+            if (isMatchingStreamId(message.streamId, streamId)) messagesReceivedCount++
             // TODO: Should handle timestamps somehow, so earlier messages before last reset are rejected
             // clearItems()
             console.log("TODO: clear items not handled")
         } else if (message.command === "loaded") {
+            // console.log("got loaded message", streamId, message)
             // Don't increment messagesReceivedCount as "loaded" is an advisory meta message from server
-            if (message.streamId === streamId) {
+            if (isMatchingStreamId(message.streamId, streamId)) {
                 console.log("all server data loaded", messagesReceivedCount, new Date().toISOString())
                 responder.onLoaded()
             }
