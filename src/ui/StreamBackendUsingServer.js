@@ -61,7 +61,7 @@ export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", u
             // Don't increment messagesReceivedCount as "loaded" is an advisory meta message from server
             if (isMatchingStreamId(message.streamId, streamId)) {
                 console.log("all server data loaded", messagesReceivedCount, new Date().toISOString())
-                responder.onLoaded()
+                if (responder.onLoaded) responder.onLoaded()
             }
         }
         if (redrawCallback) redrawCallback()
