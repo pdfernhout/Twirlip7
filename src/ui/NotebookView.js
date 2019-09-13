@@ -1,4 +1,4 @@
-/* global m, location, localStorage, Twirlip7, sha256 */
+/* global sha256 */
 
 import { FileUtils } from "./FileUtils.js"
 import { HashUtils } from "./HashUtils.js"
