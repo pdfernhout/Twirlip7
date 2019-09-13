@@ -89,8 +89,8 @@ export function Stream(store) {
     }
 
     function loadFromNotebookText(notebookText) {
-        clearItems()
         const items = JSON.parse(notebookText)
+        clearItems()
         for (let item of items) { addItem(item) }
         return true
     }
