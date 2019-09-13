@@ -95,10 +95,10 @@ export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", u
     }
 
     // bypasses stream configuration
-    function loadFile(uuid) {
-        uuid = JSON.parse(CanonicalJSON.stringify(uuid))
-        listeningOnStreams[CanonicalJSON.stringify(uuid)] = true
-        sendMessage({command: "listen", streamId: uuid, fromIndex: 0})
+    function openStream(streamId) {
+        streamId = JSON.parse(CanonicalJSON.stringify(streamId))
+        listeningOnStreams[CanonicalJSON.stringify(streamId)] = true
+        sendMessage({command: "listen", streamId: streamId, fromIndex: 0})
     }
 
     function configure(streamIdNew, userIdNew) {
@@ -119,7 +119,7 @@ export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", u
         sendInsertItemMessage,
         connect,
         setup,
-        loadFile,
+        openStream,
         configure,
         getStreamId: function() { return streamId },
         isSetup: function() { return !!socket },

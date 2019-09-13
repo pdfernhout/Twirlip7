@@ -80,7 +80,7 @@ class Item {
         const body = p.findC(this.uuid, "body") || ""
         if (!body && !bodyLoaded[CanonicalJSON.stringify(this.uuid)]) {
             bodyLoaded[CanonicalJSON.stringify(this.uuid)] = true
-            p.loadFile(this.uuid)
+            p.openStream(this.uuid)
         }
         return body
     }

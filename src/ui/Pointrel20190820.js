@@ -277,8 +277,8 @@ export class Pointrel20190820 {
         })
     }
 
-    loadFile(uuid) {
-        console.log("loadFile", uuid)
-        this.backend.loadFile(uuid)
+    openStream(streamId) {
+        console.log("openStream", streamId)
+        this.backend.openStream(streamId)
     }
 }
