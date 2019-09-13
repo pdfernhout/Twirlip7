@@ -232,7 +232,7 @@ function uploadDocumentClicked() {
         /*
         const uploadResponder = {
             onLoaded: () => {},
-            addItem: (item, isAlreadyStored) => {}
+            onAddItem: (item, isAlreadyStored) => {}
         }
 
         const upload = StreamBackendUsingServer(m.redraw, {sha256: null}, userID)
@@ -437,8 +437,8 @@ const chatRoomResponder = {
         console.log("onLoaded")
         scrollToBottomLater()
     },
-    addItem: (item, isAlreadyStored) => {
-        // console.log("addItem", item)
+    onAddItem: (item, isAlreadyStored) => {
+        // console.log("onAddItem", item)
         let edited = false
         // Complexity needed to support editing
         if (messagesByUUID[item.uuid] === undefined) {

@@ -260,8 +260,8 @@ export class Pointrel20190820 {
                     console.log("onLoaded")
                     resolve()
                 },
-                addItem: (item, isAlreadyStored) => {
-                    // console.log("addItem", item)
+                onAddItem: (item, isAlreadyStored) => {
+                    // console.log("onAddItem", item)
                     const sha256 = calculateSHA256(CanonicalJSON.stringify(item))
                     this.addTransactionToTripleIndex(sha256, item)
                     this.setLatest(sha256, item)

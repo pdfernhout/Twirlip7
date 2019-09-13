@@ -47,7 +47,7 @@ export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", u
         // console.log("messageReceived", message)
         if (message.command === "insert") {
             if (isMatchingStreamId(message.streamId, streamId)) messagesReceivedCount++
-            responder.addItem(message.item, "isFromServer")
+            responder.onAddItem(message.item, "isFromServer")
         } else if (message.command === "remove") {
             if (isMatchingStreamId(message.streamId, streamId)) messagesReceivedCount++
             console.log("TODO: Remove message not handled")

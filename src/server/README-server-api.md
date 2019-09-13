@@ -45,7 +45,7 @@ Resources must have been created with a specific format. The resource files must
             /*
             const uploadResponder = {
                 onLoaded: () => {},
-                addItem: (item, isAlreadyStored) => {}
+                onAddItem: (item, isAlreadyStored) => {}
             }
 
             const upload = StreamBackendUsingServer(m.redraw, {sha256: null}, userID)
@@ -149,7 +149,7 @@ See StreamBackendUsingServer.js for API details:
         // console.log("messageReceived", message)
         if (message.command === "insert") {
             messagesReceivedCount++
-            responder.addItem(message.item, "isFromServer")
+            responder.onAddItem(message.item, "isFromServer")
         } else if (message.command === "remove") {
             messagesReceivedCount++
             console.log("TODO: Remove message not handled")

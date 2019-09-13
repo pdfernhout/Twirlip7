@@ -202,8 +202,8 @@ const streamNameResponder = {
     onLoaded: () => {
         console.log("onLoaded")
     },
-    addItem: (item, isAlreadyStored) => {
-        console.log("addItem", item)
+    onAddItem: (item, isAlreadyStored) => {
+        console.log("onAddItem", item)
         // if (item.userID !== userID)
         playMessage(item)
         // messagesToPlay.push(message)

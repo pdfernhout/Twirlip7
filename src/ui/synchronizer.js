@@ -318,8 +318,8 @@ const streamNameResponder1 = {
         console.log("onLoaded")
         scrollToBottomLater()
     },
-    addItem: (item, isAlreadyStored) => {
-        // console.log("addItem", item)
+    onAddItem: (item, isAlreadyStored) => {
+        // console.log("onAddItem", item)
         messages1.push(item)
         const itemIsNotFiltered = hasFilterText(item)
         if (isLoaded) {
@@ -339,8 +339,8 @@ const streamNameResponder2 = {
         console.log("onLoaded")
         scrollToBottomLater()
     },
-    addItem: (item, isAlreadyStored) => {
-        // console.log("addItem", item)
+    onAddItem: (item, isAlreadyStored) => {
+        // console.log("onAddItem", item)
         messages2.push(item)
         const itemIsNotFiltered = hasFilterText(item)
         if (isLoaded) {

@@ -779,8 +779,8 @@ const TwirlipIbisApp = {
 
 const diagramResponder = {
     onLoaded: () => console.log("onLoaded"),
-    addItem: (item, isAlreadyStored) => {
-        console.log("addItem", item)
+    onAddItem: (item, isAlreadyStored) => {
+        console.log("onAddItem", item)
         messages.push(item)
         if (unsaved) {
             const result = confirm("The diagram has been changed elsewhere but there are unsaved changes here.\nDiscard local changes and use the new version from the server?")

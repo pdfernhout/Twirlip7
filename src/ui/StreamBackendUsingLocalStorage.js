@@ -77,14 +77,14 @@ export function StreamBackendUsingLocalStorage() {
     function connect(responder) {
         const count = itemCount()
         for (let i = 0; i < count; i++) {
-            responder.addItem(getItemForLocation(i), "isAlreadyStored")
+            responder.onAddItem(getItemForLocation(i), "isAlreadyStored")
         }
 
         window.addEventListener("storage", function(event) {
             const key = event.key
             if (key.startsWith(hashToItemPrefix)) {
                 const newValue = event.newValue
-                responder.addItem(newValue, "isAlreadyStored")
+                responder.onAddItem(newValue, "isAlreadyStored")
             }
         })
 
