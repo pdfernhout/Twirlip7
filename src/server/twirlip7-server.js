@@ -28,6 +28,8 @@ const app = express()
 
 log("Twirlip7 server started")
 
+const { config } = require("./configLoader")
+
 function ipForRequest(request) {
     return request.headers["x-forwarded-for"]
         || request.connection.remoteAddress
@@ -62,8 +64,14 @@ app.post("/api/proxy", function (request, response) {
 // Example use: http://localhost:8080/sha256/somesha?content-type=image/png&title=some%20title
 app.get("/sha256/:sha256", storage.respondWithReconstructedFile)
 
+const ip = process.env.IP || config.ip || "0.0.0.0"
+
+const port = process.env.PORT || config.port || 8080 
+
+const sshPort = config.sshPort || parseInt(port) + 1
+
 // Create an HTTP service.
-const httpServer = http.createServer(app).listen(process.env.PORT || 8080, process.env.IP || "0.0.0.0", function () {
+const httpServer = http.createServer(app).listen(port, ip, function () {
     messageStreams.io.attach(httpServer)
     const host = httpServer.address().address
     const port = httpServer.address().port
@@ -72,9 +80,7 @@ const httpServer = http.createServer(app).listen(process.env.PORT || 8080, proce
 
 // Create an HTTPS service
 pem.createCertificate({ days: 365, selfSigned: true }, function(err, keys) {
-    let proposedPort = parseInt(process.env.PORT)
-    if (proposedPort) proposedPort++
-    const httpsServer = https.createServer({ key: keys.serviceKey, cert: keys.certificate }, app).listen(proposedPort || 8081, process.env.IP || "0.0.0.0", function () {
+    const httpsServer = https.createServer({ key: keys.serviceKey, cert: keys.certificate }, app).listen(sshPort, ip, function () {
         messageStreams.io.attach(httpsServer)
         const host = httpsServer.address().address
         const port = httpsServer.address().port
