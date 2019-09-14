@@ -5,11 +5,11 @@ There are currently four class-like things used for storage by the client-side U
 * StoreUsingLocalStorage
 * StoreUsingServer
 
-The notebook was the first application written for Twirlip7. The notebook app defined how storage works (in NotebookBackend) as an ordered set of JSON objects called items. NotebookBackend stores everything in memory. An optional Store... can be used with a NotebookBackend when it is created to store data either in local storage or on a server. 
+The notebook was the first application written for Twirlip7. The notebook app defined how storage works (in NotebookBackend) as an ordered set of JSON objects called items. NotebookBackend stores everything in memory. An optional Store can be used with a NotebookBackend when it is created to store data either in local storage or on a server. 
 
 This ordered set of JSON objects is often referred to as a "stream", especially on the server-side -- where each stream on the server is stored in a different file associated with a "streamId". 
 
-Like NotebookBackend, Pointrel20190820 wraps a Store... (always StoreUsingServer). But unlike NotebookBackend, Pointrel20190820 interprets the JSON objects in a stream as transactions of triples and presents a triplestore interface with an API including addTriple(a, b, c) and findC(a, b).
+Like NotebookBackend, Pointrel20190820 wraps a Store (always StoreUsingServer). But unlike NotebookBackend, Pointrel20190820 interprets the JSON objects in a stream as transactions of triples and presents a triplestore interface with an API including addTriple(a, b, c) and findC(a, b).
 
 The method "addItem" is called on a Store (or NotebookBackend) to add "items" to a stream with a specific streamId.
 
@@ -22,7 +22,7 @@ A callback named "onAddItem" is used to receive "items" from a stream by the app
 
 The responder generally is a special object with just an onAddItem and an optional onLoaded fields. The responder then interacts with an application or library. A responder could also be any application with just an "addItem" method. The function "onLoaded" is called on a responder (if onLoaded is defined) when all the items in a stream have been sent.
 
-The notebook is the only application that uses the NotebookBackend (either with a persistent Store or not) .
+The notebook is the only application that uses the NotebookBackend (either with a persistent Store or not).
 
 Some other applications (chat, ibis, intercom, monitor, synchronizer) use the Store objects directly -- all using only the StoreUsingServer. 
 
