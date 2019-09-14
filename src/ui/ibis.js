@@ -779,7 +779,7 @@ const TwirlipIbisApp = {
 
 const diagramResponder = {
     onLoaded: () => console.log("onLoaded"),
-    onAddItem: (item, isAlreadyStored) => {
+    onAddItem: (item) => {
         console.log("onAddItem", item)
         messages.push(item)
         if (unsaved) {

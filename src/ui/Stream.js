@@ -24,7 +24,18 @@ export function Stream(store) {
         }
     }
 
-    function addItem(item, isAlreadyStored) {
+    function addItem(item) {
+        const storedItem = addItemToMemory(item)
+        if (store && !storedItem.existed) {
+            const storeResult = store.addItem(item)
+            if (storeResult && storeResult.error) {
+                storedItem.error = storeResult.error 
+            }
+        }
+        return storedItem
+    }
+
+    function addItemToMemory(item) {
         const reference = "" + sha256(item)
         const storedItem = itemForHash[reference]
         if (storedItem) {
@@ -34,10 +45,15 @@ export function Stream(store) {
         const newStoredItem = { id: reference, location: newLocation, item: item }
         itemForLocation.push(newStoredItem)
         itemForHash[reference] = newStoredItem
-        if (!isAlreadyStored && store) store.addItem(item)
         const result = { id: reference, location: newLocation, existed: false }
         return result
     }
+
+
+    function onAddItem(item) {
+        addItemToMemory(item)
+    }
+
 
     function getItem(reference) {
         if (reference === null) return null
@@ -173,6 +189,7 @@ export function Stream(store) {
         skip,
         setup,
         setOnLoadedCallback,
+        onAddItem,
         onLoaded,
         isLoaded: function () {
             return isLoaded

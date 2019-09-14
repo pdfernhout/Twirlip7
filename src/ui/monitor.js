@@ -245,7 +245,7 @@ const streamNameResponder = {
         console.log("onLoaded")
         scrollToBottomLater()
     },
-    onAddItem: (item, isAlreadyStored) => {
+    onAddItem: (item) => {
         // console.log("onAddItem", item)
         messages.push(item)
         const itemIsNotFiltered = hasFilterText(item)
