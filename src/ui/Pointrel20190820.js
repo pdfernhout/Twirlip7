@@ -1,6 +1,6 @@
 /* global sha256 */
 
-import { StreamBackendUsingServer } from "./StreamBackendUsingServer.js"
+import { StoreUsingServer } from "./StoreUsingServer.js"
 
 // defines sha256
 import "./vendor/sha256.js"
@@ -26,7 +26,7 @@ export class Pointrel20190820 {
     constructor() {
         this.clearData()
 
-        this.backend = StreamBackendUsingServer(m.redraw, this.streamId, userID)
+        this.backend = StoreUsingServer(m.redraw, this.streamId, userID)
 
         this.redrawFunction = null
 

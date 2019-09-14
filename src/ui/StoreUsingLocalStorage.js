@@ -8,7 +8,7 @@ const hashToLocationPrefix = "_h2l_"
 const locationToHashPrefix = "_l2h_"
 const itemCountKey = "_itemCounter"
 
-export function StreamBackendUsingLocalStorage(redrawCallback) {
+export function StoreUsingLocalStorage(redrawCallback) {
 
     function addItem(item) {
         const hash = "" + sha256(item)

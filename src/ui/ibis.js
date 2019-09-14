@@ -113,7 +113,7 @@ After pasting, load it using "Update Diagram from JSON" button.
 
 "use strict"
 
-import { StreamBackendUsingServer } from "./StreamBackendUsingServer.js"
+import { StoreUsingServer } from "./StoreUsingServer.js"
 import { HashUtils } from "./HashUtils.js"
 import { FileUtils } from "./FileUtils.js"
 
@@ -794,7 +794,7 @@ const diagramResponder = {
 
 startup()
 
-const backend = StreamBackendUsingServer(m.redraw, {ibisDiagram: diagramUUID}, userID)
+const backend = StoreUsingServer(m.redraw, {ibisDiagram: diagramUUID}, userID)
 
 backend.connect(diagramResponder)
 try {

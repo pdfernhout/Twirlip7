@@ -3,7 +3,7 @@
 
 "use strict"
 
-import { StreamBackendUsingServer } from "./StreamBackendUsingServer.js"
+import { StoreUsingServer } from "./StoreUsingServer.js"
 import { HashUtils } from "./HashUtils.js"
 
 // defines marked
@@ -235,7 +235,7 @@ function uploadDocumentClicked() {
             onAddItem: (item) => {}
         }
 
-        const upload = StreamBackendUsingServer(m.redraw, {sha256: null}, userID)
+        const upload = StoreUsingServer(m.redraw, {sha256: null}, userID)
         upload.connect(uploadResponder)
         upload.setup()
         */
@@ -474,7 +474,7 @@ const chatRoomResponder = {
 
 startup()
 
-const backend = StreamBackendUsingServer(m.redraw, {chatRoom}, userID)
+const backend = StoreUsingServer(m.redraw, {chatRoom}, userID)
 
 backend.connect(chatRoomResponder)
 try {

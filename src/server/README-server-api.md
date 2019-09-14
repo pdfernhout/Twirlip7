@@ -48,7 +48,7 @@ Resources must have been created with a specific format. The resource files must
                 onAddItem: (item) => {}
             }
 
-            const upload = StreamBackendUsingServer(m.redraw, {sha256: null}, userID)
+            const upload = StoreUsingServer(m.redraw, {sha256: null}, userID)
             upload.connect(uploadResponder)
             upload.setup()
             */
@@ -128,7 +128,7 @@ Commands for messages (all on "twirlip" channel):
 * remove -- remove one specific message from a stream (or act as if that happened)
 * reset -- remove everything stored in stream to start over (or act as if that happened)
 
-See StreamBackendUsingServer.js for API details:
+See StoreUsingServer.js for API details:
 
     // =============== socket.io communications
 

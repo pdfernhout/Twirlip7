@@ -11,9 +11,9 @@ import "./vendor/mithril.js"
 import "./vendor/sha256.js"
 
 import { NotebookView } from "./NotebookView.js"
-import { Stream } from "./Stream.js"
-import { StreamBackendUsingLocalStorage } from "./StreamBackendUsingLocalStorage.js"
-import { StreamBackendUsingServer } from "./StreamBackendUsingServer.js"
+import { NotebookBackend } from "./NotebookBackend.js"
+import { StoreUsingLocalStorage } from "./StoreUsingLocalStorage.js"
+import { StoreUsingServer } from "./StoreUsingServer.js"
 import { FileUtils } from "./FileUtils.js"
 import { HashUtils } from "./HashUtils.js"
 import { CanonicalJSON } from "./CanonicalJSON.js"
@@ -24,11 +24,11 @@ let initialKeyToGoTo = null
 
 let notebookId = "common"
 
-const NotebookUsingMemory = Stream()
-const NotebookUsingLocalStorage = Stream(StreamBackendUsingLocalStorage(m.redraw))
+const NotebookUsingMemory = NotebookBackend()
+const NotebookUsingLocalStorage = NotebookBackend(StoreUsingLocalStorage(m.redraw))
 
-const serverBackend = StreamBackendUsingServer(m.redraw, notebookId) 
-const NotebookUsingServer = Stream(serverBackend)
+const serverBackend = StoreUsingServer(m.redraw, notebookId) 
+const NotebookUsingServer = NotebookBackend(serverBackend)
 
 const modelistWrapper = {
     modelist: null

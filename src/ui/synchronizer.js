@@ -2,7 +2,7 @@
 
 "use strict"
 
-import { StreamBackendUsingServer } from "./StreamBackendUsingServer.js"
+import { StoreUsingServer } from "./StoreUsingServer.js"
 import { HashUtils } from "./HashUtils.js"
 import { FileUtils } from "./FileUtils.js"
 
@@ -364,7 +364,7 @@ try {
 } catch (e) {
     console.log("not valid JSON for hash", streamName1)
 }
-const backend1 = StreamBackendUsingServer(m.redraw, initialObject, undefined, serverURL1)
+const backend1 = StoreUsingServer(m.redraw, initialObject, undefined, serverURL1)
 
 backend1.connect(streamNameResponder1)
 try {
@@ -378,7 +378,7 @@ try {
 } catch (e) {
     console.log("not valid JSON for hash", streamName1)
 }
-const backend2 = StreamBackendUsingServer(m.redraw, initialObject, undefined, serverURL2)
+const backend2 = StoreUsingServer(m.redraw, initialObject, undefined, serverURL2)
 
 backend2.connect(streamNameResponder2)
 try {

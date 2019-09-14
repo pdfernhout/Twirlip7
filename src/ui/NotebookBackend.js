@@ -4,13 +4,13 @@
 
 /* global sha256 */
 
-// A Stream is an ordered collection of items (JSON objects).
+// A NotebookBackend maintains an ordered collection of items (JSON objects).
 // Each item can be referenced by its zero-based position
 // or by the SHA256 of its canoncial JSON representation.
-// This stream is stored in memory.
-// A backend can be connected to the stream for persistence.
+// This collection (stream) is stored in memory.
+// A Store can be connected to the NotebookBackend for persistence.
 
-export function Stream(store) {
+export function NotebookBackend(store) {
 
     let itemForLocation = []
     let itemForHash = {}

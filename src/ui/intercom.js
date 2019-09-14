@@ -2,7 +2,7 @@
 
 "use strict"
 
-import { StreamBackendUsingServer } from "./StreamBackendUsingServer.js"
+import { StoreUsingServer } from "./StoreUsingServer.js"
 import { HashUtils } from "./HashUtils.js"
 
 // defines m
@@ -214,7 +214,7 @@ const streamNameResponder = {
 startup()
 // setup()
 
-const backend = StreamBackendUsingServer(m.redraw, ephemeralStreamPrefix + streamNameSuffix, userID)
+const backend = StoreUsingServer(m.redraw, ephemeralStreamPrefix + streamNameSuffix, userID)
 
 backend.connect(streamNameResponder)
 try {
