@@ -4,7 +4,7 @@ import { CanonicalJSON } from "./CanonicalJSON.js"
 
 const exampleNotebookConfigurationFileName = "_exampleNotebookConfiguration.txt"
 
-export const ExampleNotebookLoader = {
+export const NotebookExamplesLoader = {
 
     async loadFile(fileName) {
         const fullFileName = "examples/" + fileName
@@ -20,7 +20,7 @@ export const ExampleNotebookLoader = {
         const configFileContents = await response.text()
         m.redraw()
         // console.log("configFileContents", configFileContents)
-        ExampleNotebookLoader.loader(configFileContents, progressCallback, doneCallback)
+        NotebookExamplesLoader.loader(configFileContents, progressCallback, doneCallback)
     },
 
     async loader(configFileContents, progressCallback, doneCallback) {
@@ -62,7 +62,7 @@ export const ExampleNotebookLoader = {
             }
             const fileName = inputLine.trim()
 
-            const fileContents = await ExampleNotebookLoader.loadFile(fileName)
+            const fileContents = await NotebookExamplesLoader.loadFile(fileName)
 
             item.attribute = savedAttribute || fileName
             item.value = fileContents

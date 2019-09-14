@@ -4,7 +4,7 @@ import { FileUtils } from "./FileUtils.js"
 import { HashUtils } from "./HashUtils.js"
 import { EvalUtils } from "./EvalUtils.js"
 
-import { ExampleNotebookLoader } from "./ExampleNotebookLoader.js"
+import { NotebookExamplesLoader } from "./NotebookExamplesLoader.js"
 import { CanonicalJSON } from "./CanonicalJSON.js"
 
 // defines sha256
@@ -914,7 +914,7 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
     function showExampleNotebook() {
         if (!confirmClear()) return
         progress("Loading examples; please wait...")
-        ExampleNotebookLoader.loadAllFiles(
+        NotebookExamplesLoader.loadAllFiles(
             (progressMessage) => {
                 progress(progressMessage)
                 m.redraw()
