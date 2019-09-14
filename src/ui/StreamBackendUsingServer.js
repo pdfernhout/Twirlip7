@@ -6,11 +6,10 @@
 import { CanonicalJSON } from "./CanonicalJSON.js"
 
 // returns position + 1 for item reference to avoid first item being "0"
-export function StreamBackendUsingServer(aRedrawCallback, streamId = "common", userId = "anonymous", serverURL = "") {
+export function StreamBackendUsingServer(redrawCallback, streamId = "common", userId = "anonymous", serverURL = "") {
     let socket = null
     let messagesReceivedCount = 0
     let responder = null
-    let redrawCallback = aRedrawCallback
     let listeningOnStreams = {}
 
     streamId = JSON.parse(CanonicalJSON.stringify(streamId))

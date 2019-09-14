@@ -8,7 +8,7 @@ const hashToLocationPrefix = "_h2l_"
 const locationToHashPrefix = "_l2h_"
 const itemCountKey = "_itemCounter"
 
-export function StreamBackendUsingLocalStorage() {
+export function StreamBackendUsingLocalStorage(redrawCallback) {
 
     function addItem(item) {
         const hash = "" + sha256(item)
@@ -85,10 +85,14 @@ export function StreamBackendUsingLocalStorage() {
             if (key.startsWith(hashToItemPrefix)) {
                 const newValue = event.newValue
                 responder.onAddItem(newValue)
+                if (redrawCallback) redrawCallback()
             }
         })
 
         responder.onLoaded()
+        
+        // This next redraw is only needed if connect was done other than in an event handler or at startup
+        if (redrawCallback) redrawCallback()
     }
 
     return {

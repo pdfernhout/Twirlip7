@@ -25,7 +25,7 @@ let initialKeyToGoTo = null
 let notebookId = "common"
 
 const NotebookUsingMemory = Stream()
-const NotebookUsingLocalStorage = Stream(StreamBackendUsingLocalStorage())
+const NotebookUsingLocalStorage = Stream(StreamBackendUsingLocalStorage(m.redraw))
 
 const serverBackend = StreamBackendUsingServer(m.redraw, notebookId) 
 const NotebookUsingServer = Stream(serverBackend)
