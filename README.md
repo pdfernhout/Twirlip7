@@ -50,6 +50,10 @@ No required build step (yet).
 
 See [Startup params](README-startup.md)
 
+### Storage design using streams of items
+
+See [Storage design](README-storage.md)
+
 ### License: MIT
 
 ### Screenshots
