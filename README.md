@@ -8,7 +8,17 @@ Right now, there are a few experimental applications to play with:
 
 * a programmable notebook (with some examples including plugins)
 * an IBIS diagramming tool for Dialogue Mapping
-* a chat application
+* a chat app (which can also serve as a personal journal)
+* a "tables" spreadsheet app
+* a filer app that emulates a hierarchical file system
+* a organizer that can read mbox-format email files
+* a hierarchical outliner
+* a sketcher app to create SVG (which can then be pasted into the chat app)
+* a synchronizer tool to synchronize two streams on the same or different servers
+* a monitor to display JSON objects in a stream
+* an intercom to do voice chat (still under development)
+
+The notebook app and the chat app are the most full-featured and useful right now.
 
 ### About the notebook application
 
@@ -31,7 +41,11 @@ The IDE supports some functionality inspired by the Smalltalk "Workspace". You c
 
 To test this, click "Show example log" which will put some JSON text in the editor window, and then click "Load log" to start using the log of snippets. Then use Previous and Next buttons to scroll through snippets. Click "Do it" to evaluate a snippet. Select text and then Do, Print, or Inspect just that text (e.g. "1 + 1"). Supports Import and Export of editor content to a file. You can edit snippets and click "Save" to add them to the log of snippets.
 
-The UI uses Mithril.js, Tachyons.js, RequireJS, and the ACE editor in plain JavaScript. The UI currently expects ES6 in a modern browser.
+The UI uses Mithril.js, Tachyons.js, RequireJS, and the ACE editor in plain JavaScript. The UI currently expects ES6 in a modern browser
+
+The UI code is written in ES6 JavaScript. CSS styling is done using the classes defined in the Tachyons stylesheet -- or occasionally inline styles when there is something Tachyons does not cover). Given those two choices, there is no required build step. You can just modify a UI file and reload the page in the browser to see your changes.
+
+### The server side
 
 The Server uses Node.js with Express to serve the UI files and to store and retrieve items shared by all users.
 Using the server requires running "npm install" to load the supporting npm modules and then "npm start" to run the server. 
@@ -40,11 +54,10 @@ you need to add a proxyKey.txt file with a proxyKey passphrase which must be sup
 
 You don't need to install and run the server to do some simple tests.
 You can just load the UI files directly into your browser (like with the rawgit example).
-If you run without the server, however, you can only store data in memory or local storage;
+If you run the notebook without the server, however, you can only store data in memory or local storage;
 the server storage option will be greyed out in the UI.
 Also, proxy support is not available without the server, so the proxying examples won't work.
-
-No required build step (yet).
+The other applications besides the notebook generally won't be useable withotu the server. You may be able to play with them, but any changes you make will be lost when you reload the page.
 
 ### Startup params
 
