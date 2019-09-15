@@ -95,12 +95,18 @@ class Organizer {
         return result
     }
 
-    addItem(item) {
+    addItem(item, summary) {
         p.addTriple(getOrganizerName(), {item: item.uuid}, item.uuid)
+        // Keep a copy of essential information
+        if (summary) p.addTriple(getOrganizerName(), {itemSummary: item.uuid}, summary)
     }
 
     deleteItem(item) {
         p.addTriple(getOrganizerName(), {item: item.uuid}, null)
+    }
+
+    getSummaryForItem(uuid) {
+        return p.findC(getOrganizerName(), {itemSummary: uuid})
     }
 }
 
@@ -137,12 +143,12 @@ function importMailbox() {
             const dateMatch = email.match(/^Date: ([^\n]*)/m)
             const date = dateMatch ? dateMatch[1] : ""
 
-            const uuid = {type: "email-test02", messageId}
+            const uuid = {type: "email-test03", messageId}
 
             emailCount++
-            console.log("subject", title)
-            console.log("messageId", messageId)
-            console.log("==============================", emailCount)
+            // console.log("subject", title)
+            // console.log("messageId", messageId)
+            console.log("==== Importing #", emailCount)
 
             const item = new Item(uuid)
             item.setType("email:mbox")
@@ -151,7 +157,7 @@ function importMailbox() {
             item.setDate(date)
             item.setBody(email)
 
-            organizer.addItem(item)
+            organizer.addItem(item, {title, from, date})
 
             m.redraw()
         }
@@ -208,14 +214,16 @@ function displayItemContents(item) {
 
 // TODO: optimize exessive stringify use
 function isUUIDMatch(a, b) {
-    return JSON.stringify(a) === JSON.stringify(b)
+    return CanonicalJSON.stringify(a) === CanonicalJSON.stringify(b)
 }
 
 function displayItem(item, index) {
-    const from = item.getFrom()
+    const summary = organizer.getSummaryForItem(item.uuid)
+    const from = summary ? summary.from : item.getFrom()
     const fromEmail = "<" + (from.split(" (")[0] || "").replace(/"/g, "") + ">"
     const fromName = "(" + from.split(" (")[1] || ""
-    const date = item.getDate()
+    const date = summary ? summary.date : item.getDate()
+    const title = summary ? summary.title : item.getTitle()
     return m("div.mt1", {key: JSON.stringify(item.uuid)}, [
         m("button.f6", {onclick: () => {
             currentUUID = (isUUIDMatch(currentUUID, item.uuid) && !editMode) ? null : item.uuid
@@ -226,7 +234,7 @@ function displayItem(item, index) {
             editMode = true
         }}, "Edit"),
         m("span.dib.w2.tr", index), " ", 
-        m("span.ml2", { title: date }, item.getTitle()),
+        m("span.ml2", { title: date }, title),
         m("span.ml2.f6", { title: fromEmail }, fromName),
         m("br"),
         
@@ -251,9 +259,11 @@ function sortItems(items) {
     throw new Error("unexpected sort")
 }
 
+let loading = true
+let redraws = 0
+
 function displayItems() {
     const items = organizer.getItems()
-    let index = 0
     sortItems(items)
     return m("div.ma1", [
         m("div",
@@ -264,9 +274,11 @@ function displayItems() {
                 })
             ),
         ),
-        items.map((item) => {
-            return displayItem(item, index++)
-        }),
+        loading
+            ? m("span", "Loading...", redraws++)
+            : items.map((item, index) => {
+                return displayItem(item, index)
+            }),
         m("div.mt1", [
             m("button", { onclick: () => makeNewItem() }, "New Item"),
             m("button.ml1", { onclick: () => importMailbox() }, "Import Mailbox")
@@ -286,7 +298,13 @@ const OrganizerViewer = {
     }
 }
 
-p.connect()
+p.connect({
+    onLoaded: (streamId) => {
+        if (isUUIDMatch(streamId, getOrganizerName())) {
+            loading = false
+        }
+    }
+})
 
 // TODO: Fix this to clear out stuff for hash change
 async function startup() {
