@@ -34,17 +34,24 @@ io.on("connection", function(socket) {
     })
 })
 
-function sendMessageToAllClients(message) {
+function sendMessageToAllClients(message, clientIdOfSender) {
     // log("debug", "sendMessageToAllClients", JSON.stringify(message));
     // io.emit("twirlip", message); // This would send to all clients -- even ones not listening on stream
     const key = storage.keyForStreamId(message.streamId)
     const listeners = streamToListenerMap[key]
+    let senderReceivedEcho = false
     if (listeners) {
         for (let clientId in listeners) {
             if (listeners[clientId]) {
                 sendMessageToClient(clientId, message)
+                if (clientId === clientIdOfSender) senderReceivedEcho = true
             }
         }
+    }
+    if (!senderReceivedEcho) {
+        log("debug", "sending special ack message to: " + clientIdOfSender)
+        // Send a special ack message to sender can be sure this message (insert, remove, reset) was processed
+        sendMessageToClient(clientIdOfSender, {command: "ack-" + message.command, streamId: message.streamId, userId: message.userId, timestamp: message.timestamp, uuid: message.uuid})
     }
 }
 
@@ -165,14 +172,14 @@ function insert(clientId, message) {
     } else {
         // log("debug", "not storing ephemeral message for: ", message.streamId)
     }
-    sendMessageToAllClients(message)
+    sendMessageToAllClients(message, clientId)
 }
 
 function remove(clientId, message) {
     const streamId = message.streamId
     log("debug", "remove (unfinished)", streamId)
     storage.storeMessage(message)
-    sendMessageToAllClients(message)
+    sendMessageToAllClients(message, clientId)
 }
 
 function reset(clientId, message) {
@@ -180,7 +187,7 @@ function reset(clientId, message) {
     log("debug", "reset", streamId)
     // TODO: Perhaps should clear out file?
     storage.storeMessage(message)
-    sendMessageToAllClients(message)
+    sendMessageToAllClients(message, clientId)
 }
 
 module.exports = {

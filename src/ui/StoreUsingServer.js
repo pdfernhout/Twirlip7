@@ -28,6 +28,8 @@ export function StoreUsingServer(redrawCallback, streamId = "common", userId = "
     // =============== socket.io communications
 
     function sendMessage(message) {
+        // Modify message to have userId, timestamp, and uuid
+        Object.assign(message, {userId: userId, timestamp: new Date().toISOString(), uuid: UUID.uuidv4()})
         console.log("sendMessage", message)
         socket.emit("twirlip", message)
     }
@@ -35,18 +37,19 @@ export function StoreUsingServer(redrawCallback, streamId = "common", userId = "
     // alternateStreamId is optional
     function sendInsertItemMessage(item, alternateStreamId) {
         if (alternateStreamId !== undefined) alternateStreamId = JSON.parse(CanonicalJSON.stringify(alternateStreamId))
-        const message = {command: "insert", streamId: alternateStreamId || streamId, item: item, userId: userId, timestamp: new Date().toISOString(), uuid: UUID.uuidv4()}
+        const message = {command: "insert", streamId: alternateStreamId || streamId, item: item}
         sendMessage(message)
     }
 
     // This can be used to ensure a message was processed by the backend
     async function sendInsertItemMessageAsync(item, alternateStreamId) {
         if (alternateStreamId !== undefined) alternateStreamId = JSON.parse(CanonicalJSON.stringify(alternateStreamId))
-        const message = {command: "insert", streamId: alternateStreamId || streamId, item: item, userId: userId, timestamp: new Date().toISOString(), uuid: UUID.uuidv4()}
+        const message = {command: "insert", streamId: alternateStreamId || streamId, item: item}
+        sendMessage(message)
+        // snedMessage will add a uuid to the message
         const promise = new Promise((resolve, reject) => {
             echoPromises[message.uuid] = {resolve, reject}
         })
-        sendMessage(message)
         return promise
     }
 
@@ -63,11 +66,13 @@ export function StoreUsingServer(redrawCallback, streamId = "common", userId = "
 
     function messageReceived(message) {
         // console.log("messageReceived", message)
-        if (message.command === "insert") {
+        if (message.command === "insert" || message.command === "ack-insert") {
+            // messages may be ack-ed instead of inserted (echoed) if the client 
+            // who sent them is not currently listening on the streamId they were for
             if (isMatchingStreamId(message.streamId, streamId)) messagesReceivedCount++
-            responder.onAddItem(message.item)
+            if (message.command === "insert") responder.onAddItem(message.item)
 
-            // Notify someone waiting for an echo of the message, if any
+            // Notify someone waiting for an echo or ack of the message they sent
             // This can be used to ensure a message was processed by the backend
             const promiseResolver = echoPromises[message.uuid]
             if (promiseResolver) {
@@ -102,7 +107,7 @@ export function StoreUsingServer(redrawCallback, streamId = "common", userId = "
 
         socket.on("twirlip", function(message) {
             // console.log("twirlip", message)
-            if (listeningOnStreams[CanonicalJSON.stringify(message.streamId)]) {
+            if (listeningOnStreams[CanonicalJSON.stringify(message.streamId)] || message.command.startsWith("ack-")) {
                 messageReceived(message)
             }
         })
