@@ -137,7 +137,7 @@ async function saveEmail(email) {
     const dateMatch = email.match(/^Date: ([^\n]*)/m)
     const date = dateMatch ? dateMatch[1] : ""
 
-    const uuid = {type: "email-test04", messageId}
+    const uuid = {type: "email-test05", messageId}
 
     // console.log("subject", title)
     // console.log("messageId", messageId)
@@ -271,20 +271,36 @@ function displayItem(item, index) {
     ])
 }
 
+function compareItems(a, b) {
+    const aSummary = organizer.getSummaryForItem(a.uuid)
+    const bSummary = organizer.getSummaryForItem(b.uuid)
+    const aDate = aSummary ? aSummary.date : a.getDate()
+    const bDate = bSummary ? bSummary.date : b.getDate()
+
+    if (sortBy === "date") return aDate.localeCompare(bDate)
+
+    if (sortBy === "subject") {
+        const aTitle = aSummary ? aSummary.title : a.getTitle()
+        const bTitle = bSummary ? bSummary.title : b.getTitle()
+        let result = aTitle.localeCompare(bTitle)
+        if (result === 0) result = aDate.localeCompare(bDate)
+        return result
+    }
+
+    if (sortBy === "from") {
+        const aFrom = aSummary ? aSummary.from : a.getFrom()
+        const bFrom = bSummary ? bSummary.from : b.getFrom()
+        let result = aFrom.localeCompare(bFrom)
+        if (result === 0) result = aDate.localeCompare(bDate)
+        return result
+    }
+
+    throw new Error("unexpected sort")
+}
+
 function sortItems(items) {
     if (sortBy === "order") return
-    if (sortBy === "date") return items.sort((a, b) => a.getDate().localeCompare(b.getDate()))
-    if (sortBy === "subject") return items.sort((a, b) => {
-        let result = a.getTitle().localeCompare(b.getTitle())
-        if (result === 0) result = a.getDate().localeCompare(b.getDate())
-        return result
-    })
-    if (sortBy === "from") return items.sort((a, b) => {
-        let result = a.getFrom().localeCompare(b.getFrom())
-        if (result === 0) result = a.getDate().localeCompare(b.getDate())
-        return result
-    })
-    throw new Error("unexpected sort")
+    return items.sort(compareItems)
 }
 
 let loading = true
