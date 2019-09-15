@@ -100,12 +100,20 @@ export class Pointrel20190914 {
         return result
     }
 
-    connect() {
+    connect(responder) {
         this.backend.connect({
             onAddItem: (item) => {
                 // console.log("onAddItem", item)
                 if (item.a !== undefined && item.b !== undefined && item.c !== undefined && item.t !== undefined) {
                     this.addTripleToTripleIndex(item)
+                }
+                if (responder && responder.onAddItem) {
+                    responder.onAddItem(item)
+                }
+            },
+            onLoaded: (streamId) => {
+                if (responder && responder.onLoaded) {
+                    responder.onLoaded(streamId)
                 }
             }
         })
