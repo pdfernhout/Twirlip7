@@ -7,12 +7,10 @@ import "./vendor/mithril.js"
 import NameTracker from "./NameTracker.js"
 import { FileUtils } from "./FileUtils.js"
 
-import { Pointrel20190820 } from "./Pointrel20190820.js"
+import { Pointrel20190914 } from "./Pointrel20190914.js"
 import { CanonicalJSON } from "./CanonicalJSON.js"
 
-const p = new Pointrel20190820()
-
-p.setDefaultApplicationName("organizer")
+const p = new Pointrel20190914()
 
 const nameTracker = new NameTracker({
     hashNameField: "name",
@@ -28,8 +26,6 @@ function getOrganizerName() {
 
 const sortOptions = ["order", "date", "subject", "from"]
 let sortBy = "order"
-
-const bodyLoaded = {}
 
 class Item {
     constructor(uuid) {
@@ -77,16 +73,14 @@ class Item {
     }
 
     getBody() {
-        const body = p.findC(this.uuid, "body") || ""
-        if (!body && !bodyLoaded[CanonicalJSON.stringify(this.uuid)]) {
-            bodyLoaded[CanonicalJSON.stringify(this.uuid)] = true
-            p.openStream(this.uuid)
-        }
+        // Keep body in a separate stream in case it is big
+        const body = p.findC({emailBodyFor: this.uuid}, "body") || ""
         return body
     }
 
     setBody(body) {
-        p.addTriple(this.uuid, "body", body)
+        // Keep body in a separate stream in case it is big
+        p.addTriple({emailBodyFor: this.uuid}, "body", body)
     }
 }
 
@@ -143,7 +137,7 @@ function importMailbox() {
             const dateMatch = email.match(/^Date: ([^\n]*)/m)
             const date = dateMatch ? dateMatch[1] : ""
 
-            const uuid = {type: "email", messageId}
+            const uuid = {type: "email-test02", messageId}
 
             emailCount++
             console.log("subject", title)
@@ -151,29 +145,14 @@ function importMailbox() {
             console.log("==============================", emailCount)
 
             const item = new Item(uuid)
-
-            // Save indexing info to organizer stream
-            p.newTransaction("organizer/importMailbox")
+            item.setType("email:mbox")
             item.setTitle(title)
             item.setFrom(from)
             item.setDate(date)
-            // item.setMessageId(messageId)
-            // item.setBody(email)
-            item.setType("email:mbox")
-            organizer.addItem(item)
-            p.sendCurrentTransaction()
-            
-            // Save body of email to individual item stream
-            p.newTransaction("organizer/importMailbox")
-            // item.setTitle(title)
-            // item.setFrom(from)
-            // item.setDate(date)
             item.setBody(email)
-            // item.setType("email:mbox")
+
             organizer.addItem(item)
-            p.sendCurrentTransaction(uuid)
-            
-            // TODO: Now need to keep reference to the email and index information
+
             m.redraw()
         }
     })
@@ -299,24 +278,19 @@ const OrganizerViewer = {
     view: function() {
         // console.log("view start")
         const result = m(".main.ma1", [
-            p.isOffline() ? m("div.h2.pa1.ba.b--red", "OFFLINE", m("button.ml1", { onclick: p.goOnline }, "Try to go online")) : [],
             nameTracker.displayNameEditor(),
-            p.isLoaded() ?
-                displayItems() :
-                "Loading... " + (p.getLatestSequence() || "")
+            displayItems()
         ])
         // console.log("view done")
         return result
     }
 }
 
+p.connect()
+
+// TODO: Fix this to clear out stuff for hash change
 async function startup() {
-    p.setRedrawFunction(m.redraw)
-    p.setStreamId(getOrganizerName())
-    await p.updateFromStorage(true)
     m.redraw()
 }
 
 m.mount(document.body, OrganizerViewer)
-
-startup()
