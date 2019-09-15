@@ -29,7 +29,7 @@ io.on("connection", function(socket) {
     })
 
     socket.on("twirlip", function (message) {
-        log(address, "socket.io message", clientId, message)
+        // log(address, "socket.io message", clientId, message)
         processMessage(clientId, message)
     })
 })
@@ -117,7 +117,7 @@ function listen(clientId, message) {
     let messageCount = 0
     let messagesSent = 0
 
-    log("listen", clientId, streamId, fromIndex)
+    log("listen", clientId, JSON.stringify(streamId), fromIndex)
 
     setListenerState(clientId, streamId, "listening")
 
@@ -141,7 +141,7 @@ function listen(clientId, message) {
         messagesSent++
     }
     forEachLineInFile.forEachLineInNamedFile(fileName, sendMessage, 0).then(() => {
-        log("sending loaded", messagesSent)
+        log("sending loaded", messagesSent, JSON.stringify(message.streamId))
         sendMessageToClient(clientId, {command: "loaded", streamId: streamId, messagesSentCount: messagesSent})
     }).catch(error => {
         sendMessageToClient(clientId, {command: "loadingError", streamId: streamId})
@@ -158,7 +158,7 @@ function unlisten(clientId, message) {
 
 function insert(clientId, message) {
     const streamId = message.streamId
-    log("insert", clientId, streamId, message.item)
+    log("insert2", JSON.stringify(clientId), JSON.stringify(streamId)) // , message.item)
     if (!isEphemeralStream(message)) {
         storage.storeMessage(message)
     } else {

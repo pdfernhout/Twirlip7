@@ -46,19 +46,31 @@ async function ensureFilePathForSHA256(sha256) {
     segments.push(sha256.substring(0, 2))
     directoryName = segments.join("/")
     if (! await exists(directoryName)) {
-        await mkdir(directoryName)
+        try {
+            await mkdir(directoryName)
+        } catch (e) {
+            log("mkdir failed", directoryName, e)
+        }
     }
 
     segments.push(sha256.substring(2, 4))
     directoryName = segments.join("/")
     if (! await exists(directoryName)) {
-        await mkdir(directoryName)
+        try {
+            await mkdir(directoryName)
+        } catch (e) {
+            log("mkdir failed", directoryName, e)
+        }
     }
 
     segments.push(sha256.substring(4, 6))
     directoryName = segments.join("/")
     if (! await exists(directoryName)) {
-        await mkdir(directoryName)
+        try {
+            await mkdir(directoryName)
+        } catch (e) {
+            log("mkdir failed", directoryName, e)
+        }
     }
 }
 
