@@ -58,9 +58,11 @@ export function StoreUsingServer(redrawCallback, streamId = "common", userId = "
         } else if (message.command === "loaded") {
             // console.log("got loaded message", streamId, message)
             // Don't increment messagesReceivedCount as "loaded" is an advisory meta message from server
-            if (isMatchingStreamId(message.streamId, streamId)) {
+            if (streamId !== undefined && isMatchingStreamId(message.streamId, streamId)) {
                 console.log("all server data loaded", messagesReceivedCount, new Date().toISOString())
-                if (responder.onLoaded) responder.onLoaded()
+                if (responder.onLoaded) responder.onLoaded(message.streamId)
+            } else {
+                if (responder.onLoaded) responder.onLoaded(message.streamId)
             }
         }
         if (redrawCallback) redrawCallback()
