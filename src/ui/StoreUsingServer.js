@@ -4,6 +4,7 @@
 /* global io */
 
 import { CanonicalJSON } from "./CanonicalJSON.js"
+import { UUID } from "./UUID.js"
 
 // returns position + 1 for item reference to avoid first item being "0"
 export function StoreUsingServer(redrawCallback, streamId = "common", userId = "anonymous", serverURL = "") {
@@ -27,26 +28,27 @@ export function StoreUsingServer(redrawCallback, streamId = "common", userId = "
     // =============== socket.io communications
 
     function sendMessage(message) {
+        console.log("sendMessage", message)
         socket.emit("twirlip", message)
     }
 
     // alternateStreamId is optional
     function sendInsertItemMessage(item, alternateStreamId) {
         if (alternateStreamId !== undefined) alternateStreamId = JSON.parse(CanonicalJSON.stringify(alternateStreamId))
-        sendMessage({command: "insert", streamId: alternateStreamId || streamId, item: item, userId: userId, timestamp: new Date().toISOString()})
+        const message = {command: "insert", streamId: alternateStreamId || streamId, item: item, userId: userId, timestamp: new Date().toISOString(), uuid: UUID.uuidv4()}
+        sendMessage(message)
     }
 
     // This can be used to ensure a message was processed by the backend
     async function sendInsertItemMessageAsync(item, alternateStreamId) {
         if (alternateStreamId !== undefined) alternateStreamId = JSON.parse(CanonicalJSON.stringify(alternateStreamId))
-        const message = {command: "insert", streamId: alternateStreamId || streamId, item: item, userId: userId, timestamp: new Date().toISOString()}
+        const message = {command: "insert", streamId: alternateStreamId || streamId, item: item, userId: userId, timestamp: new Date().toISOString(), uuid: UUID.uuidv4()}
         const promise = new Promise((resolve, reject) => {
-            echoPromises[CanonicalJSON.stringify(message)] = {resolve, reject}
+            echoPromises[message.uuid] = {resolve, reject}
         })
         sendMessage(message)
         return promise
     }
-
 
     function requestAllMessages() {
         console.log("requestAllMessages", messagesReceivedCount)
@@ -67,11 +69,10 @@ export function StoreUsingServer(redrawCallback, streamId = "common", userId = "
 
             // Notify someone waiting for an echo of the message, if any
             // This can be used to ensure a message was processed by the backend
-            const key = CanonicalJSON.stringify(message)
-            const promiseResolver = echoPromises[key]
+            const promiseResolver = echoPromises[message.uuid]
             if (promiseResolver) {
                 promiseResolver.resolve()
-                delete echoPromises[key]
+                delete echoPromises[message.uuid]
             }
         } else if (message.command === "remove") {
             if (isMatchingStreamId(message.streamId, streamId)) messagesReceivedCount++
@@ -143,8 +144,6 @@ export function StoreUsingServer(redrawCallback, streamId = "common", userId = "
     return {
         addItem,
         addItemAsync,
-        sendMessage,
-        sendInsertItemMessage,
         connect,
         setup,
         openStream,
