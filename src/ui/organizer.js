@@ -97,10 +97,10 @@ class Organizer {
         return result
     }
 
-    addItem(item, summary) {
-        p.addTriple(getOrganizerName(), {item: item.uuid}, item.uuid)
+    async addItem(item, summary) {
         // Keep a copy of essential information
         if (summary) p.addTriple(getOrganizerName(), {itemSummary: item.uuid}, summary)
+        await p.addTripleAsync(getOrganizerName(), {item: item.uuid}, item.uuid)
     }
 
     deleteItem(item) {
@@ -119,10 +119,10 @@ function makeNewItem() {
     organizer.addItem(item)
 }
 
-function saveEmail(email) {
+async function saveEmail(email) {
     // console.log("saveEmail", email)
     const subject = email.match(/^Subject: ([^\n]*)/m)
-    const messageIdMatcher = email.match(/^Message-ID: <([^>]*)/m)
+    const messageIdMatcher = email.match(/^Message-ID: <([^>]*)/mi)
     let messageId 
     if (messageIdMatcher) messageId = messageIdMatcher[1]
     if (!messageId) {
@@ -150,7 +150,7 @@ function saveEmail(email) {
     item.setDate(date)
     item.setBody(email)
 
-    organizer.addItem(item, {title, from, date})
+    await organizer.addItem(item, {title, from, date})
 }
 
 let emailsToImport = []
@@ -165,7 +165,7 @@ function importMailbox() {
         // Hide the list while importing to prevent lots of long UI updates for each echoed triple message
         loading = true
         // Do loop as a timeout series so UI will update
-        setTimeout(function processEmail() {
+        setTimeout(async function processEmail() {
             if (!emailsToImport.length) {
                 loading = false
                 Progress.progress("")
@@ -182,7 +182,10 @@ function importMailbox() {
                     Progress.progress("Importing email #" + emailCount)
                     m.redraw()
                 }
-                saveEmail(email)
+                // Wait for each email to be saved before sending the next
+                // This is to avoid overwelming the server
+                // Also, otherwise the user may close the window before everything is saved
+                await saveEmail(email)
             }
             setTimeout(processEmail, 0)
         }, 0)
