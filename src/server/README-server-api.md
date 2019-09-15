@@ -71,17 +71,17 @@ Resources must have been created with a specific format. The resource files must
 
             // TODO: No error handling
             // TODO: Does not check if it exists already
-            backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "filename", c: filename}, alternateStreamId)
-            backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "format", c: "base64-segments"}, alternateStreamId)
-            backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "bytes-byteLength", c: bytes.byteLength}, alternateStreamId)
-            backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "base64-length", c: contents.length}, alternateStreamId)
-            backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "base64-segment-count", c: segments.length}, alternateStreamId)
-            backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "base64-segment-size", c: segmentSize}, alternateStreamId)
+            backend.addItem({a: alternateStreamId, b: "filename", c: filename}, alternateStreamId)
+            backend.addItem({a: alternateStreamId, b: "format", c: "base64-segments"}, alternateStreamId)
+            backend.addItem({a: alternateStreamId, b: "bytes-byteLength", c: bytes.byteLength}, alternateStreamId)
+            backend.addItem({a: alternateStreamId, b: "base64-length", c: contents.length}, alternateStreamId)
+            backend.addItem({a: alternateStreamId, b: "base64-segment-count", c: segments.length}, alternateStreamId)
+            backend.addItem({a: alternateStreamId, b: "base64-segment-size", c: segmentSize}, alternateStreamId)
             // let reconstruct = ""
             for (let i = 0; i < segments.length; i++) {
                 // console.log("sending", i + 1, "of", segments.length)
                 // reconstruct += segments[i]
-                backend.sendInsertItemMessage({a: "sha256:" + sha256, b: "base64-segment:" + i, c: segments[i]}, alternateStreamId)
+                backend.addItem({a: alternateStreamId, b: "base64-segment:" + i, c: segments[i]}, alternateStreamId)
             }
 
             console.log("uploaded", filename, sha256)
