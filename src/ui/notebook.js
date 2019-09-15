@@ -17,6 +17,7 @@ import { StoreUsingServer } from "./StoreUsingServer.js"
 import { FileUtils } from "./FileUtils.js"
 import { HashUtils } from "./HashUtils.js"
 import { CanonicalJSON } from "./CanonicalJSON.js"
+import { UUID } from "./UUID.js"
 
 import { menu, popup } from "./popup.js"
 
@@ -74,6 +75,7 @@ function setupTwirlip7Global() {
 
         FileUtils,
         CanonicalJSON,
+        UUID,
         NotebookUsingLocalStorage,
         NotebookUsingMemory,
         NotebookUsingServer,

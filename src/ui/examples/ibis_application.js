@@ -206,20 +206,12 @@ function onkeydown(event) {
     console.log("onkeydown", event)
 }
 
-function uuid() {
-    // From: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript#2117523
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
-        var r = Math.random()*16|0, v = c == "x" ? r : (r&0x3|0x8)
-        return v.toString(16)
-    })
-}
-
 function addElement(type) {
     const name = prompt(type + " name")
     if (!name) return
     const x = lastClickPosition.x + 50
     const y = lastClickPosition.y + 50
-    const element = { type: type, name: name, x: x, y: y, notes: "", id: uuid() }
+    const element = { type: type, name: name, x: x, y: y, notes: "", id: Twirlip7.UUID.uuidv4() }
     diagram.elements.unshift(element)
     if (lastClickPosition) {
         lastClickPosition.x += 50

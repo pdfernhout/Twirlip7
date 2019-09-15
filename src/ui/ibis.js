@@ -116,6 +116,7 @@ After pasting, load it using "Update Diagram from JSON" button.
 import { StoreUsingServer } from "./StoreUsingServer.js"
 import { HashUtils } from "./HashUtils.js"
 import { FileUtils } from "./FileUtils.js"
+import { UUID } from "./UUID.js"
 
 // defines CompendiumIcons
 import "./examples/ibis_icons.js"
@@ -249,20 +250,12 @@ function onkeydown(event) {
     console.log("onkeydown", event)
 }
 
-function uuid() {
-    // From: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript#2117523
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
-        var r = Math.random()*16|0, v = c == "x" ? r : (r&0x3|0x8)
-        return v.toString(16)
-    })
-}
-
 function addElement(type, name, parentId) {
     if (!name) name = prompt(type + " name")
     if (!name) return
     const x = lastClickPosition.x + delta
     const y = lastClickPosition.y + delta
-    const element = { type: type, name: name, x: x, y: y, notes: "", id: uuid() }
+    const element = { type: type, name: name, x: x, y: y, notes: "", id: UUID.uuidv4() }
     if (parentId) element.parentId = parentId
     diagram.elements.unshift(element)
     if (lastClickPosition) {

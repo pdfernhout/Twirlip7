@@ -1,17 +1,11 @@
 /* global sha256 */
 
 import { StoreUsingServer } from "./StoreUsingServer.js"
+import { UUID } from "./UUID.js"
 
 // defines sha256
 import "./vendor/sha256.js"
 const calculateSHA256 = sha256
-
-export function uuidv4() {
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
-        var r = Math.random() * 16 | 0, v = c == "x" ? r : (r & 0x3 | 0x8)
-        return v.toString(16)
-    })
-}
 
 import { CanonicalJSON } from "./CanonicalJSON.js"
 
@@ -136,7 +130,7 @@ export class Pointrel20190820 {
     }
 
     uuidv4() {
-        return uuidv4()
+        return UUID.uuidv4()
     }
 
     findC(a, b) {
