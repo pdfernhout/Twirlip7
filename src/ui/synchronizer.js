@@ -5,6 +5,7 @@
 import { StoreUsingServer } from "./StoreUsingServer.js"
 import { HashUtils } from "./HashUtils.js"
 import { FileUtils } from "./FileUtils.js"
+import { Toast } from "./Toast.js"
 
 // defines m
 import "./vendor/mithril.js"
@@ -34,27 +35,6 @@ let messagesDiv2 = null
 
 let messageToShow = null
 let messageLabel = ""
-
-// TODO: This toast code was copied from the NotebookView and should ideally be made into a module
-const toastMessages = []
-function toast(message, delay) {
-    function removeToastAfterDelay() {
-        setTimeout(function() {
-            toastMessages.shift()
-            if ( toastMessages.length ) { removeToastAfterDelay() }
-            m.redraw()
-        }, toastMessages[0].delay)
-    }
-    if (delay === undefined) { delay = 3000 }
-    toastMessages.push({message, delay})
-    if ( toastMessages.length === 1) { removeToastAfterDelay() }
-}
-function viewToast() {
-    return m(".toastDiv.fixed.top-2.left-2.pa2.fieldset.bg-gold.pl3.pr3.tc.o-90.z-max",
-        { hidden: toastMessages.length === 0 },
-        toastMessages.length ? toastMessages[0].message : ""
-    )
-}
 
 function startup() {
     streamName1 = HashUtils.getHashParams()["stream"] || streamName1
@@ -208,7 +188,7 @@ function synchronizeSourceToDestination(sourceMessages, destinationMessages, des
             destSHAs[sha256] = true
         }
     })
-    toast("Copied " + copiedCount + " message" + (copiedCount === 1 ? "" : "s") + " to " + directionLabel, 2000)
+    Toast.toast("Copied " + copiedCount + " message" + (copiedCount === 1 ? "" : "s") + " to " + directionLabel, 2000)
 }
 
 function synchronizeAToB() {
@@ -250,7 +230,7 @@ function viewMessageList(messages) {
 const TwirlipSynchronizer = {
     view: function () {
         return m("div.pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
-            viewToast(),
+            Toast.viewToast(),
             m("h4.tc", "Twirlip Synchronizer"),
             m("div.mb3.center",
                 m("div",

@@ -3,6 +3,8 @@
 import { FileUtils } from "./FileUtils.js"
 import { HashUtils } from "./HashUtils.js"
 import { EvalUtils } from "./EvalUtils.js"
+import { Progress } from "./Progress.js"
+import { Toast } from "./Toast.js"
 
 import { NotebookExamplesLoader } from "./NotebookExamplesLoader.js"
 import { CanonicalJSON } from "./CanonicalJSON.js"
@@ -60,9 +62,6 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
 
     // to support user-defined extensions
     const extensions = {}
-
-    const toastMessages = []
-    let progressMessage = null
 
     // Used for resizing the editor's height
     let dragOriginY = 0
@@ -326,9 +325,9 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
             return false
         }
         if (addResult.existed) {
-            toast("Item already saved", 1000)
+            Toast.toast("Item already saved", 1000)
         } else {
-            toast("Saved item as:\n" + addResult.id, 2000)
+            Toast.toast("Saved item as:\n" + addResult.id, 2000)
         }
         updateLastLoadedItemFromCurrentItem()
         wasEditorDirty = false
@@ -398,7 +397,7 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
         try {
             EvalUtils.eval(selection.text)
         } catch (error) {
-            toast("Eval error:\n" + error)
+            Toast.toast("Eval error:\n" + error)
         }
     }
 
@@ -632,7 +631,7 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
 
     function skip(delta, wrap) {
         if (!currentNotebook.itemCount()) {
-            toast("No items to display. Try saving one first -- or show the example notebook in the editor and then load it.")
+            Toast.toast("No items to display. Try saving one first -- or show the example notebook in the editor and then load it.")
             return
         }
         try {
@@ -674,7 +673,7 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
         if (options.showProgress) {
             progressTimeout = setTimeout(() => {
                 progressTimeout = null
-                progress("Loading " + key + " ...")
+                Progress.progress("Loading " + key + " ...")
                 m.redraw()
             }, progressDelay)
         }
@@ -683,7 +682,7 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
             const itemText = currentNotebook.getItem(key)
             let item
             if (itemText === undefined || itemText === null) {
-                if (key) toast("item not found for:\n\"" + key + "\"")
+                if (key) Toast.toast("item not found for:\n\"" + key + "\"")
                 item = newItem()
                 key = null
             } else if (itemText[0] !== "{") {
@@ -715,7 +714,7 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
                     // Did not show progress message yet, so don't show it now
                     clearTimeout(progressTimeout)
                 } else {
-                    progress(null)
+                    Progress.progress(null)
                 }
             }
             // Redraw as a convenience by default to avoid a dozen callers doing it
@@ -913,15 +912,15 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
 
     function showExampleNotebook() {
         if (!confirmClear()) return
-        progress("Loading examples; please wait...")
+        Progress.progress("Loading examples; please wait...")
         NotebookExamplesLoader.loadAllFiles(
             (progressMessage) => {
-                progress(progressMessage)
+                Progress.progress(progressMessage)
                 m.redraw()
             },
             (exampleNotebook) => {
                 showNotebook(JSON.stringify(exampleNotebook, null, 4))
-                progress(null)
+                Progress.progress(null)
                 m.redraw()
             }
         )
@@ -934,11 +933,11 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
             // Update lastLoadedItem.value in case pasted in contents to avoid warning later since data was processed as intended
             lastLoadedItem.value = getEditorContents()
             wasEditorDirty = false
-            toast("Replaced notebook from editor")
+            Toast.toast("Replaced notebook from editor")
             m.redraw()
             return true
         } catch(error) {
-            toast("Problem replacing notebook from editor:\n" + error)
+            Toast.toast("Problem replacing notebook from editor:\n" + error)
             m.redraw()
             return false
         }
@@ -955,33 +954,16 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
                 if (!addResult.existed) addedItemCount++
                 return true
             })
-            toast("Added " + addedItemCount + " item" + ((addedItemCount === 1 ? "" : "s")) + " to current notebook")
+            Toast.toast("Added " + addedItemCount + " item" + ((addedItemCount === 1 ? "" : "s")) + " to current notebook")
             // Update lastLoadedItem.value in case pasted in contents to avoid warning later since data was processed as intended
             lastLoadedItem.value = getEditorContents()
             wasEditorDirty = false
             m.redraw()
         } catch(error) {
             console.log("Problem while merging", error)
-            toast("Problem merging notebook from editor:\n" + error)
+            Toast.toast("Problem merging notebook from editor:\n" + error)
             m.redraw()
         }
-    }
-
-    function progress(message) {
-        progressMessage = message
-    }
-
-    function toast(message, delay) {
-        function removeToastAfterDelay() {
-            setTimeout(function() {
-                toastMessages.shift()
-                if ( toastMessages.length ) { removeToastAfterDelay() }
-                m.redraw()
-            }, toastMessages[0].delay)
-        }
-        if (delay === undefined) { delay = 3000 }
-        toastMessages.push({message, delay})
-        if ( toastMessages.length === 1) { removeToastAfterDelay() }
     }
 
     // Extension sections are intended to be user-defined
@@ -1055,20 +1037,6 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
     }
 
     // View functions which are composed into one big view at the end
-
-    function viewProgress() {
-        return m(".progressDiv.fixed.top-2.left-2.pa2.fieldset.bg-light-blue.pl3.pr3.tc.o-90.z-max",
-            { hidden: !progressMessage },
-            progressMessage
-        )
-    }
-
-    function viewToast() {
-        return m(".toastDiv.fixed.top-2.left-2.pa2.fieldset.bg-gold.pl3.pr3.tc.o-90.z-max",
-            { hidden: toastMessages.length === 0 },
-            toastMessages.length ? toastMessages[0].message : ""
-        )
-    }
 
     function viewFocusAndCollapse() {
         return m("div.fr", [
@@ -1372,7 +1340,7 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
                     const isDirty = isEditorDirty()
                     if (isDirty !== wasEditorDirty) {
                         if (isDirty && !isLastEntityAttributeMatch) {
-                            toast("You are not editing the latest value for this entity's attribute")
+                            Toast.toast("You are not editing the latest value for this entity's attribute")
                         }
                         wasEditorDirty = isDirty
                         updateIsLastMatch()
@@ -1538,8 +1506,8 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
 
     function viewMain() {
         return [
-            viewProgress(),
-            viewToast(),
+            Progress.viewProgress(),
+            Toast.viewToast(),
             viewAbout(),
             focusMode ? [] : viewExtensionsHeader(),
             focusMode ? [] : viewNavigate(),
@@ -1590,7 +1558,7 @@ export function NotebookView(NotebookUsingLocalStorage, ace, modelistWrapper) {
         extensionsInstall,
         extensionsUninstall,
 
-        toast,
+        toast: Toast.toast,
         confirmClear,
         getEditorContents,
         isEditorDirty,
