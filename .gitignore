@@ -3,3 +3,4 @@ server-data
 proxyKey.txt
 test-local/**
 local-config.js
+server-log/*.log

@@ -37,7 +37,7 @@ function proxyRequest(request, response) {
         } else if (request.body.proxyKey !== proxyKey) {
             respond.fail(response, "incorrect or missing proxyKey in request")
         } else if (url.substring(0, 5) === "http:" || url.substring(0, 6) === "https:") {
-            log("Proxying request", url)
+            log("info", "Proxying request", url)
             requestAPI(options, function(error, requestResponse, content) {
                 if (error || content === null) {
                     if (error) {

@@ -47,7 +47,7 @@ async function forEachLineInNamedFile(fileName, lineCallback, maxLines) {
     try {
         fd = await open(fileName, "r")
     } catch (e) {
-        // console.log("error opening file", e)
+        // log("debug", "error opening file", e)
         // No file, so no saved data to send
     }
     if (fd) {

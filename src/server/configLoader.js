@@ -10,13 +10,13 @@ const configDefault = require("./configDefault")
 let localConfig = {}
 
 try {
-    log("Loading config file")
+    log("info", "Loading config file")
     localConfig = require("../../local-config")
 } catch (e) {
     if (e.code === "MODULE_NOT_FOUND") {
-        log("No config file found -- using defaults")
+        log("info", "No config file found -- using defaults")
     } else {
-        console.log("Problem when loading cofig file:")
+        log("error", "Problem when loading config file:", e)
         throw e
     }
 }

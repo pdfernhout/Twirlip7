@@ -26,7 +26,7 @@ const messageStreams = require("./messageStreams")
 
 const app = express()
 
-log("Twirlip7 server started")
+log("info", "Twirlip7 server started")
 
 const { config } = require("./configLoader")
 
@@ -38,7 +38,7 @@ function ipForRequest(request) {
 }
 
 function logger(request, response, next) {
-    log(ipForRequest(request), request.method, request.url)
+    log("debug", ipForRequest(request), request.method, request.url)
     next()
 }
 
@@ -75,7 +75,7 @@ const httpServer = http.createServer(app).listen(port, ip, function () {
     messageStreams.io.attach(httpServer)
     const host = httpServer.address().address
     const port = httpServer.address().port
-    log("Twirlip server listening at http://" + host + ":" + port)
+    log("info", "Twirlip server listening at http://" + host + ":" + port)
 })
 
 // Create an HTTPS service
@@ -84,6 +84,6 @@ pem.createCertificate({ days: 365, selfSigned: true }, function(err, keys) {
         messageStreams.io.attach(httpsServer)
         const host = httpsServer.address().address
         const port = httpsServer.address().port
-        log("Twirlip server listening at https://" + host + ":" + port)
+        log("info", "Twirlip server listening at https://" + host + ":" + port)
     })
 })

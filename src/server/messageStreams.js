@@ -22,20 +22,20 @@ io.on("connection", function(socket) {
     const clientId = socket.id
 
     const address = socket.request.connection.remoteAddress
-    log(address, "socket.io connection", clientId)
+    log("debug", address, "socket.io connection", clientId)
 
     socket.on("disconnect", function() {
-        log(address, "socket.io disconnect", clientId)
+        log("debug", address, "socket.io disconnect", clientId)
     })
 
     socket.on("twirlip", function (message) {
-        // log(address, "socket.io message", clientId, message)
+        // log("debug", address, "socket.io message", clientId, message)
         processMessage(clientId, message)
     })
 })
 
 function sendMessageToAllClients(message) {
-    // log("sendMessageToAllClients", JSON.stringify(message));
+    // log("debug", "sendMessageToAllClients", JSON.stringify(message));
     // io.emit("twirlip", message); // This would send to all clients -- even ones not listening on stream
     const key = storage.keyForStreamId(message.streamId)
     const listeners = streamToListenerMap[key]
@@ -102,7 +102,7 @@ function processMessage(clientId, message) {
     //} else if (command === "directory") {
     //    directory(clientId, message)
     } else {
-        log("unsupported command", command, message)
+        log("debug", "unsupported command", command, message)
     }
 }
 
@@ -117,13 +117,13 @@ function listen(clientId, message) {
     let messageCount = 0
     let messagesSent = 0
 
-    log("listen", clientId, JSON.stringify(streamId), fromIndex)
+    log("debug", "listen", clientId, JSON.stringify(streamId), fromIndex)
 
     setListenerState(clientId, streamId, "listening")
 
     if (isEphemeralStream(message)) {
         // don't save stream to file (typically for presence or voice chat)
-        log("emphemeral stream connect: " + message.streamId)
+        log("debug", "emphemeral stream connect: " + message.streamId)
         sendMessageToClient(clientId, {command: "loaded", streamId: streamId, messagesSentCount: 0})
         return
     }
@@ -136,12 +136,12 @@ function listen(clientId, message) {
         messageCount++
         // TODO: Handle errors
         const message = JSON.parse(messageString)
-        // log("listen sendMessage", clientId, message)
+        // log("debug", "listen sendMessage", clientId, message)
         sendMessageToClient(clientId, message)
         messagesSent++
     }
     forEachLineInFile.forEachLineInNamedFile(fileName, sendMessage, 0).then(() => {
-        log("sending loaded", messagesSent, JSON.stringify(message.streamId))
+        log("debug", "sending loaded", messagesSent, JSON.stringify(message.streamId))
         sendMessageToClient(clientId, {command: "loaded", streamId: streamId, messagesSentCount: messagesSent})
     }).catch(error => {
         sendMessageToClient(clientId, {command: "loadingError", streamId: streamId})
@@ -152,31 +152,31 @@ function listen(clientId, message) {
 
 function unlisten(clientId, message) {
     const streamId = message.streamId
-    log("unlisten (unfinished)", streamId)
+    log("debug", "unlisten (unfinished)", streamId)
     setListenerState(clientId, streamId, undefined)
 }
 
 function insert(clientId, message) {
     const streamId = message.streamId
-    log("insert2", JSON.stringify(clientId), JSON.stringify(streamId)) // , message.item)
+    log("debug", "insert2", JSON.stringify(clientId), JSON.stringify(streamId)) // , message.item)
     if (!isEphemeralStream(message)) {
         storage.storeMessage(message)
     } else {
-        // console.log("not storing ephemeral message for: ", message.streamId)
+        // log("debug", "not storing ephemeral message for: ", message.streamId)
     }
     sendMessageToAllClients(message)
 }
 
 function remove(clientId, message) {
     const streamId = message.streamId
-    log("remove (unfinished)", streamId)
+    log("debug", "remove (unfinished)", streamId)
     storage.storeMessage(message)
     sendMessageToAllClients(message)
 }
 
 function reset(clientId, message) {
     const streamId = message.streamId
-    log("reset", streamId)
+    log("debug", "reset", streamId)
     // TODO: Perhaps should clear out file?
     storage.storeMessage(message)
     sendMessageToAllClients(message)

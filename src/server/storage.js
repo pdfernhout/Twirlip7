@@ -24,7 +24,7 @@ const { config } = require("./configLoader")
 
 const dataDirectory = path.normalize(__dirname + "/../../" + config.dataDirectory)
 
-log("Using dataDirectory:", dataDirectory)
+log("info", "Using dataDirectory:", dataDirectory)
 
 const storageExtension = ".txt"
 
@@ -49,7 +49,7 @@ async function ensureFilePathForSHA256(sha256) {
         try {
             await mkdir(directoryName)
         } catch (e) {
-            log("mkdir failed", directoryName, e)
+            log("warn", "mkdir failed", directoryName, e)
         }
     }
 
@@ -59,7 +59,7 @@ async function ensureFilePathForSHA256(sha256) {
         try {
             await mkdir(directoryName)
         } catch (e) {
-            log("mkdir failed", directoryName, e)
+            log("warn", "mkdir failed", directoryName, e)
         }
     }
 
@@ -69,7 +69,7 @@ async function ensureFilePathForSHA256(sha256) {
         try {
             await mkdir(directoryName)
         } catch (e) {
-            log("mkdir failed", directoryName, e)
+            log("warn", "mkdir failed", directoryName, e)
         }
     }
 }
@@ -111,7 +111,7 @@ async function writeNextMessage() {
     try {
         await appendFile(fileName, lineToWrite)
     } catch (err) {  
-        log("Problem writing file", err)
+        log("debug", "Problem writing file", err)
         // Should we not keep trying to store data even if an error?
         // return
     }
@@ -134,7 +134,7 @@ function storeMessage(message) {
 
 function respondWithReconstructedFile(request, response) {
     const queryData = url.parse(request.url, true).query
-    console.log("/sha256", request.params)
+    log("debug", "/sha256", request.params)
     // response.json({params: request.params, queryData: queryData})
     const sha256Requested = request.params.sha256
     const sha256OfStorageFile = calculateSha256(JSON.stringify({sha256: sha256Requested}))
@@ -159,11 +159,11 @@ function respondWithReconstructedFile(request, response) {
 
         let buffer = Buffer.from(reconstruct, "base64")
 
-        console.log("reconstruct.length", reconstruct.length)
-        console.log("binary length", buffer.byteLength)
+        log("debug", "reconstruct.length", reconstruct.length)
+        log("debug", "binary length", buffer.byteLength)
 
         const contentType = queryData["content-type"] || mime.lookup(result["filename"])
-        console.log("contentType", contentType, result["filename"])
+        log("debug", "contentType", contentType, result["filename"])
 
         const cleanFileName = filenamify(Buffer.from(queryData["filename"] || result["filename"] || "download.dat").toString("ascii"), {replacement: "_"})
 
