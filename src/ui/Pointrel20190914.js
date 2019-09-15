@@ -76,6 +76,17 @@ export class Pointrel20190914 {
         this.backend.addItem(triple, a)
     }
 
+    async addTripleAsync(a, b, c) {
+        // console.log("addTriple", a, b, c)
+    
+        const triple = {a, b, c, t: new Date().toISOString(), u: userID}
+
+        // Cache it locally first even if the server will echo it back eventually
+        this.addTripleToTripleIndex(triple)
+
+        await this.backend.addItemAsync(triple, a)
+    }
+
     // setId is optional
     findBC(a, setId) {
         const result = {}
