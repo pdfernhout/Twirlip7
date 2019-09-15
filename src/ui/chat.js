@@ -8,6 +8,7 @@ import { HashUtils } from "./HashUtils.js"
 import { FileUtils } from "./FileUtils.js"
 import { FileUploader } from "./FileUploader.js"
 import { UUID } from "./UUID.js"
+import { Toast } from "./Toast.js"
 
 // defines marked
 import "./vendor/marked.js"
@@ -96,7 +97,7 @@ function sendChatMessage() {
     sendMessage({ chatText, userID, timestamp, uuid })
     chatText = ""
     if (!hasFilterText(newMessage)) {
-        setTimeout(() => alert("The message you just added is currently\nnot displayed due to show/hide filtering."))
+        Toast.toast("The message you just added is currently\nnot displayed due to show/hide filtering.")
         /*
         filterText = ""
         hideText = "
@@ -213,18 +214,36 @@ function importChatFromJSONClicked() {
     })
 }
 
+let isUploading = false
+
 function uploadDocumentClicked() {
-    FileUtils.loadFromFile(true, (filename, contents, bytes) => {
+    FileUtils.loadFromFile(true, async (filename, contents, bytes) => {
         // console.log("loadFromFile result", filename, contents, bytes)
+        isUploading = true
+        m.redraw()
 
-        const uploadResult = FileUploader.upload(backend, userID, filename, contents, bytes)
+        let uploadResult
+        try {
+            uploadResult = await FileUploader.upload(backend, userID, filename, contents, bytes)
+        } catch (error) {
+            console.log("upload error", error)
+            isUploading = false
+            Toast.toast("Upload failed")
+            return
+        }
 
+        // console.log("uploadResult", uploadResult)
+
+        isUploading = false
+        
         let textToAdd = `[${filename}](${uploadResult.url})`
         // Format as markdown image if it might be an image
         if (uploadResult.isImageFile) textToAdd = `![${filename}](${uploadResult.url} "${filename}")`
 
         if (chatText) chatText += ""
         chatText += textToAdd
+
+        Toast.toast("Uploaded " + uploadResult.filename)
 
         m.redraw()
     })
@@ -252,6 +271,7 @@ function makeLocalMessageTimestamp(timestamp) {
 const TwirlipChat = {
     view: function () {
         return m("div.pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
+            Toast.viewToast(),
             // m("h4.tc", "Twirlip Chat"),
             m("div.mb3",
                 m("span.dib.tr", "Space:"),
@@ -290,7 +310,7 @@ const TwirlipChat = {
                                             console.log("messageVersion", messageVersion)
                                             messageVersion = messageVersion.previousVersion
                                         }
-                                        alert("History of message put in console")
+                                        Toast.toast("History of message put in console")
                                     }}, "⌚")
                                 : [],
                             message.editedTimestamp ? m("b.ml1", {title: makeLocalMessageTimestamp(message.editedTimestamp) }, "edited")  : [],
@@ -334,7 +354,7 @@ const TwirlipChat = {
                     m("a.pl2", {href: "https://github.github.com/gfm/", target: "_blank"}, "Markdown"),
                     m("a.pl2", {href: "https://svg-edit.github.io/svgedit/releases/latest/editor/svg-editor.html", target: "_blank"}, "SVGEdit"),
                     m("button.ml2.mt2", {onclick: sendChatMessage}, "Send (ctrl-enter)"),
-                    m("button.ml2.mt2", {onclick: uploadDocumentClicked}, "Upload document..."),
+                    m("button.ml2.mt2", {onclick: uploadDocumentClicked}, m("i.fa.mr1" + (isUploading ? ".fa-refresh.fa-spin" : ".fa-upload")), "Upload document..."),
                     m("button.ml2.mt2", {onclick: exportChatAsMarkdownClicked, title: "Export filtered chat as Markdown"}, "Export Markdown..."),
                     m("button.ml2.mt2", {onclick: exportChatAsJSONClicked, title: "Export filtered chat as JSON"}, "Export JSON..."),
                     m("button.ml2.mt2", {onclick: importChatFromJSONClicked, title: "Import chat messages from JSON"}, "Import JSON..."),
