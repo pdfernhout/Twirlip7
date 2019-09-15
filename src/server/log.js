@@ -44,8 +44,16 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 // First arg can be any string of: error, warn, info, verbose, debug, and silly.
-function log(...args) {
-    logger.log(...args)
+function log(level, ...args) {
+    if (args.length <= 1) {
+        logger.log(level, ...args)
+    } else {
+        const message = []
+        for (let i in args) {
+            message.push(args[i])
+        }
+        logger.log(level, {message})
+    }
 }
 
 module.exports = log

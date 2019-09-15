@@ -24,7 +24,7 @@ const { config } = require("./configLoader")
 
 const dataDirectory = path.normalize(__dirname + "/../../" + config.dataDirectory)
 
-log("info", "Using dataDirectory:", dataDirectory)
+log("info", "Using dataDirectory: " + dataDirectory)
 
 const storageExtension = ".txt"
 
@@ -49,7 +49,7 @@ async function ensureFilePathForSHA256(sha256) {
         try {
             await mkdir(directoryName)
         } catch (e) {
-            log("warn", "mkdir failed", directoryName, e)
+            log("warn", "mkdir failed: " + directoryName)
         }
     }
 
@@ -59,7 +59,7 @@ async function ensureFilePathForSHA256(sha256) {
         try {
             await mkdir(directoryName)
         } catch (e) {
-            log("warn", "mkdir failed", directoryName, e)
+            log("warn", "mkdir failed: " + directoryName)
         }
     }
 
@@ -69,7 +69,7 @@ async function ensureFilePathForSHA256(sha256) {
         try {
             await mkdir(directoryName)
         } catch (e) {
-            log("warn", "mkdir failed", directoryName, e)
+            log("warn", "mkdir failed: " + directoryName)
         }
     }
 }
