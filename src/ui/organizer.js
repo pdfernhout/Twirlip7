@@ -6,6 +6,8 @@ import "./vendor/mithril.js"
 
 import NameTracker from "./NameTracker.js"
 import { FileUtils } from "./FileUtils.js"
+import { Progress } from "./Progress.js"
+import { Toast } from "./Toast.js"
 
 import { Pointrel20190914 } from "./Pointrel20190914.js"
 import { CanonicalJSON } from "./CanonicalJSON.js"
@@ -117,50 +119,73 @@ function makeNewItem() {
     organizer.addItem(item)
 }
 
+function saveEmail(email) {
+    // console.log("saveEmail", email)
+    const subject = email.match(/^Subject: ([^\n]*)/m)
+    const messageIdMatcher = email.match(/^Message-ID: <([^>]*)/m)
+    let messageId 
+    if (messageIdMatcher) messageId = messageIdMatcher[1]
+    if (!messageId) {
+        console.log("missing message ID", email)
+        messageId = p.uuidv4()
+    }
+
+    const title = subject ? subject[1] : ""
+
+    const fromMatch = email.match(/^From: ([^\n]*)/m)
+    const from = fromMatch ? fromMatch[1] : ""
+    const dateMatch = email.match(/^Date: ([^\n]*)/m)
+    const date = dateMatch ? dateMatch[1] : ""
+
+    const uuid = {type: "email-test04", messageId}
+
+    // console.log("subject", title)
+    // console.log("messageId", messageId)
+    // console.log("==== Importing #", emailCount)
+
+    const item = new Item(uuid)
+    item.setType("email:mbox")
+    item.setTitle(title)
+    item.setFrom(from)
+    item.setDate(date)
+    item.setBody(email)
+
+    organizer.addItem(item, {title, from, date})
+}
+
+let emailsToImport = []
+
 function importMailbox() {
     FileUtils.loadFromFile((name, contents) => {
         console.log("importMailbox", name)
         const emails = contents.split(/^From /m)
         let emailCount = 0
-        for (let email of emails) {
-            if (!email || email === " ") continue
-            // email = email.replace(/^>From /m, "From ")
-            email = "From " + email
-            // console.log("email", email)
-            const subject = email.match(/^Subject: ([^\n]*)/m)
-            const messageIdMatcher = email.match(/^Message-ID: <([^>]*)/m)
-            let messageId 
-            if (messageIdMatcher) messageId = messageIdMatcher[1]
-            if (!messageId) {
-                console.log("missing message ID", email)
-                messageId = p.uuidv4()
+        emailsToImport = emails
+
+        // Hide the list while importing to prevent lots of long UI updates for each echoed triple message
+        loading = true
+        // Do loop as a timeout series so UI will update
+        setTimeout(function processEmail() {
+            if (!emailsToImport.length) {
+                loading = false
+                Progress.progress("")
+                Toast.toast("Imported " + emailCount + " email(s)")
+                m.redraw()
+                return
             }
-
-            const title = subject ? subject[1] : ""
-
-            const fromMatch = email.match(/^From: ([^\n]*)/m)
-            const from = fromMatch ? fromMatch[1] : ""
-            const dateMatch = email.match(/^Date: ([^\n]*)/m)
-            const date = dateMatch ? dateMatch[1] : ""
-
-            const uuid = {type: "email-test03", messageId}
-
+            let email = emailsToImport.shift()
             emailCount++
-            // console.log("subject", title)
-            // console.log("messageId", messageId)
-            console.log("==== Importing #", emailCount)
-
-            const item = new Item(uuid)
-            item.setType("email:mbox")
-            item.setTitle(title)
-            item.setFrom(from)
-            item.setDate(date)
-            item.setBody(email)
-
-            organizer.addItem(item, {title, from, date})
-
-            m.redraw()
-        }
+            if (email && email !== " ") {
+                // email = email.replace(/^>From /m, "From ")
+                email = "From " + email
+                if (emailCount % 100 === 1) {
+                    Progress.progress("Importing email #" + emailCount)
+                    m.redraw()
+                }
+                saveEmail(email)
+            }
+            setTimeout(processEmail, 0)
+        }, 0)
     })
 }
 
@@ -262,10 +287,15 @@ function sortItems(items) {
 let loading = true
 let redraws = 0
 
+let totalRedrawCount = 0
+
 function displayItems() {
     const items = organizer.getItems()
     sortItems(items)
     return m("div.ma1", [
+        m("span", "Total redraw count: " + ++totalRedrawCount),
+        Progress.viewProgress(),
+        Toast.viewToast(),
         m("div",
             "Sort by:",
             m("select.ma1", {onchange: event => sortBy = event.target.value},
