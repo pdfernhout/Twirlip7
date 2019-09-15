@@ -43,7 +43,7 @@ const imageFileExtensions = {
     tiff: true
 }
 
-async function upload(store, userID, filename, contents, bytes) {
+async function upload(store, userID, filename, base64Contents, bytes) {
 
     // console.log("upload", filename, contents, bytes)
 
@@ -62,7 +62,7 @@ async function upload(store, userID, filename, contents, bytes) {
     */
 
     const segmentSize = 100000
-    const segments = chunkSubstr(contents, 100000)
+    const segments = chunkSubstr(base64Contents, 100000)
     const streamId = {sha256: sha256}
     const aField = streamId
 
@@ -73,7 +73,7 @@ async function upload(store, userID, filename, contents, bytes) {
     await store.addItemAsync({a: aField, b: "filename", c: filename, t: timestamp, u: userID}, streamId)
     await store.addItemAsync({a: aField, b: "format", c: "base64-segments", t: timestamp, u: userID}, streamId)
     await store.addItemAsync({a: aField, b: "bytes-byteLength", c: bytes.byteLength, t: timestamp, u: userID}, streamId)
-    await store.addItemAsync({a: aField, b: "base64-length", c: contents.length, t: timestamp, u: userID}, streamId)
+    await store.addItemAsync({a: aField, b: "base64-length", c: base64Contents.length, t: timestamp, u: userID}, streamId)
     await store.addItemAsync({a: aField, b: "base64-segment-count", c: segments.length, t: timestamp, u: userID}, streamId)
     await store.addItemAsync({a: aField, b: "base64-segment-size", c: segmentSize, t: timestamp, u: userID}, streamId)
     
