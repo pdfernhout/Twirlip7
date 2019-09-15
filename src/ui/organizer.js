@@ -159,6 +159,7 @@ function importMailbox() {
     FileUtils.loadFromFile((name, contents) => {
         console.log("importMailbox", name)
         const emails = contents.split(/^From /m)
+        const totalEmailCount = emails.length
         let emailCount = 0
         emailsToImport = emails
 
@@ -179,7 +180,7 @@ function importMailbox() {
                 // email = email.replace(/^>From /m, "From ")
                 email = "From " + email
                 if (emailCount % 100 === 1) {
-                    Progress.progress("Importing email #" + emailCount)
+                    Progress.progress("Importing email #" + emailCount + " of " + totalEmailCount)
                     m.redraw()
                 }
                 // Wait for each email to be saved before sending the next
