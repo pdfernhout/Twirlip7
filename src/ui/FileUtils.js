@@ -15,6 +15,7 @@ export const FileUtils = {
     // This fileControl input node is not created via main Mithril app because stand-alone apps might want to use this too
     fileControl: null,
 
+    // Define a changeable global callback as will be making one re-used file control that uses it
     callback: null,
 
     loadFromFile(convertToBase64, callback) {
