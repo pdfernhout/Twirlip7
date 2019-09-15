@@ -158,7 +158,8 @@ function unlisten(clientId, message) {
 
 function insert(clientId, message) {
     const streamId = message.streamId
-    log("debug", "insert2", JSON.stringify(clientId), JSON.stringify(streamId)) // , message.item)
+    log("debug", "insert", JSON.stringify(clientId), JSON.stringify(streamId))
+    // log("silly", {message})
     if (!isEphemeralStream(message)) {
         storage.storeMessage(message)
     } else {
