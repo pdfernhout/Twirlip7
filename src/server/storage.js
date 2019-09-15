@@ -137,7 +137,8 @@ function respondWithReconstructedFile(request, response) {
     log("debug", "/sha256", request.params)
     // response.json({params: request.params, queryData: queryData})
     const sha256Requested = request.params.sha256
-    const sha256OfStorageFile = calculateSha256(JSON.stringify({sha256: sha256Requested}))
+    const streamId = {sha256: sha256Requested}
+    const sha256OfStorageFile = calculateSha256(JSON.stringify(streamId))
     const fileName = getFilePathForData(sha256OfStorageFile) + storageExtension
 
     // TODO: stream instead of accumulate as otherwise may use a lot of memory for big files -- but base64 incomplete issue
@@ -145,6 +146,10 @@ function respondWithReconstructedFile(request, response) {
 
     function collectFileContents(messageString) {
         const message = JSON.parse(messageString)
+        if (message.item && JSON.stringify(message.item.a) === JSON.stringify(streamId)) {
+            result[message.item.b] = message.item.c
+        }
+        // TODO: Next line is for legacy support from earlier design and could be removed eventually
         if (message.item && message.item.a === "sha256:" + sha256Requested) {
             result[message.item.b] = message.item.c
         }

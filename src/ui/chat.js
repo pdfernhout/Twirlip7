@@ -223,7 +223,7 @@ function uploadDocumentClicked() {
     FileUtils.loadFromFile(true, (filename, contents, bytes) => {
         // console.log("loadFromFile result", filename, contents, bytes)
 
-        const uploadResult = FileUploader.upload(backend, filename, contents, bytes)
+        const uploadResult = FileUploader.upload(backend, userID, filename, contents, bytes)
 
         let textToAdd = `[${filename}](${uploadResult.url})`
         // Format as markdown image if it might be an image

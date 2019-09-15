@@ -43,7 +43,7 @@ const imageFileExtensions = {
     tiff: true
 }
 
-function upload(store, filename, contents, bytes) {
+function upload(store, userID, filename, contents, bytes) {
 
     // console.log("result", filename, contents)
     // alert("upload unfinished: " + filename)
@@ -63,23 +63,25 @@ function upload(store, filename, contents, bytes) {
 
     const segmentSize = 100000
     const segments = chunkSubstr(contents, 100000)
-    const alternateStreamId = {sha256: sha256}
-    const aField = "sha256:" + sha256
+    const streamId = {sha256: sha256}
+    const aField = streamId
+
+    const timestamp = new Date().toISOString()
 
     // TODO: No error handling
     // TODO: Does not check if it exists already
-    store.sendInsertItemMessage({a: aField, b: "filename", c: filename}, alternateStreamId)
-    store.sendInsertItemMessage({a: aField, b: "format", c: "base64-segments"}, alternateStreamId)
-    store.sendInsertItemMessage({a: aField, b: "bytes-byteLength", c: bytes.byteLength}, alternateStreamId)
-    store.sendInsertItemMessage({a: aField, b: "base64-length", c: contents.length}, alternateStreamId)
-    store.sendInsertItemMessage({a: aField, b: "base64-segment-count", c: segments.length}, alternateStreamId)
-    store.sendInsertItemMessage({a: aField, b: "base64-segment-size", c: segmentSize}, alternateStreamId)
+    store.sendInsertItemMessage({a: aField, b: "filename", c: filename, t: timestamp, u: userID}, streamId)
+    store.sendInsertItemMessage({a: aField, b: "format", c: "base64-segments", t: timestamp, u: userID}, streamId)
+    store.sendInsertItemMessage({a: aField, b: "bytes-byteLength", c: bytes.byteLength, t: timestamp, u: userID}, streamId)
+    store.sendInsertItemMessage({a: aField, b: "base64-length", c: contents.length, t: timestamp, u: userID}, streamId)
+    store.sendInsertItemMessage({a: aField, b: "base64-segment-count", c: segments.length, t: timestamp, u: userID}, streamId)
+    store.sendInsertItemMessage({a: aField, b: "base64-segment-size", c: segmentSize, t: timestamp, u: userID}, streamId)
     
     // let reconstruct = ""
     for (let i = 0; i < segments.length; i++) {
         // console.log("sending", i + 1, "of", segments.length)
         // reconstruct += segments[i]
-        store.sendInsertItemMessage({a: aField, b: "base64-segment:" + i, c: segments[i]}, alternateStreamId)
+        store.sendInsertItemMessage({a: aField, b: "base64-segment:" + i, c: segments[i], t: timestamp, u: userID}, streamId)
     }
 
     console.log("uploaded", filename, sha256)
