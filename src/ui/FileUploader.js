@@ -45,10 +45,10 @@ const imageFileExtensions = {
 
 async function upload(store, userID, filename, base64Contents, bytes) {
 
-    // console.log("upload", filename, contents, bytes)
+    // console.log("upload", filename, base64Contents, bytes)
 
     const sha256 = calculateSHA256(bytes)
-    // console.log("file info:", filename, contents, bytes, sha256)
+    // console.log("file info:", filename, base64Contents, bytes, sha256)
 
     /*
     const uploadResponder = {
@@ -66,19 +66,26 @@ async function upload(store, userID, filename, base64Contents, bytes) {
 
     const sha256WithFileName = sha256 + "?filename=" + encodeURIComponent(filename)
     const url = "sha256/" + sha256WithFileName
+    const streamId = {sha256: sha256}
 
     // Check to make sure the file does not already exists
+
+    /*
     let existed = true
     const response = await fetch(url)
     console.log("fetch response", response)
     if (response.status === 404) {
         existed = false
     }
+    */
+    // console.log("about to await getStreamStatusAsync")
+    const status = await store.getStreamStatusAsync(streamId)
+    // console.log("got getStreamStatusAsync status", status)
+    const existed = status.exists
 
     if (!existed) {
         const segmentSize = 100000
         const segments = chunkSubstr(base64Contents, 100000)
-        const streamId = {sha256: sha256}
         const aField = streamId
 
         const timestamp = new Date().toISOString()
@@ -106,6 +113,8 @@ async function upload(store, userID, filename, base64Contents, bytes) {
         console.log("reconstruct.length", reconstruct.length)
         console.log("binary length", base64ToArrayBuffer(reconstruct).byteLength)
         */
+    } else {
+        console.log("upload file already exists on server", filename)
     }
 
     return {
