@@ -106,10 +106,12 @@ function processMessage(clientId, message) {
         remove(clientId, message)
     } else if (command === "reset") {
         reset(clientId, message)
+    } else if (command === "streamStatus") {
+        streamStatus(clientId, message)
     //} else if (command === "directory") {
     //    directory(clientId, message)
     } else {
-        log("debug", "unsupported command", command, message)
+        log("warn", "unsupported command", command, message)
     }
 }
 
@@ -173,6 +175,27 @@ function insert(clientId, message) {
         // log("debug", "not storing ephemeral message for: ", message.streamId)
     }
     sendMessageToAllClients(message, clientId)
+}
+
+function streamStatus(clientId, message) {
+    const streamId = message.streamId
+
+    ;(isEphemeralStream(message)
+        ? Promise.resolve({
+            streamId,
+            exists: true,
+            size: 0,
+            isEphemeral: true
+        })
+        : storage.getStreamStatus(message.streamId)
+    ).then(status => {
+        sendMessageToClient(clientId, {
+            command: "streamStatus",
+            status,
+            uuid: message.uuid
+        })
+    })
+
 }
 
 function remove(clientId, message) {

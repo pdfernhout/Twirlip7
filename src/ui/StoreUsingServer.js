@@ -25,6 +25,17 @@ export function StoreUsingServer(redrawCallback, streamId = "common", userId = "
         await sendInsertItemMessageAsync(item, alternateStreamId)
     }
 
+    async function getStreamStatusAsync(alternateStreamId) {
+        // console.log("getStreamStatusAsync", alternateStreamId)
+        const message = {command: "streamStatus", streamId: alternateStreamId}
+        sendMessage(message)
+        // sendMessage will add a uuid to the message
+        const promise = new Promise((resolve, reject) => {
+            echoPromises[message.uuid] = {resolve, reject}
+        })
+        return promise
+    }
+
     // =============== socket.io communications
 
     function sendMessage(message) {
@@ -46,7 +57,7 @@ export function StoreUsingServer(redrawCallback, streamId = "common", userId = "
         if (alternateStreamId !== undefined) alternateStreamId = JSON.parse(CanonicalJSON.stringify(alternateStreamId))
         const message = {command: "insert", streamId: alternateStreamId || streamId, item: item}
         sendMessage(message)
-        // snedMessage will add a uuid to the message
+        // sendMessage will add a uuid to the message
         const promise = new Promise((resolve, reject) => {
             echoPromises[message.uuid] = {resolve, reject}
         })
@@ -96,6 +107,13 @@ export function StoreUsingServer(redrawCallback, streamId = "common", userId = "
             } else {
                 if (responder.onLoaded) responder.onLoaded(message.streamId)
             }
+        } else if (message.command === "streamStatus") {
+            // Notify someone waiting for status of a stream
+            const promiseResolver = echoPromises[message.uuid]
+            if (promiseResolver) {
+                promiseResolver.resolve(message.status)
+                delete echoPromises[message.uuid]
+            }
         }
         if (redrawCallback) redrawCallback()
     }
@@ -107,7 +125,10 @@ export function StoreUsingServer(redrawCallback, streamId = "common", userId = "
 
         socket.on("twirlip", function(message) {
             // console.log("twirlip", message)
-            if (listeningOnStreams[CanonicalJSON.stringify(message.streamId)] || message.command.startsWith("ack-")) {
+            if (listeningOnStreams[CanonicalJSON.stringify(message.streamId)] 
+                || message.command.startsWith("ack-")
+                || message.command == "streamStatus"
+            ) {
                 messageReceived(message)
             }
         })
@@ -149,6 +170,7 @@ export function StoreUsingServer(redrawCallback, streamId = "common", userId = "
     return {
         addItem,
         addItemAsync,
+        getStreamStatusAsync,
         connect,
         setup,
         openStream,

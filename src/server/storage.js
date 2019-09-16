@@ -15,6 +15,7 @@ const { promisify } = require("util")
 const exists = promisify(fs.exists)
 const mkdir = promisify(fs.mkdir)
 const appendFile = promisify(fs.appendFile)
+const stat = promisify(fs.stat)
 
 const log = require("./log")
 const forEachLineInFile = require("./forEachLineInFile")
@@ -132,6 +133,33 @@ function storeMessage(message) {
     scheduleMessageWriting()
 }
 
+async function getStreamStatus(streamId) {
+    const key = keyForStreamId(streamId)
+    const sha256 = calculateSha256(key)
+    const fileName = getStorageFileNameForSHA256(sha256)
+    try {
+        const stats = await stat(fileName)
+        log("debug", "file exists", streamId, fileName, stats)
+        return {
+            streamId,
+            exists: true,
+            size: stats.size,
+            isEphemeral: false
+        } 
+    } catch (error) {
+        if (error.code !== "ENOENT") {
+            log("error", "getStreamStatus: unexpected error", error)
+        }
+        log("debug", "file does not exist", streamId, fileName)
+        return {
+            streamId,
+            exists: false,
+            size: 0,
+            isEphemeral: false
+        }
+    }
+}
+
 function respondWithReconstructedFile(request, response) {
     const queryData = url.parse(request.url, true).query
     log("debug", "/sha256", request.params)
@@ -198,5 +226,6 @@ module.exports = {
     keyForStreamId,
     getStorageFileNameForMessage,
     storeMessage,
+    getStreamStatus,
     respondWithReconstructedFile
 }
