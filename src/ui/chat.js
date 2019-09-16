@@ -243,7 +243,11 @@ function uploadDocumentClicked() {
         if (chatText) chatText += ""
         chatText += textToAdd
 
-        Toast.toast("Uploaded " + uploadResult.filename)
+        if (uploadResult.existed) {
+            Toast.toast("Upload already existed")
+        } else {
+            Toast.toast("Uploaded " + uploadResult.filename)
+        }
 
         m.redraw()
     })
