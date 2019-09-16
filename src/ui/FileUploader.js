@@ -61,48 +61,60 @@ async function upload(store, userID, filename, base64Contents, bytes) {
     upload.setup()
     */
 
-    const segmentSize = 100000
-    const segments = chunkSubstr(base64Contents, 100000)
-    const streamId = {sha256: sha256}
-    const aField = streamId
-
-    const timestamp = new Date().toISOString()
-
-    // TODO: No error handling
-    // TODO: Does not check if it exists already
-    await store.addItemAsync({a: aField, b: "filename", c: filename, t: timestamp, u: userID}, streamId)
-    await store.addItemAsync({a: aField, b: "format", c: "base64-segments", t: timestamp, u: userID}, streamId)
-    await store.addItemAsync({a: aField, b: "bytes-byteLength", c: bytes.byteLength, t: timestamp, u: userID}, streamId)
-    await store.addItemAsync({a: aField, b: "base64-length", c: base64Contents.length, t: timestamp, u: userID}, streamId)
-    await store.addItemAsync({a: aField, b: "base64-segment-count", c: segments.length, t: timestamp, u: userID}, streamId)
-    await store.addItemAsync({a: aField, b: "base64-segment-size", c: segmentSize, t: timestamp, u: userID}, streamId)
-    
-    // let reconstruct = ""
-    for (let i = 0; i < segments.length; i++) {
-        // console.log("sending", i + 1, "of", segments.length)
-        // reconstruct += segments[i]
-        await store.addItemAsync({a: aField, b: "base64-segment:" + i, c: segments[i], t: timestamp, u: userID}, streamId)
-    }
-
-    console.log("uploaded", filename, sha256)
-
-    /* verification
-
-    console.log("reconstruct.length", reconstruct.length)
-    console.log("binary length", base64ToArrayBuffer(reconstruct).byteLength)
-    */
-
-    const sha256WithFileName = sha256 + "?filename=" + encodeURIComponent(filename)
-
     const extension = (filename.substr(filename.lastIndexOf(".") + 1) || "").toLowerCase()
     const isImageFile = imageFileExtensions[extension] || false
+
+    const sha256WithFileName = sha256 + "?filename=" + encodeURIComponent(filename)
+    const url = "sha256/" + sha256WithFileName
+
+    // Check to make sure the file does not already exists
+    let existed = true
+    const response = await fetch(url)
+    console.log("fetch response", response)
+    if (response.status === 404) {
+        existed = false
+    }
+
+    if (!existed) {
+        const segmentSize = 100000
+        const segments = chunkSubstr(base64Contents, 100000)
+        const streamId = {sha256: sha256}
+        const aField = streamId
+
+        const timestamp = new Date().toISOString()
+
+        // TODO: No error handling
+        // TODO: Does not check if it exists already
+        await store.addItemAsync({a: aField, b: "filename", c: filename, t: timestamp, u: userID}, streamId)
+        await store.addItemAsync({a: aField, b: "format", c: "base64-segments", t: timestamp, u: userID}, streamId)
+        await store.addItemAsync({a: aField, b: "bytes-byteLength", c: bytes.byteLength, t: timestamp, u: userID}, streamId)
+        await store.addItemAsync({a: aField, b: "base64-length", c: base64Contents.length, t: timestamp, u: userID}, streamId)
+        await store.addItemAsync({a: aField, b: "base64-segment-count", c: segments.length, t: timestamp, u: userID}, streamId)
+        await store.addItemAsync({a: aField, b: "base64-segment-size", c: segmentSize, t: timestamp, u: userID}, streamId)
+        
+        // let reconstruct = ""
+        for (let i = 0; i < segments.length; i++) {
+            // console.log("sending", i + 1, "of", segments.length)
+            // reconstruct += segments[i]
+            await store.addItemAsync({a: aField, b: "base64-segment:" + i, c: segments[i], t: timestamp, u: userID}, streamId)
+        }
+
+        console.log("uploaded", filename, sha256)
+
+        /* verification
+
+        console.log("reconstruct.length", reconstruct.length)
+        console.log("binary length", base64ToArrayBuffer(reconstruct).byteLength)
+        */
+    }
 
     return {
         filename,
         sha256,
         extension,
         isImageFile,
-        url: "sha256/" + sha256WithFileName
+        url,
+        existed
     }
 }
 
