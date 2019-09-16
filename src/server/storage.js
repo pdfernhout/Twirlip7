@@ -141,48 +141,55 @@ function respondWithReconstructedFile(request, response) {
     const sha256OfStorageFile = calculateSha256(JSON.stringify(streamId))
     const fileName = getFilePathForData(sha256OfStorageFile) + storageExtension
 
-    // TODO: stream instead of accumulate as otherwise may use a lot of memory for big files -- but base64 incomplete issue
-    const result = {}
-
-    function collectFileContents(messageString) {
-        const message = JSON.parse(messageString)
-        if (message.item && JSON.stringify(message.item.a) === JSON.stringify(streamId)) {
-            result[message.item.b] = message.item.c
-        }
-        // TODO: Next line is for legacy support from earlier design and could be removed eventually
-        if (message.item && message.item.a === "sha256:" + sha256Requested) {
-            result[message.item.b] = message.item.c
-        }
-    }
-
-    forEachLineInFile.forEachLineInNamedFile(fileName, collectFileContents, 0).then(() => {
-
-        let reconstruct = ""
-        for (let i = 0; i < result["base64-segment-count"]; i++) {
-            reconstruct += result["base64-segment:" + i]
+    fs.exists(fileName, exists => {
+        if (!exists) {
+            response.sendStatus(404)
+            return
         }
 
-        let buffer = Buffer.from(reconstruct, "base64")
+        // TODO: stream instead of accumulate as otherwise may use a lot of memory for big files -- but base64 incomplete issue
+        const result = {}
 
-        log("debug", "reconstruct.length", reconstruct.length)
-        log("debug", "binary length", buffer.byteLength)
+        function collectFileContents(messageString) {
+            const message = JSON.parse(messageString)
+            if (message.item && JSON.stringify(message.item.a) === JSON.stringify(streamId)) {
+                result[message.item.b] = message.item.c
+            }
+            // TODO: Next line is for legacy support from earlier design and could be removed eventually
+            if (message.item && message.item.a === "sha256:" + sha256Requested) {
+                result[message.item.b] = message.item.c
+            }
+        }
 
-        const contentType = queryData["content-type"] || mime.lookup(result["filename"])
-        log("debug", "contentType", contentType, result["filename"])
+        forEachLineInFile.forEachLineInNamedFile(fileName, collectFileContents, 0).then(() => {
 
-        const cleanFileName = filenamify(Buffer.from(queryData["filename"] || result["filename"] || "download.dat").toString("ascii"), {replacement: "_"})
+            let reconstruct = ""
+            for (let i = 0; i < result["base64-segment-count"]; i++) {
+                reconstruct += result["base64-segment:" + i]
+            }
 
-        const disposition = queryData["content-disposition"] === "attachment" ? "attachment" : "inline"
+            let buffer = Buffer.from(reconstruct, "base64")
 
-        response.writeHead(200, {
-            "Content-Type": contentType || "",
-            "Content-Disposition": disposition + "; filename=" + cleanFileName
+            log("debug", "reconstruct.length", reconstruct.length)
+            log("debug", "binary length", buffer.byteLength)
+
+            const contentType = queryData["content-type"] || mime.lookup(result["filename"])
+            log("debug", "contentType", contentType, result["filename"])
+
+            const cleanFileName = filenamify(Buffer.from(queryData["filename"] || result["filename"] || "download.dat").toString("ascii"), {replacement: "_"})
+
+            const disposition = queryData["content-disposition"] === "attachment" ? "attachment" : "inline"
+
+            response.writeHead(200, {
+                "Content-Type": contentType || "",
+                "Content-Disposition": disposition + "; filename=" + cleanFileName
+            })
+
+            response.end(buffer)
+        }).catch(error => {
+            response.sendStatus(500)
+            throw error
         })
-
-        response.end(buffer)
-    }).catch(error => {
-        response.sendStatus(500)
-        throw error
     })
 }
 
