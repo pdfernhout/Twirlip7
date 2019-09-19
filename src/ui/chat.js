@@ -272,26 +272,110 @@ function makeLocalMessageTimestamp(timestamp) {
     // ":" + pad(tzo % 60)
 }
 
+function viewNavigation() {
+    return [
+        m("span.dib.tr", "Space:"),
+        m("input.w5.ml2", {value: chatRoom, onchange: chatRoomChange}),
+        m("span.dib.tr.ml2", "User:"),
+        m("input.w4.ml2", {value: userID, onchange: userIDChange, title: "Your user id or handle"}),
+        m("div.dib",
+            m("span.ml2" + (filterText ? ".green" : ""), "Show:"),
+            m("input.ml2" + (filterText ? ".green" : ""), {value: filterText, oninput: (event) => { filterText = event.target.value; scrollToBottomLater() }, title: "Only display messages with all entered words"}),
+            m("span.ml2" + (hideText ? ".orange" : ""), "Hide:"),
+            m("input.ml2" + (hideText ? ".orange" : ""), {value: hideText, oninput: (event) => { hideText = event.target.value; scrollToBottomLater() }, title: "Hide messages with any entered words"}),
+            m("span.ml2",  { title: "Sort alphabetically by chat message text" },
+                m("input[type=checkbox].ma1", { checked: sortMessagesByContent, onchange: (event) => sortMessagesByContent = event.target.checked }),
+                "sort"
+            )
+        ),
+    ]
+}
+
+function viewMessages() {
+    return getSortedMessages().map(function (message, index) {
+        if (!hasFilterText(message)) return []
+        return m("div", /* Causes ordering issue: {key: message.uuid || ("" + index)}, */ [
+            m("hr.b--light-gray"),
+            m("span",
+                m("i", makeLocalMessageTimestamp(message.timestamp) + " " + message.userID),
+                (message.previousVersion)
+                    ? m("span.ml2", {
+                        title: "show history in console",
+                        onclick: () => {
+                            let messageVersion = message
+                            while (messageVersion) {
+                                console.log("messageVersion", messageVersion)
+                                messageVersion = messageVersion.previousVersion
+                            }
+                            Toast.toast("History of message put in console")
+                        }}, "⌚")
+                    : [],
+                message.editedTimestamp ? m("b.ml1", {title: makeLocalMessageTimestamp(message.editedTimestamp) }, "edited")  : [],
+                // support editing
+                (message.userID === userID && message.uuid)
+                    ? m("span.ml2", {
+                        title: "edit",
+                        onclick: () => {
+                            if (editedChatMessageUUID === message.uuid) {
+                                editedChatMessageUUID = null
+                            } else {
+                                editedChatMessageUUID = message.uuid || null
+                                editedChatMessageText = message.chatText
+                            }
+                        }}, "✎")
+                    : []),
+            editedChatMessageUUID === message.uuid
+                // if editing
+                ? m("div.ba.bw1.ma3.ml4.pa3",
+                    m("textarea.h5.w-80.ma2.ml3.f4", {value: editedChatMessageText, onkeydown: editedChatMessageKeyDown, oninput: (event) => editedChatMessageText = event.target.value}),
+                    m("div",
+                        m("button.ml2.mt2", {onclick: () => sendEditedChatMessage() }, "Update (ctrl-enter)"),
+                        m("button.ml2.mt2", {onclick: () => editedChatMessageUUID = null}, "Cancel"),
+                    ),
+                )
+                : m(".pl4.pr4", formatChatMessage(message.chatText))
+        ])
+    })
+}
+
+function viewEntryAreaTypeChoice() {
+    return m("span.ml2",  { title: "Show entry area" },
+        m("input[type=checkbox].ma1", { checked: showEntryArea, onchange: (event) => showEntryArea = event.target.checked }),
+        "entry area"
+    )
+}
+
+function viewEntryLine() {
+    return m("span.w-80", 
+        m("input.ml2.w-70", {value: chatText, oninput: chatTextChange, onkeydown: textAreaKeyDown}),
+        m("button.ml2.mt2.w-10", {onclick: sendChatMessage, title: "Ctrl-Enter to send"}, "Send"),
+    )
+}
+
+function viewEntryAreaTools() {
+    return m("div.dib",
+        m("a.pl2", {href: "https://github.github.com/gfm/", target: "_blank"}, "Markdown"),
+        m("a.pl2", {href: "https://svg-edit.github.io/svgedit/releases/latest/editor/svg-editor.html", target: "_blank"}, "SVGEdit"),
+        m("button.ml2.mt2", {onclick: sendChatMessage}, "Send (ctrl-enter)"),
+        m("button.ml2.mt2", {onclick: uploadDocumentClicked}, m("i.fa.mr1" + (isUploading ? ".fa-refresh.fa-spin" : ".fa-upload")), "Upload document..."),
+        m("button.ml2.mt2", {onclick: exportChatAsMarkdownClicked, title: "Export filtered chat as Markdown"}, "Export Markdown..."),
+        m("button.ml2.mt2", {onclick: exportChatAsJSONClicked, title: "Export filtered chat as JSON"}, "Export JSON..."),
+        m("button.ml2.mt2", {onclick: importChatFromJSONClicked, title: "Import chat messages from JSON"}, "Import JSON..."),
+    )
+}
+
+function viewEntryArea() {
+    return m("div.pb1.f4" + (editedChatMessageUUID ? ".dn" : ""),
+        m("textarea.h4.w-80.ma1.ml3", {value: chatText, oninput: chatTextChange, onkeydown: textAreaKeyDown}),
+    )
+}
+
 const TwirlipChat = {
     view: function () {
         return m("div.pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
             Toast.viewToast(),
-            // m("h4.tc", "Twirlip Chat"),
             m("div.mb3",
-                m("span.dib.tr", "Space:"),
-                m("input.w5.ml2", {value: chatRoom, onchange: chatRoomChange}),
-                m("span.dib.tr.ml2", "User:"),
-                m("input.w4.ml2", {value: userID, onchange: userIDChange, title: "Your user id or handle"}),
-                m("div.dib",
-                    m("span.ml2" + (filterText ? ".green" : ""), "Show:"),
-                    m("input.ml2" + (filterText ? ".green" : ""), {value: filterText, oninput: (event) => { filterText = event.target.value; scrollToBottomLater() }, title: "Only display messages with all entered words"}),
-                    m("span.ml2" + (hideText ? ".orange" : ""), "Hide:"),
-                    m("input.ml2" + (hideText ? ".orange" : ""), {value: hideText, oninput: (event) => { hideText = event.target.value; scrollToBottomLater() }, title: "Hide messages with any entered words"}),
-                    m("span.ml2",  { title: "Sort alphabetically by chat message text" },
-                        m("input[type=checkbox].ma1", { checked: sortMessagesByContent, onchange: (event) => sortMessagesByContent = event.target.checked }),
-                        "sort"
-                    )
-                ),
+                viewNavigation()
             ),
             m("div.overflow-auto.flex-auto",
                 {
@@ -299,74 +383,14 @@ const TwirlipChat = {
                         messagesDiv = (vnode.dom)
                     },
                 },
-                getSortedMessages().map(function (message, index) {
-                    if (!hasFilterText(message)) return []
-                    return m("div", /* Causes ordering issue: {key: message.uuid || ("" + index)}, */ [
-                        m("hr.b--light-gray"),
-                        m("span",
-                            m("i", makeLocalMessageTimestamp(message.timestamp) + " " + message.userID),
-                            (message.previousVersion)
-                                ? m("span.ml2", {
-                                    title: "show history in console",
-                                    onclick: () => {
-                                        let messageVersion = message
-                                        while (messageVersion) {
-                                            console.log("messageVersion", messageVersion)
-                                            messageVersion = messageVersion.previousVersion
-                                        }
-                                        Toast.toast("History of message put in console")
-                                    }}, "⌚")
-                                : [],
-                            message.editedTimestamp ? m("b.ml1", {title: makeLocalMessageTimestamp(message.editedTimestamp) }, "edited")  : [],
-                            // support editing
-                            (message.userID === userID && message.uuid)
-                                ? m("span.ml2", {
-                                    title: "edit",
-                                    onclick: () => {
-                                        if (editedChatMessageUUID === message.uuid) {
-                                            editedChatMessageUUID = null
-                                        } else {
-                                            editedChatMessageUUID = message.uuid || null
-                                            editedChatMessageText = message.chatText
-                                        }
-                                    }}, "✎")
-                                : []),
-                        editedChatMessageUUID === message.uuid
-                            // if editing
-                            ? m("div.ba.bw1.ma3.ml4.pa3",
-                                m("textarea.h5.w-80.ma2.ml3.f4", {value: editedChatMessageText, onkeydown: editedChatMessageKeyDown, oninput: (event) => editedChatMessageText = event.target.value}),
-                                m("div",
-                                    m("button.ml2.mt2", {onclick: () => sendEditedChatMessage() }, "Update (ctrl-enter)"),
-                                    m("button.ml2.mt2", {onclick: () => editedChatMessageUUID = null}, "Cancel"),
-                                ),
-                            )
-                            : m(".pl4.pr4", formatChatMessage(message.chatText))
-                    ])
-                })
+                viewMessages(),
             ),
-            // showEntryArea && m("br"),
             m("div",
-                m("span.ml2",  { title: "Show entry area" },
-                    m("input[type=checkbox].ma1", { checked: showEntryArea, onchange: (event) => showEntryArea = event.target.checked }),
-                    "entry area"
-                ),
-                !showEntryArea && m("span.w-80", 
-                    m("input.ml2.w-70", {value: chatText, oninput: chatTextChange, onkeydown: textAreaKeyDown}),
-                    m("button.ml2.mt2.w-10", {onclick: sendChatMessage, title: "Ctrl-Enter to send"}, "Send"),
-                ),
-                showEntryArea && m("div.dib",
-                    m("a.pl2", {href: "https://github.github.com/gfm/", target: "_blank"}, "Markdown"),
-                    m("a.pl2", {href: "https://svg-edit.github.io/svgedit/releases/latest/editor/svg-editor.html", target: "_blank"}, "SVGEdit"),
-                    m("button.ml2.mt2", {onclick: sendChatMessage}, "Send (ctrl-enter)"),
-                    m("button.ml2.mt2", {onclick: uploadDocumentClicked}, m("i.fa.mr1" + (isUploading ? ".fa-refresh.fa-spin" : ".fa-upload")), "Upload document..."),
-                    m("button.ml2.mt2", {onclick: exportChatAsMarkdownClicked, title: "Export filtered chat as Markdown"}, "Export Markdown..."),
-                    m("button.ml2.mt2", {onclick: exportChatAsJSONClicked, title: "Export filtered chat as JSON"}, "Export JSON..."),
-                    m("button.ml2.mt2", {onclick: importChatFromJSONClicked, title: "Import chat messages from JSON"}, "Import JSON..."),
-                )                    
+                viewEntryAreaTypeChoice(),
+                !showEntryArea && viewEntryLine(),
+                showEntryArea && viewEntryAreaTools()                    
             ),
-            showEntryArea && m("div.pb1.f4" + (editedChatMessageUUID ? ".dn" : ""),
-                m("textarea.h4.w-80.ma1.ml3", {value: chatText, oninput: chatTextChange, onkeydown: textAreaKeyDown}),
-            )
+            showEntryArea && viewEntryArea()
         ])
     }
 }
