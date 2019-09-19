@@ -36,6 +36,7 @@ let messagesDiv = null
 let messagesByUUID = {}
 
 let entryAreaPosition = "right"
+const entryAreaPositionChoices = ["none", "right", "bottom", "top", "left"]
 
 function startup() {
     chatRoom = HashUtils.getHashParams()["chatRoom"] || chatRoom
@@ -341,7 +342,7 @@ function viewMessages() {
 function viewEntryAreaPositionChoice() {
     return m("span.ml2",  { title: "Show entry area" },
         m("select", {onchange: event => entryAreaPosition = event.target.value},
-            ["none", "bottom", "right"].map(key => {
+            entryAreaPositionChoices.map(key => {
                 return m("option", {value: key, selected: entryAreaPosition === key}, "entry area: " + key)
             })
         )
@@ -379,12 +380,18 @@ function viewEntryArea() {
 
 const TwirlipChat = {
     view: function () {
-        return m("div.flex.flex-row.h-100.w-100", 
+        return m("div.flex.flex-row.h-100.w-100",
+            (entryAreaPosition === "left") && m("div.ma2",
+                viewEntryAreaTools(),
+                viewEntryArea()
+            ),
             m("div.pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
                 Toast.viewToast(),
                 m("div.mb3",
                     viewNavigation()
                 ),
+                (entryAreaPosition === "top") && viewEntryAreaTools(),                  
+                (entryAreaPosition === "top") && viewEntryArea(),
                 m("div.overflow-auto.flex-auto",
                     {
                         oncreate: (vnode) => {
