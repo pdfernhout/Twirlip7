@@ -35,7 +35,7 @@ let messagesDiv = null
 
 let messagesByUUID = {}
 
-let showEntryArea = true
+let entryAreaPosition = "right"
 
 function startup() {
     chatRoom = HashUtils.getHashParams()["chatRoom"] || chatRoom
@@ -338,22 +338,29 @@ function viewMessages() {
     })
 }
 
-function viewEntryAreaTypeChoice() {
+function viewEntryAreaPositionChoice() {
     return m("span.ml2",  { title: "Show entry area" },
-        m("input[type=checkbox].ma1", { checked: showEntryArea, onchange: (event) => showEntryArea = event.target.checked }),
-        "entry area"
+        m("select", {onchange: event => entryAreaPosition = event.target.value},
+            ["none", "bottom", "right"].map(key => {
+                return m("option", {value: key, selected: entryAreaPosition === key}, "entry area: " + key)
+            })
+        )
     )
 }
 
 function viewEntryLine() {
-    return m("span.w-80", 
-        m("input.ml2.w-70", {value: chatText, oninput: chatTextChange, onkeydown: textAreaKeyDown}),
-        m("button.ml2.mt2.w-10", {onclick: sendChatMessage, title: "Ctrl-Enter to send"}, "Send"),
+    return m("div",
+        viewEntryAreaPositionChoice(),
+        m("span.w-80", 
+            m("input.ml2.w-70", {value: chatText, oninput: chatTextChange, onkeydown: textAreaKeyDown}),
+            m("button.ml2.mt2.w-10", {onclick: sendChatMessage, title: "Ctrl-Enter to send"}, "Send"),
+        )
     )
 }
 
 function viewEntryAreaTools() {
     return m("div.dib",
+        viewEntryAreaPositionChoice(),
         m("a.pl2", {href: "https://github.github.com/gfm/", target: "_blank"}, "Markdown"),
         m("a.pl2", {href: "https://svg-edit.github.io/svgedit/releases/latest/editor/svg-editor.html", target: "_blank"}, "SVGEdit"),
         m("button.ml2.mt2", {onclick: sendChatMessage}, "Send (ctrl-enter)"),
@@ -366,32 +373,35 @@ function viewEntryAreaTools() {
 
 function viewEntryArea() {
     return m("div.pb1.f4" + (editedChatMessageUUID ? ".dn" : ""),
-        m("textarea.h4.w-80.ma1.ml3", {value: chatText, oninput: chatTextChange, onkeydown: textAreaKeyDown}),
+        m("textarea.h4.w-80.ma1.ml2", {value: chatText, oninput: chatTextChange, onkeydown: textAreaKeyDown}),
     )
 }
 
 const TwirlipChat = {
     view: function () {
-        return m("div.pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
-            Toast.viewToast(),
-            m("div.mb3",
-                viewNavigation()
-            ),
-            m("div.overflow-auto.flex-auto",
-                {
-                    oncreate: (vnode) => {
-                        messagesDiv = (vnode.dom)
+        return m("div.flex.flex-row.h-100.w-100", 
+            m("div.pa2.overflow-hidden.flex.flex-column.h-100.w-100", [
+                Toast.viewToast(),
+                m("div.mb3",
+                    viewNavigation()
+                ),
+                m("div.overflow-auto.flex-auto",
+                    {
+                        oncreate: (vnode) => {
+                            messagesDiv = (vnode.dom)
+                        },
                     },
-                },
-                viewMessages(),
-            ),
-            m("div",
-                viewEntryAreaTypeChoice(),
-                !showEntryArea && viewEntryLine(),
-                showEntryArea && viewEntryAreaTools()                    
-            ),
-            showEntryArea && viewEntryArea()
-        ])
+                    viewMessages(),
+                ),
+                (entryAreaPosition === "none") && viewEntryLine(),
+                (entryAreaPosition === "bottom") && viewEntryAreaTools(),                  
+                (entryAreaPosition === "bottom") && viewEntryArea()
+            ]),
+            (entryAreaPosition === "right") && m("div.ma2",
+                viewEntryAreaTools(),
+                viewEntryArea()
+            )
+        )
     }
 }
 
