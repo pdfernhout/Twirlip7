@@ -49,16 +49,28 @@ https://stackoverflow.com/questions/13165913/draw-an-arrow-between-two-circles#1
 
 "use strict"
 
-import { StoreUsingServer } from "./StoreUsingServer.js"
-import { HashUtils } from "./HashUtils.js"
-import { FileUtils } from "./FileUtils.js"
-import { UUID } from "./UUID.js"
-
 // defines CompendiumIcons
 import "./examples/ibis_icons.js"
 
 // defines m
 import "./vendor/mithril.js"
+
+import { StoreUsingServer } from "./StoreUsingServer.js"
+import { HashUUIDTracker } from "./HashUUIDTracker.js"
+
+// import { FileUtils } from "./FileUtils.js"
+// import { UUID } from "./UUID.js"
+
+let userID = localStorage.getItem("userID") || "anonymous"
+let collageUUID
+
+function userIDChange(event) {
+    userID = event.target.value
+    backend.configure(undefined, userID)
+    localStorage.setItem("userID", userID)
+}
+
+/*
 
 let diagram = {
     width: 800,
@@ -84,9 +96,6 @@ let draggedItem = null
 let dragStart = {x: 0, y: 0}
 let objectStart = {x: 0, y: 0}
 
-let diagramUUID = UUID.uuidv4()
-let userID = localStorage.getItem("userID") || "anonymous"
-
 const messages = []
 
 let unsaved = false
@@ -94,47 +103,6 @@ let unsaved = false
 const delta = 60
 
 let lastClickPosition = {x: delta, y: delta}
-
-function startup() {
-    diagramUUID = HashUtils.getHashParams()["diagramUUID"] || diagramUUID
-    window.onhashchange = () => updateDiagramUUIDFromHash()
-    updateHashForDiagramUUID()
-}
-
-function updateTitleForDiagramUUID() {
-    const title = document.title.split(" -- ")[0]
-    document.title = title + " -- " + diagramUUID
-}
-
-function updateDiagramUUIDFromHash() {
-    const hashParams = HashUtils.getHashParams()
-    const newDiagramUUID = hashParams["diagramUUID"]
-    if (newDiagramUUID !== diagramUUID) {
-        diagramUUID = newDiagramUUID
-        backend.configure({ibisDiagram: diagramUUID})
-        updateTitleForDiagramUUID()
-    }
-}
-
-function updateHashForDiagramUUID() {
-    const hashParams = HashUtils.getHashParams()
-    hashParams["diagramUUID"] = diagramUUID
-    HashUtils.setHashParams(hashParams)
-    updateTitleForDiagramUUID()
-}
-
-function diagramUUIDChange(event) {
-    diagramUUID = event.target.value
-    messages.splice(0)
-    updateHashForDiagramUUID()
-    backend.configure({ibisDiagram: diagramUUID})
-}
-
-function userIDChange(event) {
-    userID = event.target.value
-    backend.configure(undefined, userID)
-    localStorage.setItem("userID", userID)
-}
 
 function onmousedownBackground(event) {
     event.preventDefault()
@@ -305,6 +273,8 @@ function updateDiagramFromJSON() {
     diagram = newDiagram
 }
 
+*/
+
 /* Example to test outline parsing:
 
 Q: Top Question
@@ -327,6 +297,7 @@ Q: Top Question
 
 */
 
+/*
 function updateDiagramFromLabeledOutline() {
     const nodeTypeMap = {
         "Q: " : "issue",
@@ -449,12 +420,10 @@ function updateDiagramFromIndentedTextOutline() {
         } else if (text.endsWith("?")) {
             nodeType = "issue"
         } else {
-            /*
-            if (text[0] && text[0].match(/[a-z]/)) {
-                console.log("Problem parsing line with intial lowercase", line)
-                throw new Error("Parse error")
-            }
-            */
+            // if (text[0] && text[0].match(/[a-z]/)) {
+            //     console.log("Problem parsing line with intial lowercase", line)
+            //    throw new Error("Parse error")
+            // }
             nodeType = "position"
         }
 
@@ -531,7 +500,7 @@ function saveDiagram() {
         return
     }
     const timestamp = new Date().toISOString()
-    backend.addItem({ diagramUUID, diagram, userID, timestamp })
+    backend.addItem({ collageUUID, diagram, userID, timestamp })
     unsaved = false
     console.log("sent to server", diagram)
 }
@@ -558,6 +527,7 @@ function clearDiagram() {
     m.redraw()
 }
 */
+/*
 
 function viewImportExportPanel() {
     return m("div.ma1",
@@ -695,28 +665,28 @@ function view() {
     )
 }
 
-const TwirlipIbisApp = {
-    view: view
+*/
+
+const TwirlipCollageApp = {
+    view: () => m("div", "Hello Collage ", collageUUID)
 }
 
 const diagramResponder = {
     onLoaded: () => console.log("onLoaded"),
     onAddItem: (item) => {
         console.log("onAddItem", item)
-        messages.push(item)
-        if (unsaved) {
-            const result = confirm("The diagram has been changed elsewhere but there are unsaved changes here.\nDiscard local changes and use the new version from the server?")
-            if (!result) return
-        }
-        diagram = item.diagram
-        diagramJSON = JSON.stringify(diagram, null, 4)
-        unsaved = false
     }
 }
 
-startup()
+const { uuidChangedByApp, getUUID } = HashUUIDTracker("collageUUID", (uuid) => {
+    // Called every time UUID changed from hash in the URL
+    collageUUID = uuid
+    backend.configure({collageUUID: collageUUID})
+})
 
-const backend = StoreUsingServer(m.redraw, {ibisDiagram: diagramUUID}, userID)
+collageUUID = getUUID()
+
+const backend = StoreUsingServer(m.redraw, {collageUUID: collageUUID}, userID)
 
 backend.connect(diagramResponder)
 try {
@@ -725,4 +695,4 @@ try {
     alert("This Collage app requires a backend server supporting socket.io (i.e. won't work correctly on rawgit)")
 }
 
-m.mount(document.body, TwirlipIbisApp)
+m.mount(document.body, TwirlipCollageApp)
