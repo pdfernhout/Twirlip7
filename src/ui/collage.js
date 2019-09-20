@@ -57,6 +57,11 @@ import "./vendor/mithril.js"
 
 import { StoreUsingServer } from "./StoreUsingServer.js"
 import { HashUUIDTracker } from "./HashUUIDTracker.js"
+import { Pointrel20190914 } from "./Pointrel20190914.js"
+import { CanonicalJSON } from "./CanonicalJSON.js"
+import { UUID } from "./UUID.js"
+
+const p = new Pointrel20190914()
 
 // import { FileUtils } from "./FileUtils.js"
 // import { UUID } from "./UUID.js"
@@ -667,32 +672,84 @@ function view() {
 
 */
 
-const TwirlipCollageApp = {
-    view: () => m("div", "Hello Collage ", collageUUID)
+class Item {
+    constructor(uuid) {
+        this.uuid = uuid || UUID.uuidv4()
+    }
 }
 
-const diagramResponder = {
-    onLoaded: () => console.log("onLoaded"),
-    onAddItem: (item) => {
-        console.log("onAddItem", item)
+class Collage {
+    constructor(uuid) {
+        this.uuid = {collageUUID: uuid}
     }
+
+    getItems() {
+        const result = []
+        const bcMap = p.findBC(this.uuid, "item")
+        for (let key in bcMap) {
+            const uuid = bcMap[key]
+            if (uuid) result.push(new Item(uuid))
+        }
+        return result
+    }
+
+    async addItem(item, summary) {
+        // Keep a copy of essential information
+        // TODO: if (summary) p.addTriple(getOrganizerName(), {itemSummary: item.uuid}, summary)
+        await p.addTripleAsync(this.uuid, {item: item.uuid}, item.uuid)
+    }
+
+    deleteItem(item) {
+        p.addTriple(this.uuid, {item: item.uuid}, null)
+    }
+
+    /*
+    getSummaryForItem(uuid) {
+        return p.findC(this.uuid, {itemSummary: uuid})
+    }
+    */
+
+    view() {
+        const items = this.getItems()
+        return m("div",
+            loading 
+                ? m("div", "Loading...")
+                : [
+                    items.length === 0 && m("div", "No items"),
+                    items.map(item => m("div", item.uuid)),
+                    m("button", {onclick: () => this.addItem(new Item())}, "Add item")
+                ]
+        )
+    }
+}
+
+const TwirlipCollageApp = {
+    view: () => m("div", "Hello Collage ", collageUUID,
+        new Collage(collageUUID).view()
+    )
 }
 
 const { uuidChangedByApp, getUUID } = HashUUIDTracker("collageUUID", (uuid) => {
     // Called every time UUID changed from hash in the URL
     collageUUID = uuid
-    backend.configure({collageUUID: collageUUID})
 })
 
 collageUUID = getUUID()
 
-const backend = StoreUsingServer(m.redraw, {collageUUID: collageUUID}, userID)
-
-backend.connect(diagramResponder)
-try {
-    backend.setup()
-} catch(e) {
-    alert("This Collage app requires a backend server supporting socket.io (i.e. won't work correctly on rawgit)")
+// TODO: optimize exessive stringify use
+function isUUIDMatch(a, b) {
+    return CanonicalJSON.stringify(a) === CanonicalJSON.stringify(b)
 }
+
+let loading = true
+
+p.connect({
+    onLoaded: (streamId) => {
+        console.log("p onloaded", streamId)
+        if (isUUIDMatch(streamId, {collageUUID: collageUUID})) {
+            loading = false
+        }
+    }
+})
 
 m.mount(document.body, TwirlipCollageApp)
