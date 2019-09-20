@@ -148,7 +148,7 @@ let draggedItem = null
 let dragStart = {x: 0, y: 0}
 let objectStart = {x: 0, y: 0}
 
-let diagramUUID = uuidv4()
+let diagramUUID = UUID.uuidv4()
 let userID = localStorage.getItem("userID") || "anonymous"
 
 const messages = []
@@ -158,13 +158,6 @@ let unsaved = false
 const delta = 60
 
 let lastClickPosition = {x: delta, y: delta}
-
-function uuidv4() {
-    // From: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
-    return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-        (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
-    )
-}
 
 function startup() {
     diagramUUID = HashUtils.getHashParams()["diagramUUID"] || diagramUUID
