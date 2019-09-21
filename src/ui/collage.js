@@ -772,7 +772,12 @@ function viewSql(tables) {
                                     value = value.substring(0, 77)
                                     truncated = true
                                 }
-                                return m("td.pa1", {title: tableName + ":" + key + (truncated ? " -- click to see more" : "")}, truncated ? m("span", {onclick: () => alert(untruncatedValue)}, value, m("b", "...")): value)
+                                return m("td.pa1", {
+                                    title: tableName + ":" + key + (truncated ? " -- click to see more" : "")
+                                }, truncated 
+                                    ? m("span", {onclick: () => alert(untruncatedValue)}, value, m("b", "..."))
+                                    : value
+                                )
                             }))
                         })
                     )
