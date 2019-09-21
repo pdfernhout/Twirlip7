@@ -60,6 +60,7 @@ import { HashUUIDTracker } from "./HashUUIDTracker.js"
 import { Pointrel20190914 } from "./Pointrel20190914.js"
 import { CanonicalJSON } from "./CanonicalJSON.js"
 import { UUID } from "./UUID.js"
+import { SqlUtils } from "./SqlUtils.js"
 
 const p = new Pointrel20190914()
 
@@ -676,119 +677,6 @@ function view() {
 
 */
 
-function parseSection(tokens, text) {
-    if (!text) return tokens
-    if (text[0] !== "'") {
-        // number
-        const token = text.split(",")[0]
-        tokens.push(parseInt(token))
-        return parseSection(tokens, text.substring(token.length + 1))
-    }
-    // Quoted string -- need to detect end while skipping double quotes
-    let end = 0
-    for (let i = 1; i < text.length; i++) {
-        if (text[i] === "'") {
-            if (text[i+1] === "'") {
-                // skip escaped quote
-                i++
-            } else {
-                end = i
-                break
-            }
-        }
-    }
-    if (end) {
-        const token = text.substring(1, end).replace(/''/g, "'")
-        tokens.push(token)
-        // skip quote and following comma
-        return parseSection(tokens, text.substring(end + 2))
-    }
-    console.log("problem parsing ", text)
-    return tokens
-}
-
-function parseSQLInsertStatement(tables, line) {
-    const regex = /INSERT INTO (\w*) \(([^)]*)\) VALUES (.*)/
-    const match = line.match(regex)
-    if (!match) return null
-    const tableName = match[1]
-    const fieldNames = match[2].split(", ")
-    const valuesString = match[3]
-    const values = []
-    parseSection(values, valuesString.substring(1, valuesString.length - 1))
-    
-    if (fieldNames.length !== values.length) throw new Error("agreement problem parsing: " + line)
-
-    const row = {}
-
-    for (let i = 0; i < fieldNames.length; i++) {
-        row[fieldNames[i]] = values[i]
-    }
-
-    if (!tables[tableName]) tables[tableName] = []
-    tables[tableName].push(row)
-}
-
-function parseSql(sqlText) {
-    const tables = {}
-    const lines = sqlText.split("\n")
-    for (let line of lines) {
-        parseSQLInsertStatement(tables, line)
-    }
-    return tables
-}
-
-function viewSql(tables) {
-    const result = []
-
-    function header(table) {
-        const row = table[0]
-        const keys = Object.keys(row).sort()
-        return keys.map(key => m("th", key))
-    }
-
-    for (let tableName of Object.keys(tables).sort()) {
-        result.push(
-            m("div",
-                m("h3", tableName),
-                m("table.ml3",
-                    m("thead",
-                        m("tr.stripe-dark",
-                            header(tables[tableName])
-                        )
-                    ),
-                    m("tbody",
-                        tables[tableName].map(row => {
-                            const keys = Object.keys(row).sort()
-
-                            return m("tr.stripe-dark", keys.map(key => {
-                                let value = row[key]
-                                let truncated = false
-                                if (key.endsWith("Date")) value = new Date(value).toISOString()
-                                value = "" + value
-                                let untruncatedValue = value
-                                untruncatedValue = untruncatedValue.replace(/\\n/g, "\n")
-                                if (value.length > 80) {
-                                    value = value.substring(0, 77)
-                                    truncated = true
-                                }
-                                return m("td.pa1", {
-                                    title: tableName + ":" + key + (truncated ? " -- click to see more" : "")
-                                }, truncated 
-                                    ? m("span", {onclick: () => alert(untruncatedValue)}, value, m("b", "..."))
-                                    : value
-                                )
-                            }))
-                        })
-                    )
-                )
-            )
-        )
-        result.push(m("hr"))
-    }
-    return result
-}
-
 class Item {
     constructor(uuid) {
         this.uuid = uuid || UUID.uuidv4()
@@ -837,7 +725,7 @@ class Collage {
                     m("button", {onclick: () => this.addItem(new Item())}, "Add item")
                 ],
             m("div.flex-auto.overflow-auto.nowrap",
-                compendiumFeatureSuggestionsTables && viewSql(compendiumFeatureSuggestionsTables)
+                compendiumFeatureSuggestionsTables && SqlUtils.viewSqlTables(compendiumFeatureSuggestionsTables)
             )
         )
     }
@@ -879,7 +767,7 @@ async function loadCompendiumFeatureSuggestions() {
     const response = await fetch("examples/feature_suggestions_compendium_map.sql")
     const fileContents = await response.text()
     compendiumFeatureSuggestionsText = fileContents
-    compendiumFeatureSuggestionsTables = parseSql(fileContents)
+    compendiumFeatureSuggestionsTables = SqlUtils.parseSqlIntoTables(fileContents)
     m.redraw()
     return fileContents
 }
