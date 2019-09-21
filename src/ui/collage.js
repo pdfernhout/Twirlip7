@@ -66,12 +66,15 @@ const p = new Pointrel20190914()
 // import { FileUtils } from "./FileUtils.js"
 // import { UUID } from "./UUID.js"
 
-let userID = localStorage.getItem("userID") || "anonymous"
+let compendiumFeatureSuggestionsText = null
+
 let collageUUID
+let userID = localStorage.getItem("userID") || "anonymous"
 
 function userIDChange(event) {
     userID = event.target.value
-    backend.configure(undefined, userID)
+    // TODO: Fix how userId is handled with Pointrel20190914
+    // backend.configure(undefined, userID)
     localStorage.setItem("userID", userID)
 }
 
@@ -718,7 +721,8 @@ class Collage {
                     items.length === 0 && m("div", "No items"),
                     items.map(item => m("div", item.uuid)),
                     m("button", {onclick: () => this.addItem(new Item())}, "Add item")
-                ]
+                ],
+            compendiumFeatureSuggestionsText && m("div", compendiumFeatureSuggestionsText)
         )
     }
 }
@@ -753,3 +757,13 @@ p.connect({
 })
 
 m.mount(document.body, TwirlipCollageApp)
+
+async function loadCompendiumFeatureSuggestions() {
+    const response = await fetch("examples/feature_suggestions_compendium_map.sql")
+    const fileContents = await response.text()
+    compendiumFeatureSuggestionsText = fileContents
+    m.redraw()
+    return fileContents
+}
+
+loadCompendiumFeatureSuggestions()
