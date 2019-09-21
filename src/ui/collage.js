@@ -744,23 +744,40 @@ function viewSql(tables) {
     function header(table) {
         const row = table[0]
         const keys = Object.keys(row).sort()
-        return m("div.ml3", keys.map(key => m("span.mr3", key)))
+        return keys.map(key => m("th", key))
     }
 
     for (let tableName of Object.keys(tables).sort()) {
         result.push(
             m("div",
-                tableName,
-                header(tables[tableName]),
-                tables[tableName].map(row => {
-                    const keys = Object.keys(row).sort()
+                m("h3", tableName),
+                m("table.ml3",
+                    m("thead",
+                        m("tr.stripe-dark",
+                            header(tables[tableName])
+                        )
+                    ),
+                    m("tbody",
+                        tables[tableName].map(row => {
+                            const keys = Object.keys(row).sort()
 
-                    return m("div.ml3", keys.map(key => {
-                        let value = row[key]
-                        if (key.endsWith("Date")) value = new Date(value).toISOString()
-                        return m("span.mr3", {title: tableName + ":" + key}, value)
-                    }))
-                })
+                            return m("tr.stripe-dark", keys.map(key => {
+                                let value = row[key]
+                                let truncated = false
+                                if (key.endsWith("Date")) value = new Date(value).toISOString()
+                                value = "" + value
+                                let untruncatedValue = value
+                                untruncatedValue = untruncatedValue.replace(/\\n/g, "\n")
+                                if (value.length > 80) {
+                                    value = value.substring(0, 77) + "..."
+                                    truncated = true
+                                }
+                                return m("td.pa1", {title: tableName + ":" + key + (truncated ? " -- " + untruncatedValue : "")}, value)
+                                // return m("td.pa1" + (value !== untruncatedValue ? ".pre" : ""), {title: tableName + ":" + key}, untruncatedValue)
+                            }))
+                        })
+                    )
+                )
             )
         )
         result.push(m("hr"))
