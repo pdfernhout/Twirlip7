@@ -740,13 +740,30 @@ function parseSql(sqlText) {
 
 function viewSql(tables) {
     const result = []
+
+    function header(table) {
+        const row = table[0]
+        const keys = Object.keys(row).sort()
+        return m("div.ml3", keys.map(key => m("span.mr3", key)))
+    }
+
     for (let tableName of Object.keys(tables).sort()) {
         result.push(
-            m("div", tableName, tables[tableName].map(row => {
-                const keys = Object.keys(row).sort()
-                return m("div.ml3", keys.map(key => m("span.mr3", {title: tableName + ":" + key}, row[key])))
-            }))
+            m("div",
+                tableName,
+                header(tables[tableName]),
+                tables[tableName].map(row => {
+                    const keys = Object.keys(row).sort()
+
+                    return m("div.ml3", keys.map(key => {
+                        let value = row[key]
+                        if (key.endsWith("Date")) value = new Date(value).toISOString()
+                        return m("span.mr3", {title: tableName + ":" + key}, value)
+                    }))
+                })
+            )
         )
+        result.push(m("hr"))
     }
     return result
 }
