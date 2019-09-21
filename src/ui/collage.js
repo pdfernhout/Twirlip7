@@ -55,7 +55,6 @@ import "./examples/ibis_icons.js"
 // defines m
 import "./vendor/mithril.js"
 
-import { StoreUsingServer } from "./StoreUsingServer.js"
 import { HashUUIDTracker } from "./HashUUIDTracker.js"
 import { Pointrel20190914 } from "./Pointrel20190914.js"
 import { CanonicalJSON } from "./CanonicalJSON.js"
@@ -67,7 +66,6 @@ const p = new Pointrel20190914()
 // import { FileUtils } from "./FileUtils.js"
 // import { UUID } from "./UUID.js"
 
-let compendiumFeatureSuggestionsText = null
 let compendiumFeatureSuggestionsTables = null
 
 let collageUUID
@@ -717,14 +715,14 @@ class Collage {
     view() {
         const items = this.getItems()
         return m("div.flex-auto.flex.flex-column",
-            loading 
+            (loading || !compendiumFeatureSuggestionsTables)
                 ? m("div", "Loading...")
                 : [
                     items.length === 0 && m("div", "No items"),
                     items.map(item => m("div", item.uuid)),
-                    m("button", {onclick: () => this.addItem(new Item())}, "Add item")
+                    m("div", m("button", {onclick: () => this.addItem(new Item())}, "Add item"))
                 ],
-            m("div.flex-auto.overflow-auto.nowrap",
+            m("div.ma3.ba.b--light-silver.pa2.flex-auto.overflow-auto.nowrap",
                 compendiumFeatureSuggestionsTables && SqlUtils.viewSqlTables(compendiumFeatureSuggestionsTables)
             )
         )
@@ -766,7 +764,6 @@ m.mount(document.body, TwirlipCollageApp)
 async function loadCompendiumFeatureSuggestions() {
     const response = await fetch("examples/feature_suggestions_compendium_map.sql")
     const fileContents = await response.text()
-    compendiumFeatureSuggestionsText = fileContents
     compendiumFeatureSuggestionsTables = SqlUtils.parseSqlIntoTables(fileContents)
     m.redraw()
     return fileContents
