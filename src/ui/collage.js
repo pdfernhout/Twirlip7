@@ -675,6 +675,11 @@ function view() {
 
 */
 
+function viewSql(sqlText) {
+    const lines = sqlText.split("\n")
+    return lines.map(line => m("div", line))
+}
+
 class Item {
     constructor(uuid) {
         this.uuid = uuid || UUID.uuidv4()
@@ -714,7 +719,7 @@ class Collage {
 
     view() {
         const items = this.getItems()
-        return m("div",
+        return m("div.flex-auto.flex.flex-column",
             loading 
                 ? m("div", "Loading...")
                 : [
@@ -722,14 +727,17 @@ class Collage {
                     items.map(item => m("div", item.uuid)),
                     m("button", {onclick: () => this.addItem(new Item())}, "Add item")
                 ],
-            compendiumFeatureSuggestionsText && m("div", compendiumFeatureSuggestionsText)
+            m("div.flex-auto.overflow-auto.nowrap",
+                compendiumFeatureSuggestionsText && viewSql(compendiumFeatureSuggestionsText)
+            )
         )
     }
 }
 
 const TwirlipCollageApp = {
-    view: () => m("div", "Hello Collage ", collageUUID,
-        new Collage(collageUUID).view()
+    view: () => m("div.debug.pa3.h-100.flex.flex-column", "Hello Collage ", collageUUID,
+        new Collage(collageUUID).view(),
+        // m("div", "Footer")
     )
 }
 
