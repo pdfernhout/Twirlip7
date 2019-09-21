@@ -67,6 +67,7 @@ const p = new Pointrel20190914()
 // import { UUID } from "./UUID.js"
 
 let compendiumFeatureSuggestionsText = null
+let compendiumFeatureSuggestionsTables = null
 
 let collageUUID
 let userID = localStorage.getItem("userID") || "anonymous"
@@ -706,32 +707,46 @@ function parseSection(tokens, text) {
     return tokens
 }
 
-function parseSQLInsertStatement(line) {
+function parseSQLInsertStatement(tables, line) {
     const regex = /INSERT INTO (\w*) \(([^)]*)\) VALUES (.*)/
     const match = line.match(regex)
-    // console.log("match", match, line)
     if (!match) return null
     const tableName = match[1]
-    const fieldNames = match[2].split(", ").map(name => m("span.ml1", name))
+    const fieldNames = match[2].split(", ")
     const valuesString = match[3]
     const values = []
     parseSection(values, valuesString.substring(1, valuesString.length - 1))
-    return m("div.ba",
-        m("div", tableName),
-        m("div", fieldNames),
-        m("div", valuesString),
-        m("div", values.map(value => m("span.ml1.ba" + (typeof value === "string" ? "" : ".green"), value)))
-    )
+    
+    if (fieldNames.length !== values.length) throw new Error("agreement problem parsing: " + line)
+
+    const row = {}
+
+    for (let i = 0; i < fieldNames.length; i++) {
+        row[fieldNames[i]] = values[i]
+    }
+
+    if (!tables[tableName]) tables[tableName] = []
+    tables[tableName].push(row)
 }
 
-function viewSql(sqlText) {
-    // const tables = {}
+function parseSql(sqlText) {
+    const tables = {}
     const lines = sqlText.split("\n")
-    // return lines.map(line => m("div", line))
-    const result = []
     for (let line of lines) {
-        const lineResult = parseSQLInsertStatement(line)
-        if (lineResult) result.push(lineResult)
+        parseSQLInsertStatement(tables, line)
+    }
+    return tables
+}
+
+function viewSql(tables) {
+    const result = []
+    for (let tableName of Object.keys(tables).sort()) {
+        result.push(
+            m("div", tableName, tables[tableName].map(row => {
+                const keys = Object.keys(row).sort()
+                return m("div.ml3", keys.map(key => m("span.mr3", {title: tableName + ":" + key}, row[key])))
+            }))
+        )
     }
     return result
 }
@@ -784,7 +799,7 @@ class Collage {
                     m("button", {onclick: () => this.addItem(new Item())}, "Add item")
                 ],
             m("div.flex-auto.overflow-auto.nowrap",
-                compendiumFeatureSuggestionsText && viewSql(compendiumFeatureSuggestionsText)
+                compendiumFeatureSuggestionsTables && viewSql(compendiumFeatureSuggestionsTables)
             )
         )
     }
@@ -826,6 +841,7 @@ async function loadCompendiumFeatureSuggestions() {
     const response = await fetch("examples/feature_suggestions_compendium_map.sql")
     const fileContents = await response.text()
     compendiumFeatureSuggestionsText = fileContents
+    compendiumFeatureSuggestionsTables = parseSql(fileContents)
     m.redraw()
     return fileContents
 }
