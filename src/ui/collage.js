@@ -769,11 +769,10 @@ function viewSql(tables) {
                                 let untruncatedValue = value
                                 untruncatedValue = untruncatedValue.replace(/\\n/g, "\n")
                                 if (value.length > 80) {
-                                    value = value.substring(0, 77) + "..."
+                                    value = value.substring(0, 77)
                                     truncated = true
                                 }
-                                return m("td.pa1", {title: tableName + ":" + key + (truncated ? " -- " + untruncatedValue : "")}, value)
-                                // return m("td.pa1" + (value !== untruncatedValue ? ".pre" : ""), {title: tableName + ":" + key}, untruncatedValue)
+                                return m("td.pa1", {title: tableName + ":" + key + (truncated ? " -- click to see more" : "")}, truncated ? m("span", {onclick: () => alert(untruncatedValue)}, value, m("b", "...")): value)
                             }))
                         })
                     )
