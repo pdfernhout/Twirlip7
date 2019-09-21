@@ -675,9 +675,65 @@ function view() {
 
 */
 
+function parseSection(tokens, text) {
+    if (!text) return tokens
+    if (text[0] !== "'") {
+        // number
+        const token = text.split(",")[0]
+        tokens.push(parseInt(token))
+        return parseSection(tokens, text.substring(token.length + 1))
+    }
+    // Quoted string -- need to detect end while skipping double quotes
+    let end = 0
+    for (let i = 1; i < text.length; i++) {
+        if (text[i] === "'") {
+            if (text[i+1] === "'") {
+                // skip escaped quote
+                i++
+            } else {
+                end = i
+                break
+            }
+        }
+    }
+    if (end) {
+        const token = text.substring(1, end).replace(/''/g, "'")
+        tokens.push(token)
+        // skip quote and following comma
+        return parseSection(tokens, text.substring(end + 2))
+    }
+    console.log("problem parsing ", text)
+    return tokens
+}
+
+function parseSQLInsertStatement(line) {
+    const regex = /INSERT INTO (\w*) \(([^)]*)\) VALUES (.*)/
+    const match = line.match(regex)
+    // console.log("match", match, line)
+    if (!match) return null
+    const tableName = match[1]
+    const fieldNames = match[2].split(", ").map(name => m("span.ml1", name))
+    const valuesString = match[3]
+    const values = []
+    parseSection(values, valuesString.substring(1, valuesString.length - 1))
+    return m("div.ba",
+        m("div", tableName),
+        m("div", fieldNames),
+        m("div", valuesString),
+        m("div", values.map(value => m("span.ml1.ba" + (typeof value === "string" ? "" : ".green"), value)))
+    )
+}
+
 function viewSql(sqlText) {
+    // const tables = {}
     const lines = sqlText.split("\n")
-    return lines.map(line => m("div", line))
+    // return lines.map(line => m("div", line))
+    const result = []
+    for (let line of lines) {
+        const lineResult = parseSQLInsertStatement(line)
+        if (lineResult) result.push(lineResult)
+    }
+    return result
 }
 
 class Item {
@@ -735,7 +791,7 @@ class Collage {
 }
 
 const TwirlipCollageApp = {
-    view: () => m("div.debug.pa3.h-100.flex.flex-column", "Hello Collage ", collageUUID,
+    view: () => m("div.pa3.h-100.flex.flex-column", "Hello Collage ", collageUUID,
         new Collage(collageUUID).view(),
         // m("div", "Footer")
     )
