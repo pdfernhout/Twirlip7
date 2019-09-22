@@ -77,6 +77,8 @@ function parseSqlIntoTables(sqlText) {
     return tables
 }
 
+const expandTable = {}
+
 function viewSqlTables(tables) {
     const result = []
 
@@ -89,8 +91,13 @@ function viewSqlTables(tables) {
     for (let tableName of Object.keys(tables).sort()) {
         result.push(
             m("div",
-                m("h3", tableName),
-                m("table.ml3",
+                m("h3", 
+                    tableName, 
+                    m("span.ml2", {
+                        onclick: () => expandTable[tableName] = !expandTable[tableName]
+                    }, expandTable[tableName] ? "▾" : "▸" )
+                ),
+                expandTable[tableName] && m("table.ml3",
                     m("thead",
                         m("tr.stripe-dark",
                             header(tables[tableName])
