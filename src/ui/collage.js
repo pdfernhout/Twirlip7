@@ -60,7 +60,6 @@ import { Pointrel20190914 } from "./Pointrel20190914.js"
 import { CanonicalJSON } from "./CanonicalJSON.js"
 import { UUID } from "./UUID.js"
 import { SqlUtils } from "./SqlUtils.js"
-import { UnicodeFixupUtils } from "./UnicodeFixupUtils.js"
 
 const p = new Pointrel20190914()
 
@@ -537,9 +536,7 @@ m.mount(document.body, TwirlipCollageApp)
 
 async function loadCompendiumFeatureSuggestions() {
     const response = await fetch("examples/feature_suggestions_compendium_map.sql")
-    const rawFileContents = await response.text()
-    // Fixup for export from windows1252 to utf8 that incorreclt cnverted multibyte unicode characters
-    const fileContents = UnicodeFixupUtils.remapWindows1252(rawFileContents)
+    const fileContents = await response.text()
     compendiumFeatureSuggestionsTables = SqlUtils.parseSqlIntoTables(fileContents)
     m.redraw()
     return fileContents
