@@ -281,170 +281,6 @@ function updateDiagramFromJSON() {
     diagram = newDiagram
 }
 
-*/
-
-/* Example to test outline parsing:
-
-Q: Top Question
-
-    A: First Answer
-
-        Q: Another Question
-            A: Answer A1
-            A: Answer A2
-            A: Answer A3
-                Pro: A point for A3
-                Con: A point against A3
-            A: Answer A4
-
-    Q: Yet Another Question
-
-        Q: And also another question
-            A: Answer B1
-            A: Answer B2
-
-*/
-
-/*
-function updateDiagramFromLabeledOutline() {
-    const nodeTypeMap = {
-        "Q: " : "issue",
-        "A: " : "position",
-        "Pro: " : "plus",
-        "Con: " : "minus"
-    }
-
-    let nodes = []
-    let indents = []
-    const lines = outlineText.split("\n")
-    for (let line of lines) {
-        if (line.trim() === "") {
-            continue
-        }
-        const parseLineRegex = /(^[ ]*)(Q: |A: |Pro: |Con: )(.*)$/
-        const match = parseLineRegex.exec(line)
-        if (!match) {
-            console.log("Problem parsing line", "'" + line + "'")
-            continue
-        }
-        const lastIndent = indents[indents.length - 1]
-        const indent = match[1]
-        if (indent === "") {
-            nodes = []
-            indents = []
-            lastClickPosition.x = delta
-        } else if (indent.length === lastIndent.length) {
-            // same level
-            nodes.pop()
-            indents.pop()
-            lastClickPosition.x -= delta
-        } else if (indent.length < lastIndent.length) {
-            // dedenting
-            let oldIndent = lastIndent
-            while (oldIndent && oldIndent.length > indent.length) {
-                indents.pop()
-                nodes.pop()
-                lastClickPosition.x -= delta
-                oldIndent = indents[indents.length - 1]
-            }
-            if (oldIndent && oldIndent !== indent) {
-                console.log("indentation issue for: ", line, oldIndent.length, indent.length)
-                break
-            }
-            indents.pop()
-            nodes.pop()
-            lastClickPosition.x -= delta
-        } else { // (indent.length > lastIndent.length)
-            // indenting -- do nothing as added later
-        }
-        let parentId = null
-        if (nodes.length) parentId = nodes[nodes.length - 1].id
-        const nodeType = nodeTypeMap[match[2]]
-        const text = match[3]
-        if (nodeType && text) {
-            const element = addElement(nodeType, text, parentId)
-            nodes.push(element)
-            indents.push(indent)
-        } else {
-            console.log("Problem parsing line", line)
-        }
-    }
-}
-
-function updateDiagramFromIndentedTextOutline() {
-    let nodes = []
-    let indents = []
-    const lines = outlineText.split("\n")
-    for (let line of lines) {
-        if (line.trim() === "") {
-            continue
-        }
-        const parseLineRegex = /(^[ ]*)(.*)$/
-        const match = parseLineRegex.exec(line)
-        if (!match) {
-            console.log("Problem parsing line", "'" + line + "'")
-            continue
-        }
-        const lastIndent = indents[indents.length - 1]
-        const indent = match[1]
-        if (indent === "") {
-            nodes = []
-            indents = []
-            lastClickPosition.x = delta
-        } else if (indent.length === lastIndent.length) {
-            // same level
-            nodes.pop()
-            indents.pop()
-            lastClickPosition.x -= delta
-        } else if (indent.length < lastIndent.length) {
-            // dedenting
-            let oldIndent = lastIndent
-            while (oldIndent && oldIndent.length > indent.length) {
-                indents.pop()
-                nodes.pop()
-                lastClickPosition.x -= delta
-                oldIndent = indents[indents.length - 1]
-            }
-            if (oldIndent && oldIndent !== indent) {
-                console.log("indentation issue for: ", line, oldIndent.length, indent.length)
-                break
-            }
-            indents.pop()
-            nodes.pop()
-            lastClickPosition.x -= delta
-        } else { // (indent.length > lastIndent.length)
-            // indenting -- do nothing as added later
-        }
-        let parentId = null
-        if (nodes.length) parentId = nodes[nodes.length - 1].id
-        let text = match[2].trim()
-        let nodeType = ""
-        if (text.startsWith("+")) {
-            text = text.substring(1).trim()
-            nodeType = "plus"
-        } else if (text.startsWith("-")) {
-            text = text.substring(1).trim()
-            nodeType = "minus"
-        } else if (text.endsWith("?")) {
-            nodeType = "issue"
-        } else {
-            // if (text[0] && text[0].match(/[a-z]/)) {
-            //     console.log("Problem parsing line with intial lowercase", line)
-            //    throw new Error("Parse error")
-            // }
-            nodeType = "position"
-        }
-
-        if (nodeType && text) {
-            const element = addElement(nodeType, text, parentId)
-            nodes.push(element)
-            indents.push(indent)
-        } else {
-            console.log("Problem parsing line", line)
-        }
-    }
-}
-
 function viewItemPanel() {
     const element = laterDraggedItem
     const disabled = !element
@@ -479,71 +315,11 @@ function viewItemPanel() {
     ])
 }
 
-function importDiagram() {
-    FileUtils.loadFromFile((fileName, fileContents) => {
-        if (fileContents) {
-            diagramJSON = fileContents
-            updateDiagramFromJSON()
-            if (diagram.diagramName.toLowerCase().startsWith("untitled")) {
-                if (fileName.endsWith(".json")) fileName = fileName.substring(0, fileName.length - ".json".length)
-                diagram.diagramName = fileName
-            }
-            m.redraw()
-        }
-    })
-}
-
-function exportDiagram() {
-    const provisionalFileName = diagram.diagramName
-    FileUtils.saveToFile(provisionalFileName, diagramJSON, ".json", (fileName) => {
-        diagram.diagramName = fileName
-        updateJSONFromDiagram()
-        unsaved = false
-    })
-}
-
-function saveDiagram() {
-    if (diagram.diagramName.toLowerCase().startsWith("untitled")) {
-        alert("Please name the diagram first by clicking on the diagram name")
-        return
-    }
-    const timestamp = new Date().toISOString()
-    backend.addItem({ collageUUID, diagram, userID, timestamp })
-    unsaved = false
-    console.log("sent to server", diagram)
-}
-
 function clearDiagram() {
     if (!confirm("Clear diagram?")) return
     diagram.elements = []
     updateJSONFromDiagram()
     lastClickPosition = {x: delta, y: delta}
-}
-
-/* function loadDiagram() {
-    const diagramName = prompt("Load which diagram name?", diagram.diagramName)
-    if (!diagramName) return
-
-    const items = Twirlip7.findItem({entity: diagramName, attribute: "contents"})
-    if (items.length === 0) {
-        console.log("item not found", diagramName)
-        return
-    }
-    const item = items[0]
-    diagramJSON = item.value
-    updateDiagramFromJSON()
-    m.redraw()
-}
-*/
-/*
-
-function viewImportExportPanel() {
-    return m("div.ma1",
-        m("button.ma1", { onclick: importDiagram }, "Import Diagram"),
-        m("button.ma1", { onclick: exportDiagram }, "Export Diagram"),
-        m("button.ma1", { onclick: saveDiagram }, "Save to server"),
-        // m("button.ma1", { onclick: loadDiagram }, "Load"),
-    )
 }
 
 function viewCheckboxesPanel() {
@@ -588,8 +364,6 @@ function viewOutlinePanel() {
                 oninput: (event) => outlineText = event.target.value
             }),
             m("br"),
-            m("button.ma1", { onclick: updateDiagramFromIndentedTextOutline }, "Parse itIBIS outline"),
-            m("button.ma1", { onclick: updateDiagramFromLabeledOutline }, "Parse labeled outline"),
             m("button.ma1", { onclick: clearDiagram }, "Clear diagram"),
         ] : []
     )
@@ -600,7 +374,6 @@ function changeDiagramName() {
     if (newDiagramName) diagram.diagramName = newDiagramName
 }
 
-// { extraStyling: ".bg-blue.br4", title: () => "IBIS Diagram for: " + diagram.diagramName }
 function view() {
     return m("div.bg-blue.br4.pa3.h-100.w-100.flex.flex-column.overflow-hidden",
         m("div.flex-none",
