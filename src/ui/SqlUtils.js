@@ -1,5 +1,7 @@
 // Parse and display SQL insert statements which define a set of tables.
 // This was created originally to support reading in a SQL file from Compendium.
+// The file is assumed to be exported in utf8.
+// There may be character encoding issues otherwise (and were for that Compendium file).
 
 /* Example SQL this can parse including ignoring non-INSERT lines (the first and blanks):
 DATABASE TYPE = DERBY :2.0.1
