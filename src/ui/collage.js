@@ -454,9 +454,17 @@ class Item {
     }
 }
 
-class Collage {
+class CollageMap {
     constructor(uuid) {
-        this.uuid = {collageUUID: uuid}
+        this.uuid = {uuid: uuid}
+    }
+
+    getType() {
+        p.findC(this.uuid, "type")
+    }
+
+    setType(type) {
+        p.addTriple(this.uuid, "type", type)
     }
 
     getItems() {
@@ -502,9 +510,55 @@ class Collage {
     }
 }
 
+function viewCollageList(uuid) {
+    const title =  p.findC({collageUUID: uuid}, "title")
+    return m("div", 
+        m("div", "CollageList: ", uuid),
+        m("div",
+            m("span", "Title: ", title || "untitled"),
+            m("button.ml2", {onclick: () => {
+                const newTitle = prompt("new title?", title)
+                if (newTitle) p.addTriple({collageUUID: uuid}, "title", newTitle)
+            }}, "Rename")
+        )
+    )
+}
+
+function viewNode(uuid) {
+    const type = p.findC({collageUUID: uuid}, "type")
+    console.log("viewNode", uuid, type)
+    if (type === "CollageList") return viewCollageList(uuid)
+    return m("div", "unfinished: ", uuid, "type: ", type)
+}
+
+function makeNewCollageMap() {
+    const uuid = p.uuidv4()
+    p.addTriple({collageUUID: uuid}, "type", "CollageMap")
+    collageUUID = uuid
+    uuidChangedByApp(uuid)
+}
+
+function makeNewCollageList(title) {
+    const uuid = p.uuidv4()
+    p.addTriple({collageUUID: uuid}, "type", "CollageList")
+    if (title) p.addTriple({collageUUID: uuid}, "title", title)
+    collageUUID = uuid
+    uuidChangedByApp(uuid)
+}
+
+let showFeatureSuggestions = false
+
 const TwirlipCollageApp = {
-    view: () => m("div.pa3.h-100.flex.flex-column", "Hello Collage ", collageUUID,
-        new Collage(collageUUID).view(),
+    view: () => m("div.pa3.h-100.flex.flex-column", "Collage: ", collageUUID,
+        m("div.ma2..pa2.ba",
+            m("button.ml2", {onclick: () => makeNewCollageMap()}, "New Map"),
+            m("button.ml2", {onclick: () => makeNewCollageList()}, "New List"),
+        ),
+        viewNode(collageUUID),
+        m("button", {onclick: () => showFeatureSuggestions = !showFeatureSuggestions}, "toggle feature suggestions"),
+        showFeatureSuggestions && m("div.ma3.ba.b--light-silver.pa2.flex-auto.overflow-auto.nowrap",
+            compendiumFeatureSuggestionsTables && SqlUtils.viewSqlTables(compendiumFeatureSuggestionsTables)
+        )
         // m("div", "Footer")
     )
 }
