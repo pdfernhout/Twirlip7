@@ -574,11 +574,9 @@ function getAllCollageLists() {
     return Object.values(p.findBC({workspace: "test", type: "CollageList"}, "instance"))
 }
 
-let showFeatureSuggestions = false
-
 const expanded = {}
 function expander(name, callback) {
-    return m("div",
+    return m("div.ma1",
         name,
         m("span.ml2", {
             onclick: () => expanded[name] = !expanded[name]
@@ -599,7 +597,6 @@ const TwirlipCollageApp = {
             m("button.ml2", {onclick: () => makeNewCollageMap()}, "New Map"),
             m("button.ml2", {onclick: () => makeNewCollageList()}, "New List"),
         ),
-        viewNode(collageUUID),
         expander("CollageLists",
             m("div", getAllCollageLists().sort(sortItems).map(item =>
                 m("div",
@@ -616,10 +613,12 @@ const TwirlipCollageApp = {
                 )
             ))
         ),
-        m("button.mt2", {onclick: () => showFeatureSuggestions = !showFeatureSuggestions}, "toggle feature suggestions"),
-        showFeatureSuggestions && m("div.ma3.ba.b--light-silver.pa2.flex-auto.overflow-auto.nowrap",
-            compendiumFeatureSuggestionsTables && SqlUtils.viewSqlTables(compendiumFeatureSuggestionsTables)
-        )
+        expander("Feature Suggestions",
+            m("div.ma3.ba.b--light-silver.pa2.flex-auto.overflow-auto.nowrap",
+                compendiumFeatureSuggestionsTables && SqlUtils.viewSqlTables(compendiumFeatureSuggestionsTables)
+            )
+        ),
+        m(".mt2..pa2.ba", viewNode(collageUUID)),
         // m("div", "Footer")
     )
 }
