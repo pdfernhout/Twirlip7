@@ -511,15 +511,15 @@ class CollageMap {
 }
 
 function viewCollageList(uuid) {
-    const title =  p.findC({collageUUID: uuid}, "title")
+    const label =  p.findC({collageUUID: uuid}, "label")
     return m("div", 
         m("div", "CollageList: ", uuid),
-        m("div",
-            m("span", "Title: ", title || "untitled"),
+        m("div.mt2",
+            m("span", "Label: ", label || "unlabelled"),
             m("button.ml2", {onclick: () => {
-                const newTitle = prompt("new title?", title)
-                if (newTitle) p.addTriple({collageUUID: uuid}, "title", newTitle)
-            }}, "Rename")
+                const newLabel = prompt("new label?", label)
+                if (newLabel) p.addTriple({collageUUID: uuid}, "label", newLabel)
+            }}, "✎")
         )
     )
 }
@@ -538,10 +538,10 @@ function makeNewCollageMap() {
     uuidChangedByApp(uuid)
 }
 
-function makeNewCollageList(title) {
+function makeNewCollageList(label) {
     const uuid = p.uuidv4()
     p.addTriple({collageUUID: uuid}, "type", "CollageList")
-    if (title) p.addTriple({collageUUID: uuid}, "title", title)
+    if (label) p.addTriple({collageUUID: uuid}, "label", label)
     collageUUID = uuid
     uuidChangedByApp(uuid)
 }
@@ -555,7 +555,7 @@ const TwirlipCollageApp = {
             m("button.ml2", {onclick: () => makeNewCollageList()}, "New List"),
         ),
         viewNode(collageUUID),
-        m("button", {onclick: () => showFeatureSuggestions = !showFeatureSuggestions}, "toggle feature suggestions"),
+        m("button.mt2", {onclick: () => showFeatureSuggestions = !showFeatureSuggestions}, "toggle feature suggestions"),
         showFeatureSuggestions && m("div.ma3.ba.b--light-silver.pa2.flex-auto.overflow-auto.nowrap",
             compendiumFeatureSuggestionsTables && SqlUtils.viewSqlTables(compendiumFeatureSuggestionsTables)
         )
