@@ -613,12 +613,14 @@ const TwirlipCollageApp = {
                 )
             ))
         ),
-        expander("Feature Suggestions",
-            m("div.ma3.ba.b--light-silver.pa2.flex-auto.overflow-auto.nowrap",
-                compendiumFeatureSuggestionsTables && SqlUtils.viewSqlTables(compendiumFeatureSuggestionsTables)
-            )
+        m(".mt2.pa2.ba", viewNode(collageUUID)),
+        m(".flex-auto.overflow-auto.nowrap",
+            expander("Feature Suggestions",
+                m("div.ma3.ba.b--light-silver.pa2",
+                    compendiumFeatureSuggestionsTables && SqlUtils.viewSqlTables(compendiumFeatureSuggestionsTables)
+                )
+            ),
         ),
-        m(".mt2..pa2.ba", viewNode(collageUUID)),
         // m("div", "Footer")
     )
 }
