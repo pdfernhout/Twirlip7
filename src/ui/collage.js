@@ -531,17 +531,22 @@ function viewNode(uuid) {
     return m("div", "unfinished: ", uuid, "type: ", type)
 }
 
-function makeNewCollageMap() {
+function makeNewCollageMap(label) {
     const uuid = p.uuidv4()
-    p.addTriple({collageUUID: uuid}, "type", "CollageMap")
+    const id = {collageUUID: uuid}
+    p.addTriple(id, "type", "CollageMap")
+    p.addTriple({workspace: "test", type: "CollageMap"}, {instance: id}, id)
+    if (label) p.addTriple(id, "label", label)
     collageUUID = uuid
     uuidChangedByApp(uuid)
 }
 
 function makeNewCollageList(label) {
     const uuid = p.uuidv4()
-    p.addTriple({collageUUID: uuid}, "type", "CollageList")
-    if (label) p.addTriple({collageUUID: uuid}, "label", label)
+    const id = {collageUUID: uuid}
+    p.addTriple(id, "type", "CollageList")
+    p.addTriple({workspace: "test", type: "CollageList"}, {instance: id}, id)
+    if (label) p.addTriple(id, "label", label)
     collageUUID = uuid
     uuidChangedByApp(uuid)
 }
@@ -550,7 +555,7 @@ let showFeatureSuggestions = false
 
 const TwirlipCollageApp = {
     view: () => m("div.pa3.h-100.flex.flex-column", "Collage: ", collageUUID,
-        m("div.ma2..pa2.ba",
+        m("div.ma2.pa2.ba",
             m("button.ml2", {onclick: () => makeNewCollageMap()}, "New Map"),
             m("button.ml2", {onclick: () => makeNewCollageList()}, "New List"),
         ),
