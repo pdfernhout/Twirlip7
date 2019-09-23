@@ -510,6 +510,20 @@ class CollageMap {
     }
 }
 
+function viewCollageMap(uuid) {
+    const label =  p.findC({collageUUID: uuid}, "label")
+    return m("div", 
+        m("div", "CollageMap: ", uuid),
+        m("div.mt2",
+            m("span", "Label: ", label || "unlabelled"),
+            m("button.ml2", {onclick: () => {
+                const newLabel = prompt("new label?", label)
+                if (newLabel) p.addTriple({collageUUID: uuid}, "label", newLabel)
+            }}, "✎")
+        )
+    )
+}
+
 function viewCollageList(uuid) {
     const label =  p.findC({collageUUID: uuid}, "label")
     return m("div", 
@@ -528,6 +542,7 @@ function viewNode(uuid) {
     const type = p.findC({collageUUID: uuid}, "type")
     console.log("viewNode", uuid, type)
     if (type === "CollageList") return viewCollageList(uuid)
+    if (type === "CollageMap") return viewCollageMap(uuid)
     return m("div", "unfinished: ", uuid, " type: ", type)
 }
 
@@ -568,8 +583,14 @@ function expander(name, callback) {
         m("span.ml2", {
             onclick: () => expanded[name] = !expanded[name]
         }, expanded[name] ? "▾" : "▸" ),
-        expanded[name] && callback
+        expanded[name] && m("div.ml3", callback)
     )
+}
+
+function sortItems(a, b) {
+    const aLabel = p.findC(a, "label") || a.collageUUID
+    const bLabel = p.findC(b, "label") || b.collageUUID
+    return aLabel.localeCompare(bLabel)
 }
 
 const TwirlipCollageApp = {
@@ -580,7 +601,7 @@ const TwirlipCollageApp = {
         ),
         viewNode(collageUUID),
         expander("CollageLists",
-            m("div", getAllCollageLists().map(item =>
+            m("div", getAllCollageLists().sort(sortItems).map(item =>
                 m("div",
                     {onclick: () => collageUUID = item.collageUUID},
                     p.findC(item, "label") || item.collageUUID
@@ -588,7 +609,7 @@ const TwirlipCollageApp = {
             ))
         ),
         expander("CollageMaps",
-            m("div", getAllCollageMaps().map(item =>
+            m("div", getAllCollageMaps().sort(sortItems).map(item =>
                 m("div", 
                     {onclick: () => collageUUID = item.collageUUID}, 
                     p.findC(item, "label") || item.collageUUID
