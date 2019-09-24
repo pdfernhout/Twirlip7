@@ -527,7 +527,7 @@ function viewCollageNote(uuid) {
     const label =  p.findC({collageUUID: uuid}, "label")
     const detail =  p.findC({collageUUID: uuid}, "detail") || ""
     return m("div", 
-        m("div", "CollageNote: ", uuid),
+        m("div", "Note: ", uuid),
         m("div.mt2",
             m("span", "Label: ", label || "unlabelled"),
             m("button.ml2", {onclick: () => {
@@ -548,7 +548,7 @@ function viewCollageNote(uuid) {
 function viewCollageMap(uuid) {
     const label =  p.findC({collageUUID: uuid}, "label")
     return m("div", 
-        m("div", "CollageMap: ", uuid),
+        m("div", "Map: ", uuid),
         m("div.mt2",
             m("span", "Label: ", label || "unlabelled"),
             m("button.ml2", {onclick: () => {
@@ -583,7 +583,7 @@ function viewCollageList(uuid) {
     
     const label =  p.findC(listId, "label")
     return m("div", 
-        m("div", "CollageList: ", uuid),
+        m("div", "List: ", uuid),
         m("div.mt2",
             m("span", "Label: ", label || "unlabelled"),
             m("button.ml2", {onclick: () => {
@@ -591,11 +591,11 @@ function viewCollageList(uuid) {
                 if (newLabel) p.addTriple({collageUUID: uuid}, "label", newLabel)
             }}, "✎")
         ),
-        m("button", {onclick: () => promptForNewItemForList(listId)}, "Add list item"),
-        listItems.map(item => m("div", {onclick: () => {
+        listItems.map(item => m("div.ma2", {onclick: () => {
             collageUUID = item.id.collageUUID
             uuidChangedByApp(collageUUID)
-        }}, item.label))
+        }}, item.label)),
+        m("button", {onclick: () => promptForNewItemForList(listId)}, "Add list item")
     )
 }
 
@@ -657,29 +657,42 @@ function sortItems(a, b) {
     return aLabel.localeCompare(bLabel)
 }
 
+function viewCollageLists() {
+    return expander("Lists",
+        m("div", getAllCollageLists().sort(sortItems).map(item =>
+            m("div",
+                {onclick: () => collageUUID = item.collageUUID},
+                p.findC(item, "label") || item.collageUUID
+            )
+        ))
+    )
+}
+
+function viewCollageMaps() {
+    return expander("Maps",
+        m("div", getAllCollageMaps().sort(sortItems).map(item =>
+            m("div", 
+                {onclick: () => collageUUID = item.collageUUID}, 
+                p.findC(item, "label") || item.collageUUID
+            )
+        ))
+    ) 
+}
+
+function viewCollageButtons() {
+    return m("div.ma1.pa1",
+        m("button.ml2", {onclick: () => makeNewCollageMap()}, "New Map"),
+        m("button.ml2", {onclick: () => makeNewCollageList()}, "New List"),
+    )
+}
+
 const TwirlipCollageApp = {
-    view: () => m("div.pa3.h-100.flex.flex-column", "Collage: ", collageUUID,
-        m("div.ma2.pa2",
-            m("button.ml2", {onclick: () => makeNewCollageMap()}, "New Map"),
-            m("button.ml2", {onclick: () => makeNewCollageList()}, "New List"),
-        ),
-        expander("CollageLists",
-            m("div", getAllCollageLists().sort(sortItems).map(item =>
-                m("div",
-                    {onclick: () => collageUUID = item.collageUUID},
-                    p.findC(item, "label") || item.collageUUID
-                )
-            ))
-        ),
-        expander("CollageMaps",
-            m("div", getAllCollageMaps().sort(sortItems).map(item =>
-                m("div", 
-                    {onclick: () => collageUUID = item.collageUUID}, 
-                    p.findC(item, "label") || item.collageUUID
-                )
-            ))
-        ),
-        m(".mt2.pa2.ba", viewNode(collageUUID)),
+    view: () => m("div.pa3.h-100.flex.flex-column", 
+        // m("b", "Twirlip Collage: ", collageUUID),
+        m(".mb2.pa2.ba.br3", viewNode(collageUUID)),
+        viewCollageLists(),
+        viewCollageMaps(),
+        viewCollageButtons(),
         m(".flex-auto.overflow-auto.nowrap",
             expander("Feature Suggestions",
                 m("div.ma3.ba.b--light-silver.pa2",
