@@ -78,6 +78,18 @@ function userIDChange(event) {
     localStorage.setItem("userID", userID)
 }
 
+/* 
+// For debugging -- does not work
+const mOld = m
+m = function(...args) {
+    for (let i = 0; i < arguments.length; i++) {
+        if (args[i] === undefined) throw new Error("undefined arg #" + i)
+    }
+    mOld(...args)
+}
+m.mount = mOld.mount
+*/
+
 /*
 
 let diagram = {
@@ -510,6 +522,29 @@ class CollageMap {
     }
 }
 
+
+function viewCollageNote(uuid) {
+    const label =  p.findC({collageUUID: uuid}, "label")
+    const detail =  p.findC({collageUUID: uuid}, "detail") || ""
+    return m("div", 
+        m("div", "CollageNote: ", uuid),
+        m("div.mt2",
+            m("span", "Label: ", label || "unlabelled"),
+            m("button.ml2", {onclick: () => {
+                const newLabel = prompt("new label?", label)
+                if (newLabel) p.addTriple({collageUUID: uuid}, "label", newLabel)
+            }}, "✎"),
+            m("br"),
+            "Detail:",
+            m("div",
+                m("textarea", {value: detail, onchange: (event) => {
+                    p.addTriple({collageUUID: uuid}, "detail", event.target.value)
+                }})
+            )
+        )
+    )
+}
+
 function viewCollageMap(uuid) {
     const label =  p.findC({collageUUID: uuid}, "label")
     return m("div", 
@@ -524,8 +559,29 @@ function viewCollageMap(uuid) {
     )
 }
 
+function promptForNewItemForList(listId) {
+    const itemLabel = prompt("New item?")
+    if (!itemLabel) return
+
+    // TODO: Pick the type
+    const itemId = makeNewNode("CollageNote", itemLabel)
+
+    p.addTriple(listId, {contains: itemId}, {id: itemId, position: "???"})
+}
+
 function viewCollageList(uuid) {
-    const label =  p.findC({collageUUID: uuid}, "label")
+    const listId = {collageUUID: uuid}
+    const listItemIds = Object.values(p.findBC(listId, "contains")).map(item => item.id)
+    const listItems = listItemIds.map(id => {
+        return {
+            id: id,
+            label: p.findC(id, "label") || "",
+            // detail: p.findC(id, "detail")
+        }
+    })
+    listItems.sort((a, b) => a.label.localeCompare(b.label))
+    
+    const label =  p.findC(listId, "label")
     return m("div", 
         m("div", "CollageList: ", uuid),
         m("div.mt2",
@@ -534,24 +590,38 @@ function viewCollageList(uuid) {
                 const newLabel = prompt("new label?", label)
                 if (newLabel) p.addTriple({collageUUID: uuid}, "label", newLabel)
             }}, "✎")
-        )
+        ),
+        m("button", {onclick: () => promptForNewItemForList(listId)}, "Add list item"),
+        listItems.map(item => m("div", {onclick: () => {
+            collageUUID = item.id.collageUUID
+            uuidChangedByApp(collageUUID)
+        }}, item.label))
     )
 }
 
 function viewNode(uuid) {
+    if (!uuid) throw new Error("viewNode: uuid is not defined: " + uuid)
     const type = p.findC({collageUUID: uuid}, "type")
     console.log("viewNode", uuid, type)
     if (type === "CollageList") return viewCollageList(uuid)
     if (type === "CollageMap") return viewCollageMap(uuid)
-    return m("div", "unfinished: ", uuid, " type: ", type)
+    if (type === "CollageNote") return viewCollageNote(uuid)
+    return m("div", "unfinished: ", uuid, " type: ", type || "MISSING TYPE")
+}
+
+// Type of CollageMap, CollageList, CollageNote
+function makeNewNode(type, label, detail) {
+    const uuid = p.uuidv4()
+    const id = {collageUUID: uuid}
+    p.addTriple(id, "type", type)
+    p.addTriple({workspace: "test", type: type}, {instance: id}, id)
+    if (label) p.addTriple(id, "label", label)
+    if (detail) p.addTriple(id, "detail", detail)
+    return id
 }
 
 function makeNewCollageMap(label) {
-    const uuid = p.uuidv4()
-    const id = {collageUUID: uuid}
-    p.addTriple(id, "type", "CollageMap")
-    p.addTriple({workspace: "test", type: "CollageMap"}, {instance: id}, id)
-    if (label) p.addTriple(id, "label", label)
+    const uuid = makeNewNode("CollageMap").collageUUID
     collageUUID = uuid
     uuidChangedByApp(uuid)
 }
@@ -561,11 +631,7 @@ function getAllCollageMaps() {
 }
 
 function makeNewCollageList(label) {
-    const uuid = p.uuidv4()
-    const id = {collageUUID: uuid}
-    p.addTriple(id, "type", "CollageList")
-    p.addTriple({workspace: "test", type: "CollageList"}, {instance: id}, id)
-    if (label) p.addTriple(id, "label", label)
+    const uuid = makeNewNode("CollageList").collageUUID
     collageUUID = uuid
     uuidChangedByApp(uuid)
 }
@@ -593,7 +659,7 @@ function sortItems(a, b) {
 
 const TwirlipCollageApp = {
     view: () => m("div.pa3.h-100.flex.flex-column", "Collage: ", collageUUID,
-        m("div.ma2.pa2.ba",
+        m("div.ma2.pa2",
             m("button.ml2", {onclick: () => makeNewCollageMap()}, "New Map"),
             m("button.ml2", {onclick: () => makeNewCollageList()}, "New List"),
         ),
