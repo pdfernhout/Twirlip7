@@ -466,7 +466,7 @@ class Item {
     }
 }
 
-class CollageMap {
+class Map {
     constructor(uuid) {
         this.uuid = {uuid: uuid}
     }
@@ -523,7 +523,7 @@ class CollageMap {
 }
 
 
-function viewCollageNote(uuid) {
+function viewNote(uuid) {
     const label =  p.findC({collageUUID: uuid}, "label")
     const detail =  p.findC({collageUUID: uuid}, "detail") || ""
     return m("div", 
@@ -545,7 +545,7 @@ function viewCollageNote(uuid) {
     )
 }
 
-function viewCollageMap(uuid) {
+function viewMap(uuid) {
     const label =  p.findC({collageUUID: uuid}, "label")
     return m("div", 
         m("div", "Map: ", uuid),
@@ -564,18 +564,18 @@ function promptForNewItemForList(listId) {
     if (!itemLabel) return
 
     // TODO: Pick the type
-    const itemId = makeNewNode("CollageNote", itemLabel)
+    const itemId = makeNewNode("Note", itemLabel)
 
     p.addTriple(listId, {contains: itemId}, {id: itemId, position: "???"})
 }
 
-function viewCollageList(uuid) {
+function viewList(uuid) {
     const listId = {collageUUID: uuid}
     const listItemIds = Object.values(p.findBC(listId, "contains")).map(item => item.id)
     const listItems = listItemIds.map(id => {
         return {
-            id: id,
-            label: p.findC(id, "label") || "",
+            id: {collageUUID: id},
+            label: p.findC({collageUUID: id}, "label") || "",
             // detail: p.findC(id, "detail")
         }
     })
@@ -601,15 +601,18 @@ function viewCollageList(uuid) {
 
 function viewNode(uuid) {
     if (!uuid) throw new Error("viewNode: uuid is not defined: " + uuid)
-    const type = p.findC({collageUUID: uuid}, "type")
-    console.log("viewNode", uuid, type)
-    if (type === "CollageList") return viewCollageList(uuid)
-    if (type === "CollageMap") return viewCollageMap(uuid)
-    if (type === "CollageNote") return viewCollageNote(uuid)
-    return m("div", "unfinished: ", uuid, " type: ", type || "MISSING TYPE")
+    let type = p.findC({collageUUID: uuid}, "type")
+    // console.log("viewNode", uuid, type)
+    if (type === "List") return viewList(uuid)
+    // if (type === "Map") return viewMap(uuid)
+    if (type === "Map") return viewList(uuid)
+    if (type === "Note") return viewNote(uuid)
+    // TODO -- improve views
+    return viewNote(uuid)
+    // return m("div", "unfinished: ", uuid, " type: ", type || "MISSING TYPE")
 }
 
-// Type of CollageMap, CollageList, CollageNote
+// Type of Map, List, Note
 function makeNewNode(type, label, detail) {
     const uuid = p.uuidv4()
     const id = {collageUUID: uuid}
@@ -620,24 +623,24 @@ function makeNewNode(type, label, detail) {
     return id
 }
 
-function makeNewCollageMap(label) {
-    const uuid = makeNewNode("CollageMap").collageUUID
+function makeNewMap(label) {
+    const uuid = makeNewNode("Map").collageUUID
     collageUUID = uuid
     uuidChangedByApp(uuid)
 }
 
-function getAllCollageMaps() {
-    return Object.values(p.findBC({workspace: "test", type: "CollageMap"}, "instance"))
+function getAllMaps() {
+    return Object.values(p.findBC({workspace: "test", type: "Map"}, "instance"))
 }
 
-function makeNewCollageList(label) {
-    const uuid = makeNewNode("CollageList").collageUUID
+function makeNewList(label) {
+    const uuid = makeNewNode("List").collageUUID
     collageUUID = uuid
     uuidChangedByApp(uuid)
 }
 
-function getAllCollageLists() {
-    return Object.values(p.findBC({workspace: "test", type: "CollageList"}, "instance"))
+function getAllLists() {
+    return Object.values(p.findBC({workspace: "test", type: "List"}, "instance"))
 }
 
 const expanded = {}
@@ -657,32 +660,153 @@ function sortItems(a, b) {
     return aLabel.localeCompare(bLabel)
 }
 
-function viewCollageLists() {
+function viewLists() {
     return expander("Lists",
-        m("div", getAllCollageLists().sort(sortItems).map(item =>
+        m("div", getAllLists().sort(sortItems).map(item =>
             m("div",
-                {onclick: () => collageUUID = item.collageUUID},
+                {onclick: () => {
+                    collageUUID = item.collageUUID
+                    uuidChangedByApp(collageUUID)
+                }},
                 p.findC(item, "label") || item.collageUUID
             )
         ))
     )
 }
 
-function viewCollageMaps() {
+function viewMaps() {
     return expander("Maps",
-        m("div", getAllCollageMaps().sort(sortItems).map(item =>
+        m("div", getAllMaps().sort(sortItems).map(item =>
             m("div", 
-                {onclick: () => collageUUID = item.collageUUID}, 
+                {onclick: () => {
+                    collageUUID = item.collageUUID
+                    uuidChangedByApp(collageUUID)
+                }}, 
                 p.findC(item, "label") || item.collageUUID
             )
         ))
     ) 
 }
 
+function importNodeTable(nodeTable) {
+    console.log("nodeTable", nodeTable)
+    for (let node of nodeTable) {
+        const id = {collageUUID: node.NodeID}
+        console.log("id", id)
+        
+        for (let fieldName of [
+            "Author",
+            "CreationDate",
+            "CurrentStatus",
+            "Detail",
+            "ExtendedNodeType",
+            "Label",
+            "LastModAuthor",
+            "ModificationDate",
+            "NodeID",
+            "NodeType",
+            "OriginalID"
+        ]) {
+            let value = node[fieldName]
+            if (fieldName.endsWith("Date")) value = new Date(value).toISOString()
+            const fieldNameAdjusted = fieldName.charAt(0).toLowerCase() + fieldName.substring(1)
+            p.addTriple(id, fieldNameAdjusted, node[fieldName])
+        }
+        const typeName = {
+            0: "General",
+
+            1: "List",
+            2: "Map",
+            3: "Issue",
+            4: "Position",
+            5: "Argument",
+            6: "Pro",
+            7: "Con",
+            8: "Decision",
+            9: "Reference",
+            10: "Note",
+
+            11: "ListShortcut",
+            12: "MapShortcut",
+            13: "IssueShortcut",
+            14: "PositionShortcut",
+            15: "ArgumentShortcut",
+            16: "ProShortcut",
+            17: "ConShortcut",
+            18: "DecisionShortcut",
+            19: "ReferenceShortcut",
+            20: "NoteShortcut",
+
+            21: "PlannerMap",
+            22: "MovieMap",
+            31: "PlannerMapShortcut",
+            32: "MovieMapShortcut",
+
+            // trashbin and inbox are system nodes with only one instance
+            51: "Trashbin",
+            52: "Inbox",
+        }[node.NodeType]
+        p.addTriple(id, "type", typeName)
+        p.addTriple({workspace: "test", type: typeName}, {instance: id}, id)
+    }
+}
+
+function importViewNodeTable(viewNodeTable) {
+    console.log("viewNodeTable", viewNodeTable)
+    for (let row of viewNodeTable) {
+        const id = {collageUUID: row.ViewID}
+        console.log("id", id)
+        
+        const modifiedRow = {}
+        for (let fieldName of [
+            "Background",
+            "CreationDate",
+            "CurrentStatus",
+            "FontFace",
+            "FontSize",
+            "FontStyle",
+            "Foreground",
+            "HideIcon",
+            "LabelWrapWidth",
+            "ModificationDate",
+            "NodeID",
+            "ShowTags",
+            "ShowText",
+            "ShowTrans",
+            "ShowWeight",
+            "SmallIcon",
+            "ViewID",
+            "XPos",
+            "YPos"
+        ]) {
+            let value = row[fieldName]
+            if (fieldName.endsWith("Date")) {
+                value = new Date(value).toISOString()
+                row[fieldName] = value
+            }
+            const fieldNameAdjusted = fieldName.charAt(0).toLowerCase() + fieldName.substring(1)
+            modifiedRow[fieldNameAdjusted] = value
+        }
+        modifiedRow.id = modifiedRow.nodeID
+        // console.log("adding for ", modifiedRow.id, {contains: modifiedRow.id})
+        p.addTriple(id, {contains: modifiedRow.id}, modifiedRow)
+    }
+}
+
+function importFeatureSuggestions() {
+    console.log("compendiumFeatureSuggestionsTables", compendiumFeatureSuggestionsTables)
+    const nodeTable = compendiumFeatureSuggestionsTables["Node"]
+    importNodeTable(nodeTable)
+    const viewNodeTable = compendiumFeatureSuggestionsTables["ViewNode"]
+    importViewNodeTable(viewNodeTable)
+}
+
 function viewCollageButtons() {
     return m("div.ma1.pa1",
-        m("button.ml2", {onclick: () => makeNewCollageMap()}, "New Map"),
-        m("button.ml2", {onclick: () => makeNewCollageList()}, "New List"),
+        m("button.ml2", {onclick: () => makeNewMap()}, "New Map"),
+        m("button.ml2", {onclick: () => makeNewList()}, "New List"),
+        m("button.ml2", {onclick: () => importFeatureSuggestions()}, "Import Feature Suggestions"),
+        m("button.ml2", {onclick: () => console.log(p)}, "Debug P"),
     )
 }
 
@@ -690,8 +814,8 @@ const TwirlipCollageApp = {
     view: () => m("div.pa3.h-100.flex.flex-column",
         // m("b", "Twirlip Collage: ", collageUUID),
         m(".mb2.pa2.ba.br3", viewNode(collageUUID)),
-        viewCollageLists(),
-        viewCollageMaps(),
+        viewLists(),
+        viewMaps(),
         viewCollageButtons(),
         m(".flex-auto.overflow-auto.nowrap",
             expander("Feature Suggestions",
@@ -720,7 +844,7 @@ let loading = true
 
 p.connect({
     onLoaded: (streamId) => {
-        console.log("p onloaded", streamId)
+        // console.log("p onloaded", streamId)
         if (isUUIDMatch(streamId, {collageUUID: collageUUID})) {
             loading = false
         }
