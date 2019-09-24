@@ -11,8 +11,9 @@ export function StoreUsingServer(redrawCallback, streamId = "common", userId = "
     let socket = null
     let messagesReceivedCount = 0
     let responder = null
-    let listeningOnStreams = {}
-    let echoPromises = {}
+    const listeningOnStreams = {}
+    const loadedStreams = {}
+    const echoPromises = {}
 
     streamId = JSON.parse(CanonicalJSON.stringify(streamId))
 
@@ -70,6 +71,13 @@ export function StoreUsingServer(redrawCallback, streamId = "common", userId = "
         sendMessage({command: "listen", streamId: streamId, fromIndex: messagesReceivedCount})
     }
 
+    function areAllStreamsLoaded() {
+        for (let key of Object.keys(listeningOnStreams)) {
+            if (!loadedStreams[key]) return false
+        }
+        return true
+    }
+
     function isMatchingStreamId(a, b) {
         // TODO: Optimize
         return CanonicalJSON.stringify(a) === CanonicalJSON.stringify(b)
@@ -99,6 +107,7 @@ export function StoreUsingServer(redrawCallback, streamId = "common", userId = "
             // clearItems()
             console.log("TODO: clear items not handled")
         } else if (message.command === "loaded") {
+            loadedStreams[CanonicalJSON.stringify(message.streamId)] = true
             // console.log("got loaded message", streamId, message)
             // Don't increment messagesReceivedCount as "loaded" is an advisory meta message from server
             if (streamId !== undefined && isMatchingStreamId(message.streamId, streamId)) {
@@ -171,6 +180,7 @@ export function StoreUsingServer(redrawCallback, streamId = "common", userId = "
         addItem,
         addItemAsync,
         getStreamStatusAsync,
+        areAllStreamsLoaded,
         connect,
         setup,
         openStream,

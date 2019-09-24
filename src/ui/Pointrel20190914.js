@@ -129,4 +129,8 @@ export class Pointrel20190914 {
             alert("This app requires a backend server supporting socket.io (i.e. won't work correctly on rawgit)")
         }
     }
+
+    isLoading() {
+        return !this.backend.areAllStreamsLoaded()
+    }
 }

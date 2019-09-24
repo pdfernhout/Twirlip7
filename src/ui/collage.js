@@ -687,7 +687,7 @@ function viewCollageButtons() {
 }
 
 const TwirlipCollageApp = {
-    view: () => m("div.pa3.h-100.flex.flex-column", 
+    view: () => m("div.pa3.h-100.flex.flex-column",
         // m("b", "Twirlip Collage: ", collageUUID),
         m(".mb2.pa2.ba.br3", viewNode(collageUUID)),
         viewCollageLists(),
@@ -700,7 +700,7 @@ const TwirlipCollageApp = {
                 )
             ),
         ),
-        // m("div", "Footer")
+        m("div.mt2", m("i", p.isLoading() ? "Loading" : "Ready")),
     )
 }
 
