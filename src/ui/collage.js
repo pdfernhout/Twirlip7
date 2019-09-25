@@ -522,24 +522,33 @@ class Map {
     }
 }
 
+let editedNote = null
 
 function viewNote(uuid) {
+    if (uuid !== editedNote) editedNote = null
+
     const label =  p.findC({collageUUID: uuid}, "label")
     const detail =  p.findC({collageUUID: uuid}, "detail") || ""
     return m("div", 
         m("div", "Note: ", uuid),
-        m("div.mt2",
-            m("span", "Label: ", label || "unlabelled"),
-            m("button.ml2", {onclick: () => {
+        m("div.mt2", 
+            "Label: ",
+            m("button.ml2.mr2", {onclick: () => {
                 const newLabel = prompt("new label?", label)
                 if (newLabel) p.addTriple({collageUUID: uuid}, "label", newLabel)
             }}, "✎"),
-            m("br"),
+            label || "unlabelled"
+        ),
+        m("div.mt2",
             "Detail:",
+            m("button.ml2", {onclick: () => editedNote ? editedNote = null : editedNote = uuid}, "✎"),
             m("div",
-                m("textarea", {value: detail, onchange: (event) => {
-                    p.addTriple({collageUUID: uuid}, "detail", event.target.value)
-                }})
+                editedNote 
+                    ? m("textarea", {rows: 10, cols: 80, value: detail, onchange: (event) => {
+                        p.addTriple({collageUUID: uuid}, "detail", event.target.value)
+                    }})
+                    : m("pre", {style: "white-space: pre-wrap", }, detail)
+                
             )
         )
     )
@@ -549,13 +558,14 @@ function viewMap(uuid) {
     const label =  p.findC({collageUUID: uuid}, "label")
     return m("div", 
         m("div", "Map: ", uuid),
-        m("div.mt2",
-            m("span", "Label: ", label || "unlabelled"),
-            m("button.ml2", {onclick: () => {
+        m("div.mt2", 
+            "Label: ",
+            m("button.ml2.mr2", {onclick: () => {
                 const newLabel = prompt("new label?", label)
                 if (newLabel) p.addTriple({collageUUID: uuid}, "label", newLabel)
-            }}, "✎")
-        )
+            }}, "✎"),
+            label || "unlabelled"
+        ),
     )
 }
 
@@ -573,9 +583,14 @@ function viewList(uuid) {
     const listId = {collageUUID: uuid}
     const listItemIds = Object.values(p.findBC(listId, "contains")).map(item => item.id)
     const listItems = listItemIds.map(id => {
+        let type = p.findC({collageUUID: id}, "type") || "missing"
+        type = type.charAt(0).toLowerCase() + type.substring(1)
+        if (type === "pro") type = "plus"
+        if (type === "con") type = "minus"
         return {
             id: {collageUUID: id},
             label: p.findC({collageUUID: id}, "label") || "",
+            type: type
             // detail: p.findC(id, "detail")
         }
     })
@@ -584,17 +599,30 @@ function viewList(uuid) {
     const label =  p.findC(listId, "label")
     return m("div", 
         m("div", "List: ", uuid),
-        m("div.mt2",
-            m("span", "Label: ", label || "unlabelled"),
-            m("button.ml2", {onclick: () => {
+        m("div.mt2", 
+            "Label: ",
+            m("button.ml2.mr2", {onclick: () => {
                 const newLabel = prompt("new label?", label)
                 if (newLabel) p.addTriple({collageUUID: uuid}, "label", newLabel)
-            }}, "✎")
+            }}, "✎"),
+            label || "unlabelled"
         ),
-        listItems.map(item => m("div.ma2", {onclick: () => {
-            collageUUID = item.id.collageUUID
-            uuidChangedByApp(collageUUID)
-        }}, item.label)),
+        listItems.map(item => 
+            m("div.ma2", 
+                {
+                    onclick: () => {
+                        collageUUID = item.id.collageUUID
+                        uuidChangedByApp(collageUUID)
+                    }
+                }, 
+                m("img.mr2.v-mid", {
+                    "src": CompendiumIcons[item.type + "_png"],
+                    style: "width: 32px; height: 32px",
+                    alt: item.type
+                }),
+                item.label
+            )
+        ),
         m("button", {onclick: () => promptForNewItemForList(listId)}, "Add list item")
     )
 }
@@ -709,8 +737,9 @@ function importNodeTable(nodeTable) {
         ]) {
             let value = node[fieldName]
             if (fieldName.endsWith("Date")) value = new Date(value).toISOString()
+            if (fieldName === "Detail") value = value.replace(/\\n/g, "\n")
             const fieldNameAdjusted = fieldName.charAt(0).toLowerCase() + fieldName.substring(1)
-            p.addTriple(id, fieldNameAdjusted, node[fieldName])
+            p.addTriple(id, fieldNameAdjusted, value)
         }
         const typeName = {
             0: "General",
@@ -811,20 +840,18 @@ function viewCollageButtons() {
 }
 
 const TwirlipCollageApp = {
-    view: () => m("div.pa3.h-100.flex.flex-column",
+    view: () => m("div.pa3.h-100.overflow-auto",
+        m("div.mt2", m("i", p.isLoading() ? "Loading" : "Ready")),
         // m("b", "Twirlip Collage: ", collageUUID),
         m(".mb2.pa2.ba.br3", viewNode(collageUUID)),
         viewLists(),
         viewMaps(),
         viewCollageButtons(),
-        m(".flex-auto.overflow-auto.nowrap",
-            expander("Feature Suggestions",
-                m("div.ma3.ba.b--light-silver.pa2",
-                    compendiumFeatureSuggestionsTables && SqlUtils.viewSqlTables(compendiumFeatureSuggestionsTables)
-                )
-            ),
+        expander("Feature Suggestions",
+            m("div.ma3.ba.b--light-silver.pa2",
+                compendiumFeatureSuggestionsTables && SqlUtils.viewSqlTables(compendiumFeatureSuggestionsTables)
+            )
         ),
-        m("div.mt2", m("i", p.isLoading() ? "Loading" : "Ready")),
     )
 }
 
