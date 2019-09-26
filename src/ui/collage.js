@@ -246,32 +246,6 @@ function viewLink(element) {
 
 const findURLRegex = /(http[s]?:\/\/)([\da-z.-]+)\.([a-z.]{2,6})([/\w.-]*)*\/?/
 
-function viewElement(element) {
-    const textLocation = diagram.textLocation || "bottom"
-    const hasURL = findURLRegex.exec(element.name || "")
-    const followLink = hasURL ? () => window.open(hasURL[0]) : undefined
-    const extraStyling = hasURL ? ".underline-hover" : ""
-    return [
-        element === laterDraggedItem ?
-            m("text", {x: element.x, y: element.y - 20, "text-anchor": "middle"}, "*") :
-            element === earlierDraggedItem ?
-                m("text", {x: element.x, y: element.y - 20, "text-anchor": "middle"}, "<") :
-                [],
-        m("image", {
-            "xlink:href": CompendiumIcons[element.type + "_png"],
-            x: element.x - 16,
-            y: element.y - 16,
-            width: 32,
-            height: 32,
-            alt: "question",
-            onmousedown: (event) => onmousedown(element, event),
-        }),
-        textLocation === "right"
-            ? m("text" + extraStyling, {x: element.x + 24, y: element.y + 8, "text-anchor": "left", onclick: followLink}, element.name)
-            : m("text" + extraStyling, {x: element.x, y: element.y + 34, "text-anchor": "middle", onclick: followLink}, element.name)
-    ]
-}
-
 function viewArrowhead() {
     return m("marker", {
         id: "arrowhead",
@@ -460,8 +434,75 @@ function view() {
 
 */
 
+let textLocation = "bottom"
+
+function viewMapItem(mapitem, origin) {
+    // const textLocation = diagram.textLocation || "bottom"
+    // const hasURL = findURLRegex.exec(mapitem.label || "")
+    // const followLink = hasURL ? () => window.open(hasURL[0]) : undefined
+    const followLink = undefined
+    // const extraStyling = hasURL ? ".underline-hover" : ""
+    const extraStyling = ""
+    return [
+        // mapitem === laterDraggedItem ?
+        //     m("text", {x: mapitem.x, y: mapitem.y - 20, "text-anchor": "middle"}, "*") :
+        //     mapitem === earlierDraggedItem ?
+        //         m("text", {x: mapitem.x, y: mapitem.y - 20, "text-anchor": "middle"}, "<") :
+        //        [],
+        m("image", {
+            "xlink:href": CompendiumIcons[mapitem.type + "_png"],
+            x: -origin.x + mapitem.x - 16,
+            y: -origin.y + mapitem.y - 16,
+            width: 32,
+            height: 32,
+            alt: mapitem.type,
+            // onmousedown: (event) => onmousedown(mapitem, event),
+        }),
+        textLocation === "right"
+            ? m("text" + extraStyling, {x: -origin.x + mapitem.x + 24, y: -origin.y + mapitem.y + 8, "text-anchor": "left", onclick: followLink}, mapitem.label)
+            : m("text" + extraStyling, {x: -origin.x + mapitem.x, y: -origin.y + mapitem.y + 34, "text-anchor": "middle", onclick: followLink}, mapitem.label)
+    ]
+}
+
 function viewMap(uuid) {
-    const label =  p.findC({collageUUID: uuid}, "label")
+    const listId = {collageUUID: uuid}
+
+    const mapViewItems = Object.values(p.findBC(listId, "contains"))
+    const mapItems = mapViewItems.map(item => {
+        const id = item.id
+        let type = p.findC({collageUUID: id}, "type") || "missing"
+        type = type.charAt(0).toLowerCase() + type.substring(1)
+        if (type === "pro") type = "plus"
+        if (type === "con") type = "minus"
+        return {
+            id: {collageUUID: id},
+            label: p.findC({collageUUID: id}, "label") || "",
+            type: type,
+            x: item.xPos || 0,
+            y: item.yPos || 0,
+            // detail: p.findC(id, "detail")
+        }
+    })
+    // mapItems.sort((a, b) => a.label.localeCompare(b.label))
+    
+    const label =  p.findC(listId, "label")
+
+    // Determine map bounds
+    let xSizeMin = 0
+    let ySizeMin = 0
+    let xSizeMax = 500
+    let ySizeMax = 500
+    const extraSize = 200
+    for (let mapItem of mapItems) {
+        if (mapItem.x - extraSize < xSizeMin) xSizeMin = mapItem.x - extraSize
+        if (mapItem.x + extraSize > xSizeMax) xSizeMax = mapItem.x + extraSize
+        if (mapItem.y - extraSize < ySizeMin) ySizeMin = mapItem.y - extraSize
+        if (mapItem.y + extraSize > ySizeMax) ySizeMax = mapItem.y + extraSize
+    }
+    const xSizeMap = ySizeMax - ySizeMin
+    const ySizeMap = ySizeMax - ySizeMin
+    const origin = {x: xSizeMin, y: ySizeMin}
+
     return m("div", 
         m("div", "Map: ", uuid),
         m("div.mt2", 
@@ -471,6 +512,21 @@ function viewMap(uuid) {
                 if (newLabel) p.addTriple({collageUUID: uuid}, "label", newLabel)
             }}, "✎"),
             label || "unlabelled"
+        ),
+        m("div.overflow-auto", 
+            {
+                style: {
+                    width: Math.min(xSizeMap, document.body.clientWidth - 100) + "px",
+                    height: Math.min(ySizeMap, document.body.clientHeight - 200) + "px"
+                }
+            }, 
+            m("svg.diagram.ba", 
+                {
+                    width: xSizeMap,
+                    height: ySizeMap
+                },
+                mapItems.map(mapItem => viewMapItem(mapItem, origin))
+            )
         ),
     )
 }
@@ -570,8 +626,8 @@ function viewNode(uuid) {
     let type = p.findC({collageUUID: uuid}, "type")
     // console.log("viewNode", uuid, type)
     if (type === "List") return viewList(uuid)
-    // if (type === "Map") return viewMap(uuid)
-    if (type === "Map") return viewList(uuid)
+    if (type === "Map") return viewMap(uuid)
+    // if (type === "Map") return viewList(uuid)
     if (type === "Note") return viewNote(uuid)
     // TODO -- improve views
     return viewNote(uuid)
