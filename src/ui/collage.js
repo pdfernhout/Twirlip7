@@ -460,66 +460,19 @@ function view() {
 
 */
 
-class Item {
-    constructor(uuid) {
-        this.uuid = uuid || UUID.uuidv4()
-    }
-}
-
-class Map {
-    constructor(uuid) {
-        this.uuid = {uuid: uuid}
-    }
-
-    getType() {
-        p.findC(this.uuid, "type")
-    }
-
-    setType(type) {
-        p.addTriple(this.uuid, "type", type)
-    }
-
-    getItems() {
-        const result = []
-        const bcMap = p.findBC(this.uuid, "item")
-        for (let key in bcMap) {
-            const uuid = bcMap[key]
-            if (uuid) result.push(new Item(uuid))
-        }
-        return result
-    }
-
-    async addItem(item, summary) {
-        // Keep a copy of essential information
-        // TODO: if (summary) p.addTriple(getOrganizerName(), {itemSummary: item.uuid}, summary)
-        await p.addTripleAsync(this.uuid, {item: item.uuid}, item.uuid)
-    }
-
-    deleteItem(item) {
-        p.addTriple(this.uuid, {item: item.uuid}, null)
-    }
-
-    /*
-    getSummaryForItem(uuid) {
-        return p.findC(this.uuid, {itemSummary: uuid})
-    }
-    */
-
-    view() {
-        const items = this.getItems()
-        return m("div.flex-auto.flex.flex-column",
-            (loading || !compendiumFeatureSuggestionsTables)
-                ? m("div", "Loading...")
-                : [
-                    items.length === 0 && m("div", "No items"),
-                    items.map(item => m("div", item.uuid)),
-                    m("div", m("button", {onclick: () => this.addItem(new Item())}, "Add item"))
-                ],
-            m("div.ma3.ba.b--light-silver.pa2.flex-auto.overflow-auto.nowrap",
-                compendiumFeatureSuggestionsTables && SqlUtils.viewSqlTables(compendiumFeatureSuggestionsTables)
-            )
-        )
-    }
+function viewMap(uuid) {
+    const label =  p.findC({collageUUID: uuid}, "label")
+    return m("div", 
+        m("div", "Map: ", uuid),
+        m("div.mt2", 
+            "Label: ",
+            m("button.ml2.mr2", {onclick: () => {
+                const newLabel = prompt("new label?", label)
+                if (newLabel) p.addTriple({collageUUID: uuid}, "label", newLabel)
+            }}, "✎"),
+            label || "unlabelled"
+        ),
+    )
 }
 
 let editedNote = null
@@ -551,21 +504,6 @@ function viewNote(uuid) {
                 
             )
         )
-    )
-}
-
-function viewMap(uuid) {
-    const label =  p.findC({collageUUID: uuid}, "label")
-    return m("div", 
-        m("div", "Map: ", uuid),
-        m("div.mt2", 
-            "Label: ",
-            m("button.ml2.mr2", {onclick: () => {
-                const newLabel = prompt("new label?", label)
-                if (newLabel) p.addTriple({collageUUID: uuid}, "label", newLabel)
-            }}, "✎"),
-            label || "unlabelled"
-        ),
     )
 }
 
