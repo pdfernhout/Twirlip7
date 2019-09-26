@@ -529,7 +529,7 @@ function viewMap(uuid) {
     for (let mapItem of mapItems) {
         if (mapItem.x - extraSize < xSizeMin) xSizeMin = mapItem.x - extraSize
         if (mapItem.x + extraSize > xSizeMax) xSizeMax = mapItem.x + extraSize
-        if (mapItem.y - extraSize < ySizeMin) ySizeMin = mapItem.y - extraSize
+        if (mapItem.y < ySizeMin) ySizeMin = mapItem.y
         if (mapItem.y + extraSize > ySizeMax) ySizeMax = mapItem.y + extraSize
     }
     const xSizeMap = ySizeMax - ySizeMin
@@ -698,6 +698,10 @@ function getAllLists() {
     return Object.values(p.findBC({workspace: "test", type: "List"}, "instance"))
 }
 
+function getAllLinks() {
+    return Object.values(p.findBC({workspace: "test", type: "Link"}, "instance"))
+}
+
 const expanded = {}
 function expander(name, callback) {
     return m("div.ma1",
@@ -743,12 +747,43 @@ function viewMaps() {
     ) 
 }
 
+function sortLinks(a, b) {
+    const aFrom = p.findC(a, "fromNode") || ""
+    const bFrom = p.findC(b, "fromNode") || ""
+    if (aFrom === bFrom) {
+        const aTo = p.findC(a, "toNode") || ""
+        const bTo = p.findC(b, "toNode") || ""
+        return aTo.localeCompare(bTo)
+    }
+    return aFrom.localeCompare(bFrom)
+}
+
+function viewLinks() {
+    return expander("Links",
+        m("div", getAllLinks().sort(sortLinks).map(link => {
+            const fromNode = p.findC(link, "fromNode") || "MISSING_FROM"
+            const fromLabel = p.findC({collageUUID: fromNode}, "label") || ""
+            const toNode = p.findC(link, "toNode") || "MISSING_TO"
+            const toLabel = p.findC({collageUUID: toNode}, "label") || ""
+            return m("div", 
+                {onclick: () => {
+                    collageUUID = link.collageUUID
+                    uuidChangedByApp(collageUUID)
+                }},
+                m("span", link.collageUUID),
+                " :: ",
+                m("span", {title: fromLabel}, fromNode),
+                " --> ",
+                m("span", {title: toLabel}, toNode),
+            )
+        }))
+    ) 
+}
+
 function importNodeTable(nodeTable) {
     console.log("nodeTable", nodeTable)
     for (let node of nodeTable) {
         const id = {collageUUID: node.NodeID}
-        console.log("id", id)
-        
         for (let fieldName of [
             "Author",
             "CreationDate",
@@ -811,8 +846,6 @@ function importViewNodeTable(viewNodeTable) {
     console.log("viewNodeTable", viewNodeTable)
     for (let row of viewNodeTable) {
         const id = {collageUUID: row.ViewID}
-        console.log("id", id)
-        
         const modifiedRow = {}
         for (let fieldName of [
             "Background",
@@ -849,12 +882,93 @@ function importViewNodeTable(viewNodeTable) {
     }
 }
 
+const linkTypeNumberToName = {
+    39: "RespondsTo",
+    40: "Supports",
+    41: "ObjectsTo",
+    42: "Challenges",
+    43: "Specializes",
+    44: "ExpandsOn",
+    45: "RelatedTo",
+    46: "About"
+}
+
+function importLinkTable(linkTable) {
+    console.log("linkTable", linkTable)
+    for (let link of linkTable) {
+        const id = {collageUUID: link.LinkID}
+        for (let fieldName of [
+            "Author",
+            "CreationDate",
+            "CurrentStatus",
+            "FromNode",
+            "Label",
+            "LinkID",
+            "LinkType",
+            "ModificationDate",
+            "OriginalID",
+            "ToNode"
+        ]) {
+            let value = link[fieldName]
+            if (fieldName.endsWith("Date")) {
+                value = new Date(value).toISOString()
+            }
+            if (fieldName === "LinkType") value = linkTypeNumberToName[value] || "RespondsTo"
+            const fieldNameAdjusted = fieldName.charAt(0).toLowerCase() + fieldName.substring(1)
+            p.addTriple(id, fieldNameAdjusted, value)
+        }
+        p.addTriple(id, "type", "Link")
+        p.addTriple({workspace: "test", type: "Link"}, {instance: id}, id)
+    }
+}
+     
+function importViewLinkTable(viewLinkTable) {
+    console.log("viewLinkTable", viewLinkTable)
+    for (let row of viewLinkTable.slice(0, 3)) {
+        const id = {collageUUID: row.ViewID}
+        const modifiedRow = {}
+        for (let fieldName of [
+            "ArrowType",
+            "Background",
+            "CreationDate",
+            "CurrentStatus",
+            "FontFace",
+            "FontSize",
+            "FontStyle",
+            "Foreground",
+            "LabelWrapWidth",
+            "LinkColour",
+            "LinkDashed",
+            "LinkID",
+            "LinkStyle",
+            "LinkWeight",
+            "ModificationDate",
+            "ViewID"
+        ]) {
+            let value = row[fieldName]
+            if (fieldName.endsWith("Date")) {
+                value = new Date(value).toISOString()
+                row[fieldName] = value
+            }
+            const fieldNameAdjusted = fieldName.charAt(0).toLowerCase() + fieldName.substring(1)
+            modifiedRow[fieldNameAdjusted] = value
+        }
+        modifiedRow.id = modifiedRow.linkID
+        // TODO: Maybe "hasLink" should be "contains" with some way to distinguish links from other items?
+        p.addTriple(id, {hasLink: modifiedRow.id}, modifiedRow)
+    }
+}
+
 function importFeatureSuggestions() {
     console.log("compendiumFeatureSuggestionsTables", compendiumFeatureSuggestionsTables)
     const nodeTable = compendiumFeatureSuggestionsTables["Node"]
     importNodeTable(nodeTable)
     const viewNodeTable = compendiumFeatureSuggestionsTables["ViewNode"]
     importViewNodeTable(viewNodeTable)
+    const linkTable = compendiumFeatureSuggestionsTables["Link"]
+    importLinkTable(linkTable)
+    const viewLinkTable = compendiumFeatureSuggestionsTables["ViewLink"]
+    importViewLinkTable(viewLinkTable)
 }
 
 function viewCollageButtons() {
@@ -873,6 +987,7 @@ const TwirlipCollageApp = {
         m(".mb2.pa2.ba.br3", viewNode(collageUUID)),
         viewLists(),
         viewMaps(),
+        viewLinks(),
         viewCollageButtons(),
         expander("Feature Suggestions",
             m("div.ma3.ba.b--light-silver.pa2",
