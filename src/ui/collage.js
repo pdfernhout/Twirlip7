@@ -434,33 +434,128 @@ function view() {
 
 */
 
+// TODO: Unfortunate mix of canvas into an SVG app
+// Only straightforward way (without Dojo gfx) to get the text width, given the page may be hidden while making this, which causes text width to return 0 for SVG
+// Could not get other approaches of adding measuring div to dom to work, perhaps because top level body CSS styling
+// From: http://stackoverflow.com/questions/118241/calculate-text-width-with-javascript
+var measuringCanvas
+function getTextWidth(text, textStyle) {
+    // re-use canvas object for better performance
+    var canvas = measuringCanvas || (measuringCanvas = document.createElement("canvas"))
+    var context = canvas.getContext("2d")
+    context.font = "normal normal " + textStyle.weight + " " + textStyle.size + " " + textStyle.family
+    var metrics = context.measureText(text)
+    var result = metrics.width
+    return result
+}
+
+function myWrap1(text, itemText, textStyle, textColor, maxWidth) {
+    const lineHeight_em = 1.1
+    const words = itemText.split(/\s+/)
+    const lines = []
+    let line = ""
+    words.forEach((word, index) => {
+        if (lines.length >= 5) {
+            line = "..."
+            return
+        }
+        if (line === "") {
+            line = word
+        } else if (getTextWidth(line + " " + word, textStyle) < maxWidth) {
+            line += " " + word
+        } else {
+            lines.push(line)
+            line = word
+        }
+    })
+    if (line !== "") lines.push(line)
+    let lineNumber = (Math.round(-lines.length / 2 + 0.5))
+    lines.forEach((line, index) => {
+        const tspan = text.append("tspan")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("dy", (lineNumber++) * lineHeight_em  + "em")
+            .text(line)
+            .style("fill", textColor)
+    }) 
+}
+
+const defaultTextStyle = {family: "Arial", size: "9pt", weight: "normal"};
+const defaultTextColor = "black";
+
+function myWrap(offset, itemText, maxWidth, textStyle=defaultTextStyle, textColor=defaultTextColor) {
+    const lineHeight_rem = 1.1
+    const words = itemText.split(/\s+/)
+    const lines = []
+    let line = ""
+    words.forEach((word, index) => {
+        if (lines.length >= 5) {
+            line = "..."
+            return
+        }
+        if (line === "") {
+            line = word
+        } else if (getTextWidth(line + " " + word, textStyle) < maxWidth) {
+            line += " " + word
+        } else {
+            lines.push(line)
+            line = word
+        }
+    })
+    if (line !== "") lines.push(line)
+    let lineNumber = (Math.round(-lines.length / 2 + 0.5))
+    return lines.map((line, index) => {
+        return m("tspan", {
+            x: offset.x,
+            y: offset.y,
+            dy: (lineNumber++) * lineHeight_rem  + "rem",
+            style: {fill: textColor}
+        }, line)
+    }) 
+}
+
+/*
+addText(group, itemText, maxWidth, textStyle, textColor) {
+    if (itemText === undefined) itemText = "[missing text]"
+    var text = group.append("text")
+        .style("font-family", textStyle.family)
+        .style("font-size", textStyle.size)
+        .style("font-weight", textStyle.weight)
+        .style("text-anchor", "middle")
+    
+    myWrap(text, itemText, textStyle, textColor, maxWidth)
+}
+*/
+
 let textLocation = "bottom"
 
-function viewMapItem(mapitem, origin) {
+function viewMapItem(mapItem, origin) {
     // const textLocation = diagram.textLocation || "bottom"
-    // const hasURL = findURLRegex.exec(mapitem.label || "")
+    // const hasURL = findURLRegex.exec(mapItem.label || "")
     // const followLink = hasURL ? () => window.open(hasURL[0]) : undefined
     const followLink = undefined
     // const extraStyling = hasURL ? ".underline-hover" : ""
     const extraStyling = ""
+    const textParams = (textLocation === "right")
+        ? {width: "" + mapItem.labelWrapWidth + "rem", height: "auto", x: -origin.x + mapItem.x + 24, y: -origin.y + mapItem.y + 8, "text-anchor": "left", onclick: followLink}
+        : {width: "" + mapItem.labelWrapWidth + "rem", height: "auto", x: -origin.x + mapItem.x, y: -origin.y + mapItem.y + 34, "text-anchor": "middle", onclick: followLink}
+
     return [
-        // mapitem === laterDraggedItem ?
-        //     m("text", {x: mapitem.x, y: mapitem.y - 20, "text-anchor": "middle"}, "*") :
-        //     mapitem === earlierDraggedItem ?
-        //         m("text", {x: mapitem.x, y: mapitem.y - 20, "text-anchor": "middle"}, "<") :
+        // mapItem === laterDraggedItem ?
+        //     m("text", {x: mapItem.x, y: mapItem.y - 20, "text-anchor": "middle"}, "*") :
+        //     mapItem === earlierDraggedItem ?
+        //         m("text", {x: mapItem.x, y: mapItem.y - 20, "text-anchor": "middle"}, "<") :
         //        [],
         m("image", {
-            "xlink:href": CompendiumIcons[mapitem.type + "_png"],
-            x: -origin.x + mapitem.x - 16,
-            y: -origin.y + mapitem.y - 16,
+            "xlink:href": CompendiumIcons[mapItem.type + "_png"],
+            x: -origin.x + mapItem.x - 16,
+            y: -origin.y + mapItem.y - 16,
             width: 32,
             height: 32,
-            alt: mapitem.type,
-            // onmousedown: (event) => onmousedown(mapitem, event),
+            alt: mapItem.type,
+            // onmousedown: (event) => onmousedown(mapItem, event),
         }),
-        textLocation === "right"
-            ? m("text" + extraStyling, {x: -origin.x + mapitem.x + 24, y: -origin.y + mapitem.y + 8, "text-anchor": "left", onclick: followLink}, mapitem.label)
-            : m("text" + extraStyling, {x: -origin.x + mapitem.x, y: -origin.y + mapitem.y + 34, "text-anchor": "middle", onclick: followLink}, mapitem.label)
+        m("text" + extraStyling, textParams, myWrap({x: textParams.x, y: textParams.y}, mapItem.label, mapItem.labelWrapWidth * getTextWidth("M", defaultTextStyle)))
     ]
 }
 
@@ -477,6 +572,7 @@ function viewMap(uuid) {
         return {
             id: {collageUUID: id},
             label: p.findC({collageUUID: id}, "label") || "",
+            labelWrapWidth: item.labelWrapWidth,
             type: type,
             x: item.xPos || 0,
             y: item.yPos || 0,
@@ -516,8 +612,8 @@ function viewMap(uuid) {
         m("div.overflow-auto", 
             {
                 style: {
-                    width: Math.min(xSizeMap, document.body.clientWidth - 100) + "px",
-                    height: Math.min(ySizeMap, document.body.clientHeight - 200) + "px"
+                    width: "" + Math.min(xSizeMap, document.body.clientWidth - 100) + "px",
+                    height: "" + Math.min(ySizeMap, document.body.clientHeight - 200) + "px"
                 }
             }, 
             m("svg.diagram.ba", 
