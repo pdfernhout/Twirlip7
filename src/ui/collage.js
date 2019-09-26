@@ -434,68 +434,19 @@ function view() {
 
 */
 
-// TODO: Unfortunate mix of canvas into an SVG app
-// Only straightforward way (without Dojo gfx) to get the text width, given the page may be hidden while making this, which causes text width to return 0 for SVG
-// Could not get other approaches of adding measuring div to dom to work, perhaps because top level body CSS styling
-// From: http://stackoverflow.com/questions/118241/calculate-text-width-with-javascript
-var measuringCanvas
-function getTextWidth(text, textStyle) {
-    // re-use canvas object for better performance
-    var canvas = measuringCanvas || (measuringCanvas = document.createElement("canvas"))
-    var context = canvas.getContext("2d")
-    context.font = "normal normal " + textStyle.weight + " " + textStyle.size + " " + textStyle.family
-    var metrics = context.measureText(text)
-    var result = metrics.width
-    return result
-}
-
-function myWrap1(text, itemText, textStyle, textColor, maxWidth) {
-    const lineHeight_em = 1.1
-    const words = itemText.split(/\s+/)
-    const lines = []
-    let line = ""
-    words.forEach((word, index) => {
-        if (lines.length >= 5) {
-            line = "..."
-            return
-        }
-        if (line === "") {
-            line = word
-        } else if (getTextWidth(line + " " + word, textStyle) < maxWidth) {
-            line += " " + word
-        } else {
-            lines.push(line)
-            line = word
-        }
-    })
-    if (line !== "") lines.push(line)
-    let lineNumber = (Math.round(-lines.length / 2 + 0.5))
-    lines.forEach((line, index) => {
-        const tspan = text.append("tspan")
-            .attr("x", 0)
-            .attr("y", 0)
-            .attr("dy", (lineNumber++) * lineHeight_em  + "em")
-            .text(line)
-            .style("fill", textColor)
-    }) 
-}
-
-const defaultTextStyle = {family: "Arial", size: "9pt", weight: "normal"};
-const defaultTextColor = "black";
-
-function myWrap(offset, itemText, maxWidth, textStyle=defaultTextStyle, textColor=defaultTextColor) {
+function myWrap(offset, itemText, maxWidth) {
     const lineHeight_rem = 1.1
     const words = itemText.split(/\s+/)
     const lines = []
     let line = ""
     words.forEach((word, index) => {
-        if (lines.length >= 5) {
-            line = "..."
-            return
-        }
+        // if (lines.length >= 5) {
+        //    line = "..."
+        //    return
+        // }
         if (line === "") {
             line = word
-        } else if (getTextWidth(line + " " + word, textStyle) < maxWidth) {
+        } else if ((line + " " + word).length < maxWidth) {
             line += " " + word
         } else {
             lines.push(line)
@@ -503,29 +454,15 @@ function myWrap(offset, itemText, maxWidth, textStyle=defaultTextStyle, textColo
         }
     })
     if (line !== "") lines.push(line)
-    let lineNumber = (Math.round(-lines.length / 2 + 0.5))
+    let lineNumber = 0
     return lines.map((line, index) => {
         return m("tspan", {
             x: offset.x,
             y: offset.y,
             dy: (lineNumber++) * lineHeight_rem  + "rem",
-            style: {fill: textColor}
         }, line)
     }) 
 }
-
-/*
-addText(group, itemText, maxWidth, textStyle, textColor) {
-    if (itemText === undefined) itemText = "[missing text]"
-    var text = group.append("text")
-        .style("font-family", textStyle.family)
-        .style("font-size", textStyle.size)
-        .style("font-weight", textStyle.weight)
-        .style("text-anchor", "middle")
-    
-    myWrap(text, itemText, textStyle, textColor, maxWidth)
-}
-*/
 
 let textLocation = "bottom"
 
@@ -555,7 +492,7 @@ function viewMapItem(mapItem, origin) {
             alt: mapItem.type,
             // onmousedown: (event) => onmousedown(mapItem, event),
         }),
-        m("text" + extraStyling, textParams, myWrap({x: textParams.x, y: textParams.y}, mapItem.label, mapItem.labelWrapWidth * getTextWidth("M", defaultTextStyle)))
+        m("text" + extraStyling, textParams, myWrap({x: textParams.x, y: textParams.y}, mapItem.label, mapItem.labelWrapWidth))
     ]
 }
 
