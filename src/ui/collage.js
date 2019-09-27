@@ -58,7 +58,6 @@ import "./vendor/mithril.js"
 import { HashUUIDTracker } from "./HashUUIDTracker.js"
 import { Pointrel20190914 } from "./Pointrel20190914.js"
 import { CanonicalJSON } from "./CanonicalJSON.js"
-import { UUID } from "./UUID.js"
 import { SqlUtils } from "./SqlUtils.js"
 
 const p = new Pointrel20190914()
@@ -210,52 +209,7 @@ function deleteElement() {
     updateJSONFromDiagram()
 }
 
-function viewLink(element) {
-    const parentId = element.parentId
-    if (!parentId) return []
-    const parent = diagram.elements.find(element => element.id === parentId)
-    if (!parent) return []
-
-    const xA = parent.x
-    const yA = parent.y
-    const xB = element.x
-    const yB = element.y
-    const radius = 24
-
-    const d = Math.sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA))
-    const d2 = d - radius
-
-    const ratio = d2 / d
-
-    const dx = (xB - xA) * ratio
-    const dy = (yB - yA) * ratio
-
-    const x = xA + dx
-    const y = yA + dy
-
-    return m("line", {
-        x1: x,
-        y1: y,
-        x2: element.x - dx,
-        y2: element.y - dy,
-        "marker-end": "url(#arrowhead)",
-        stroke: "black",
-        "stroke-width": 1
-    })
-}
-
 const findURLRegex = /(http[s]?:\/\/)([\da-z.-]+)\.([a-z.]{2,6})([/\w.-]*)*\/?/
-
-function viewArrowhead() {
-    return m("marker", {
-        id: "arrowhead",
-        orient: "auto",
-        markerWidth: 8,
-        markerHeight: 16,
-        refX: 2,
-        refY: 4,
-    }, m("path", { d: "M0,0 V8 L8,4 Z", fill: "black" }))
-}
 
 function updateJSONFromDiagram() {
     diagramJSON = JSON.stringify(diagram, null, 4)
@@ -434,6 +388,18 @@ function view() {
 
 */
 
+// Make (invisible) arrowhead marker which is then used by lines
+function viewArrowhead() {
+    return m("marker", {
+        id: "arrowhead",
+        orient: "auto",
+        markerWidth: 8,
+        markerHeight: 16,
+        refX: 2,
+        refY: 4,
+    }, m("path", { d: "M0,0 V8 L8,4 Z", fill: "black" }))
+}
+
 function myWrap(offset, itemText, maxWidth) {
     const lineHeight_rem = 1.1
     const words = itemText.split(/\s+/)
@@ -467,7 +433,6 @@ function myWrap(offset, itemText, maxWidth) {
 let textLocation = "bottom"
 
 function viewMapLink(mapLink, origin, nodes) {
-    // TODO: arrowheads
     const fromNode = nodes[mapLink.fromNode] || {}
     const toNode = nodes[mapLink.toNode] || {}
     const x1 = (fromNode.xPos || 0) - origin.x
@@ -475,11 +440,28 @@ function viewMapLink(mapLink, origin, nodes) {
     const x2 = (toNode.xPos || 0) - origin.x
     const y2 = (toNode.yPos || 0) - origin.y
 
+    const xA = x2
+    const yA = y2
+    const xB = x1
+    const yB = y1
+    const radius = 24
+
+    const d = Math.sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA))
+    const d2 = d - radius
+
+    const ratio = d2 / d
+
+    const dx = (xB - xA) * ratio
+    const dy = (yB - yA) * ratio
+
+    const x = xA + dx
+    const y = yA + dy
+
     return m("line", {
-        x1: x1,
-        y1: y1,
-        x2: x2,
-        y2: y2,
+        x1: x,
+        y1: y,
+        x2: x1 - dx,
+        y2: y1 - dy,
         "marker-end": "url(#arrowhead)",
         stroke: "black",
         "stroke-width": 1
@@ -590,6 +572,7 @@ function viewMap(uuid) {
                     width: xSizeMap,
                     height: ySizeMap
                 },
+                viewArrowhead(),
                 mapItems.map(mapItem => viewMapItem(mapItem, origin)),
                 mapLinks.map(mapLink => viewMapLink(mapLink, origin, nodes))
             )
