@@ -1011,7 +1011,7 @@ const TwirlipCollageApp = {
         m(".mb2.pa2.ba.br3", viewNode(collageUUID)),
         viewLists(),
         viewMaps(),
-        viewLinks(),
+        // viewLinks(),
         viewCollageButtons(),
         expander("Feature Suggestions", () =>
             m("div.ma3.ba.b--light-silver.pa2",
