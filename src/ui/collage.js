@@ -742,7 +742,7 @@ function expander(name, callback) {
         m("span.ml2", {
             onclick: () => expanded[name] = !expanded[name]
         }, expanded[name] ? "▾" : "▸" ),
-        expanded[name] && m("div.ml3", callback)
+        expanded[name] && m("div.ml3", callback())
     )
 }
 
@@ -753,7 +753,7 @@ function sortItems(a, b) {
 }
 
 function viewLists() {
-    return expander("Lists",
+    return expander("Lists", () => 
         m("div", getAllLists().sort(sortItems).map(item =>
             m("div",
                 {onclick: () => {
@@ -767,7 +767,7 @@ function viewLists() {
 }
 
 function viewMaps() {
-    return expander("Maps",
+    return expander("Maps", () => 
         m("div", getAllMaps().sort(sortItems).map(item =>
             m("div", 
                 {onclick: () => {
@@ -792,7 +792,7 @@ function sortLinks(a, b) {
 }
 
 function viewLinks() {
-    return expander("Links",
+    return expander("Links", () => 
         m("div", getAllLinks().sort(sortLinks).map(link => {
             const fromNode = p.findC(link, "fromNode") || "MISSING_FROM"
             const fromLabel = p.findC({collageUUID: fromNode}, "label") || ""
@@ -1022,7 +1022,7 @@ const TwirlipCollageApp = {
         viewMaps(),
         viewLinks(),
         viewCollageButtons(),
-        expander("Feature Suggestions",
+        expander("Feature Suggestions", () =>
             m("div.ma3.ba.b--light-silver.pa2",
                 compendiumFeatureSuggestionsTables && SqlUtils.viewSqlTables(compendiumFeatureSuggestionsTables)
             )
