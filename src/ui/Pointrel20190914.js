@@ -12,6 +12,8 @@ function makeKey(jsonObject) {
     return CanonicalJSON.stringify(jsonObject)
 }
 
+const debugA = {}
+
 export class Pointrel20190914 {
     
     constructor(redrawFunction) {
@@ -43,6 +45,14 @@ export class Pointrel20190914 {
     }
 
     findC(a, b) {
+
+        /*
+        if (!debugA[JSON.stringify(a)]) {
+            debugA[JSON.stringify(a)] = true
+            console.log("findBC new A", a, b)
+            if (JSON.stringify(a) === JSON.stringify({collageUUID:"1270111362741339979"})) throw new Error("debug")
+        }
+        */
     
         // console.log("this.tripleIndex", this.tripleIndex)
         const aKey = makeKey(a)
