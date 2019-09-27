@@ -466,6 +466,26 @@ function myWrap(offset, itemText, maxWidth) {
 
 let textLocation = "bottom"
 
+function viewMapLink(mapLink, origin, nodes) {
+    // TODO: arrowheads
+    const fromNode = nodes[mapLink.fromNode] || {}
+    const toNode = nodes[mapLink.toNode] || {}
+    const x1 = (fromNode.xPos || 0) - origin.x
+    const y1 = (fromNode.yPos || 0) - origin.y
+    const x2 = (toNode.xPos || 0) - origin.x
+    const y2 = (toNode.yPos || 0) - origin.y
+
+    return m("line", {
+        x1: x1,
+        y1: y1,
+        x2: x2,
+        y2: y2,
+        "marker-end": "url(#arrowhead)",
+        stroke: "black",
+        "stroke-width": 1
+    })
+}
+
 function viewMapItem(mapItem, origin) {
     // const textLocation = diagram.textLocation || "bottom"
     // const hasURL = findURLRegex.exec(mapItem.label || "")
@@ -497,11 +517,23 @@ function viewMapItem(mapItem, origin) {
 }
 
 function viewMap(uuid) {
-    const listId = {collageUUID: uuid}
+    const mapId = {collageUUID: uuid}
 
-    const mapViewItems = Object.values(p.findBC(listId, "contains"))
+    const mapViewLinks = Object.values(p.findBC(mapId, "hasLink"))
+    const mapLinks = mapViewLinks.map(link => {
+        const id = link.id
+        return {
+            fromNode: p.findC({collageUUID: id}, "fromNode") || "MISSING_FROM",
+            toNode: p.findC({collageUUID: id}, "toNode") || "MISSING_FROM",
+        }
+    })
+
+    const nodes = {}
+
+    const mapViewItems = Object.values(p.findBC(mapId, "contains"))
     const mapItems = mapViewItems.map(item => {
         const id = item.id
+        nodes[id] = item
         let type = p.findC({collageUUID: id}, "type") || "missing"
         type = type.charAt(0).toLowerCase() + type.substring(1)
         if (type === "pro") type = "plus"
@@ -518,7 +550,7 @@ function viewMap(uuid) {
     })
     // mapItems.sort((a, b) => a.label.localeCompare(b.label))
     
-    const label =  p.findC(listId, "label")
+    const label =  p.findC(mapId, "label")
 
     // Determine map bounds
     let xSizeMin = 0
@@ -558,7 +590,8 @@ function viewMap(uuid) {
                     width: xSizeMap,
                     height: ySizeMap
                 },
-                mapItems.map(mapItem => viewMapItem(mapItem, origin))
+                mapItems.map(mapItem => viewMapItem(mapItem, origin)),
+                mapLinks.map(mapLink => viewMapLink(mapLink, origin, nodes))
             )
         ),
     )
@@ -924,7 +957,7 @@ function importLinkTable(linkTable) {
      
 function importViewLinkTable(viewLinkTable) {
     console.log("viewLinkTable", viewLinkTable)
-    for (let row of viewLinkTable.slice(0, 3)) {
+    for (let row of viewLinkTable) {
         const id = {collageUUID: row.ViewID}
         const modifiedRow = {}
         for (let fieldName of [
