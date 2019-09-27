@@ -1006,7 +1006,7 @@ function viewCollageButtons() {
 
 const TwirlipCollageApp = {
     view: () => m("div.pa3.h-100.overflow-auto",
-        m("div.mt2", m("i", p.isLoading() ? "Loading" : "Ready")),
+        m("div.mt2.fixed", {style: {top: "0px", right: "20px"}}, p.isLoading() ? m("i.fa.fa-spinner.fa-spin") : ""),
         // m("b", "Twirlip Collage: ", collageUUID),
         m(".mb2.pa2.ba.br3", viewNode(collageUUID)),
         viewLists(),
