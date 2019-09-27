@@ -433,23 +433,26 @@ function myWrap(offset, itemText, maxWidth) {
 let textLocation = "bottom"
 
 function viewMapLink(mapLink, origin, nodes) {
-    const fromNode = nodes[mapLink.fromNode] || {}
-    const toNode = nodes[mapLink.toNode] || {}
-    const x1 = (fromNode.xPos || 0) - origin.x
-    const y1 = (fromNode.yPos || 0) - origin.y
-    const x2 = (toNode.xPos || 0) - origin.x
-    const y2 = (toNode.yPos || 0) - origin.y
+    const fromNode = nodes[mapLink.fromNode]
+    const toNode = nodes[mapLink.toNode]
 
-    const xA = x2
-    const yA = y2
-    const xB = x1
-    const yB = y1
+    if (!fromNode || !toNode) return []
+
+    const x1 = (toNode.xPos || 0) - origin.x
+    const y1 = (toNode.yPos || 0) - origin.y
+    const x2 = (fromNode.xPos || 0) - origin.x
+    const y2 = (fromNode.yPos || 0) - origin.y
+
+    const xA = x1
+    const yA = y1
+    const xB = x2
+    const yB = y2
     const radius = 24
 
     const d = Math.sqrt((xB - xA) * (xB - xA) + (yB - yA) * (yB - yA))
     const d2 = d - radius
 
-    const ratio = d2 / d
+    const ratio = d === 0 ? 0 : d2 / d
 
     const dx = (xB - xA) * ratio
     const dy = (yB - yA) * ratio
@@ -457,11 +460,15 @@ function viewMapLink(mapLink, origin, nodes) {
     const x = xA + dx
     const y = yA + dy
 
+    if (isNaN(x)) {
+        throw new Error("Error in link drawing")
+    }
+
     return m("line", {
         x1: x,
         y1: y,
-        x2: x1 - dx,
-        y2: y1 - dy,
+        x2: x2 - dx,
+        y2: y2 - dy,
         "marker-end": "url(#arrowhead)",
         stroke: "black",
         "stroke-width": 1
