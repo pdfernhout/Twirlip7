@@ -561,10 +561,10 @@ function viewMap(uuid) {
     for (let mapItem of mapItems) {
         if (mapItem.x - extraSize < xSizeMin) xSizeMin = mapItem.x - extraSize
         if (mapItem.x + extraSize > xSizeMax) xSizeMax = mapItem.x + extraSize
-        if (mapItem.y < ySizeMin) ySizeMin = mapItem.y
+        if (mapItem.y - 50 < ySizeMin) ySizeMin = mapItem.y - 50
         if (mapItem.y + extraSize > ySizeMax) ySizeMax = mapItem.y + extraSize
     }
-    const xSizeMap = ySizeMax - ySizeMin
+    const xSizeMap = xSizeMax - xSizeMin
     const ySizeMap = ySizeMax - ySizeMin
     const origin = {x: xSizeMin, y: ySizeMin}
 
