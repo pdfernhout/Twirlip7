@@ -983,6 +983,7 @@ function importViewLinkTable(viewLinkTable) {
 }
 
 function importFeatureSuggestions() {
+    if (!confirm("Import feature suggestions?\n(This adds a lot of data.)")) return
     console.log("compendiumFeatureSuggestionsTables", compendiumFeatureSuggestionsTables)
     const nodeTable = compendiumFeatureSuggestionsTables["Node"]
     importNodeTable(nodeTable)
