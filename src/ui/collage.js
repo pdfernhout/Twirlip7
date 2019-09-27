@@ -401,7 +401,7 @@ function viewArrowhead() {
 }
 
 function myWrap(offset, itemText, maxWidth) {
-    const lineHeight_rem = 1.1
+    const lineHeight_rem = 0.9
     const words = itemText.split(/\s+/)
     const lines = []
     let line = ""
@@ -412,7 +412,7 @@ function myWrap(offset, itemText, maxWidth) {
         // }
         if (line === "") {
             line = word
-        } else if ((line + " " + word).length < maxWidth) {
+        } else if ((line + " " + word).length < maxWidth + 7) {
             line += " " + word
         } else {
             lines.push(line)
@@ -501,7 +501,7 @@ function viewMapItem(mapItem, origin) {
             alt: mapItem.type,
             // onmousedown: (event) => onmousedown(mapItem, event),
         }),
-        m("text" + extraStyling, textParams, myWrap({x: textParams.x, y: textParams.y}, mapItem.label, mapItem.labelWrapWidth))
+        m("text.f6" + extraStyling, textParams, myWrap({x: textParams.x, y: textParams.y}, mapItem.label, mapItem.labelWrapWidth))
     ]
 }
 
