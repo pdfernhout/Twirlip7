@@ -499,6 +499,11 @@ function viewMapItem(mapItem, origin) {
             width: 32,
             height: 32,
             alt: mapItem.type,
+            onclick: () => {
+                const newUUID = mapItem.id.collageUUID
+                collageUUID = newUUID
+                uuidChangedByApp(newUUID)
+            }
             // onmousedown: (event) => onmousedown(mapItem, event),
         }),
         m("text.f6" + extraStyling, textParams, myWrap({x: textParams.x, y: textParams.y}, mapItem.label, mapItem.labelWrapWidth))
