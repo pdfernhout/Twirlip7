@@ -14,6 +14,67 @@ function makeKey(jsonObject) {
 
 const debugA = {}
 
+const reverseLookupBs = {
+    // Two big reasons to want to do a reverse lookup: 
+    // * Finding a specific item by uniquely identifying
+    // * Collecting a bunch of items by group classifying
+
+    // "dct" is from Dublin Core kernel
+    // https://www.dublincore.org/specifications/dublin-core/dc-kernel/
+    
+    // "owl" or "rdf" is inspired by OWL Web Ontology Language 
+    // https://www.w3.org/TR/2004/REC-owl-semantics-20040210/#owl_sameAs
+    "above": true,
+    "after": true,
+    "attended": true,
+    "back": true,
+    "backlink": true,
+    "before": true,
+    "below": true,
+    "belongsTo": true,
+    "child": true,
+    "childOf": true,
+    "class": "owl",
+    "container": true,
+    "creator": "dct",
+    "contributor": "dct",
+    "committer": true,
+    "date": "dct",
+    // "description": "dct"
+    "domain": "rdf",
+    "elementOf": true,
+    "follows": true,
+    "has": true,
+    "hash": true,
+    "id": true,
+    "identifier": "dct",
+    "in": true,
+    "instanceOf": true,
+    "inside": true,
+    "isbn": true,
+    "label": true,
+    "link": true,
+    "location": true,
+    "name": true,
+    "oneOf": "owl",
+    "owner": true,
+    "outside": true,
+    "parent": true,
+    "partOf": true,
+    "publisher": "dct",
+    "sha256": true,
+    "spatial": "dct",
+    "subject": "dct",
+    "tag": true,
+    "temporal": "dct",
+    "title": "dct",
+    "type": true,
+    "url": true,
+    "urn": true,
+    "uuid": true,
+    "visited": true,
+}
+
 export class Pointrel20190914 {
     
     constructor(redrawFunction) {
@@ -78,6 +139,12 @@ export class Pointrel20190914 {
         this.addTripleToTripleIndex(triple)
 
         this.backend.addItem(triple, a)
+
+        if (reverseLookupBs[b]) {
+            const reverseTriple = {a: {__reverseLookup: true, c: c, b: b}, b: {instance: a}, c: a}
+            this.addTripleToTripleIndex(reverseTriple)
+            this.backend.addItem(reverseTriple, reverseTriple.a)
+        }
     }
 
     async addTripleAsync(a, b, c) {
@@ -113,6 +180,12 @@ export class Pointrel20190914 {
         }
 
         return result
+    }
+
+    findAs(b, c) {
+        // Caution: objects that once matched (C B ?) may no longer match,
+        // so you should ideally filter afterards for current matches if C could change for A B
+        return Object.values(this.findBC({__reverseLookup: true, c: c, b: b}, "instance"))
     }
 
     connect(responder) {
