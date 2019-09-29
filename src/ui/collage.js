@@ -661,7 +661,6 @@ function makeNewNode(type, label, detail) {
     const uuid = p.uuidv4()
     const id = {collageUUID: uuid}
     p.addTriple(id, "type", type)
-    p.addTriple({workspace: "test", type: type}, {instance: id}, id)
     if (label) p.addTriple(id, "label", label)
     if (detail) p.addTriple(id, "detail", detail)
     return id
@@ -673,7 +672,7 @@ function makeNewMap(label) {
 }
 
 function getAllMaps() {
-    return Object.values(p.findBC({workspace: "test", type: "Map"}, "instance"))
+    return p.findAs("type", "Map")
 }
 
 function makeNewList(label) {
@@ -682,11 +681,11 @@ function makeNewList(label) {
 }
 
 function getAllLists() {
-    return Object.values(p.findBC({workspace: "test", type: "List"}, "instance"))
+    return p.findAs("type", "List")
 }
 
 function getAllLinks() {
-    return Object.values(p.findBC({workspace: "test", type: "Link"}, "instance"))
+    return p.findAs("type", "Link")
 }
 
 const expanded = {}
@@ -816,7 +815,6 @@ function importNodeTable(nodeTable) {
             52: "Inbox",
         }[node.NodeType]
         p.addTriple(id, "type", typeName)
-        p.addTriple({workspace: "test", type: typeName}, {instance: id}, id)
     }
 }
 
@@ -896,7 +894,6 @@ function importLinkTable(linkTable) {
             p.addTriple(id, fieldNameAdjusted, value)
         }
         p.addTriple(id, "type", "Link")
-        p.addTriple({workspace: "test", type: "Link"}, {instance: id}, id)
     }
 }
      
