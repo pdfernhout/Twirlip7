@@ -51,6 +51,7 @@ const reverseLookupBs = {
     "in": true,
     "instanceOf": true,
     "inside": true,
+    "isA": true,
     "isbn": true,
     "label": true,
     "link": true,
