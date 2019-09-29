@@ -475,6 +475,11 @@ function viewMapLink(mapLink, origin, nodes) {
     })
 }
 
+function changeCollageUUID(newUUID) {
+    collageUUID = newUUID
+    uuidChangedByApp(newUUID)
+}
+
 function viewMapItem(mapItem, origin) {
     // const textLocation = diagram.textLocation || "bottom"
     // const hasURL = findURLRegex.exec(mapItem.label || "")
@@ -500,9 +505,7 @@ function viewMapItem(mapItem, origin) {
             height: 32,
             alt: mapItem.type,
             onclick: () => {
-                const newUUID = mapItem.id.collageUUID
-                collageUUID = newUUID
-                uuidChangedByApp(newUUID)
+                changeCollageUUID(mapItem.id.collageUUID)
             }
             // onmousedown: (event) => onmousedown(mapItem, event),
         }),
@@ -665,10 +668,7 @@ function viewList(uuid) {
         listItems.map(item => 
             m("div.ma2", 
                 {
-                    onclick: () => {
-                        collageUUID = item.id.collageUUID
-                        uuidChangedByApp(collageUUID)
-                    }
+                    onclick: () => changeCollageUUID(item.id.collageUUID)
                 }, 
                 m("img.mr2.v-mid", {
                     "src": CompendiumIcons[item.type + "_png"],
@@ -708,8 +708,7 @@ function makeNewNode(type, label, detail) {
 
 function makeNewMap(label) {
     const uuid = makeNewNode("Map").collageUUID
-    collageUUID = uuid
-    uuidChangedByApp(uuid)
+    changeCollageUUID(uuid)
 }
 
 function getAllMaps() {
@@ -718,8 +717,7 @@ function getAllMaps() {
 
 function makeNewList(label) {
     const uuid = makeNewNode("List").collageUUID
-    collageUUID = uuid
-    uuidChangedByApp(uuid)
+    changeCollageUUID(uuid)
 }
 
 function getAllLists() {
@@ -751,10 +749,7 @@ function viewLists() {
     return expander("Lists", () => 
         m("div", getAllLists().sort(sortItems).map(item =>
             m("div",
-                {onclick: () => {
-                    collageUUID = item.collageUUID
-                    uuidChangedByApp(collageUUID)
-                }},
+                { onclick: () => changeCollageUUID(item.collageUUID) },
                 p.findC(item, "label") || item.collageUUID
             )
         ))
@@ -765,10 +760,7 @@ function viewMaps() {
     return expander("Maps", () => 
         m("div", getAllMaps().sort(sortItems).map(item =>
             m("div", 
-                {onclick: () => {
-                    collageUUID = item.collageUUID
-                    uuidChangedByApp(collageUUID)
-                }}, 
+                { onclick: () => changeCollageUUID(item.collageUUID) }, 
                 p.findC(item, "label") || item.collageUUID
             )
         ))
@@ -794,10 +786,7 @@ function viewLinks() {
             const toNode = p.findC(link, "toNode") || "MISSING_TO"
             const toLabel = p.findC({collageUUID: toNode}, "label") || ""
             return m("div", 
-                {onclick: () => {
-                    collageUUID = link.collageUUID
-                    uuidChangedByApp(collageUUID)
-                }},
+                { onclick: () => changeCollageUUID(link.collageUUID) },
                 m("span", link.collageUUID),
                 " :: ",
                 m("span", {title: fromLabel}, fromNode),
