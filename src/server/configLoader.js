@@ -7,11 +7,18 @@
 const log = require("./log")
 const configDefault = require("./configDefault")
 
+const argv = require("yargs").argv
+console.log("argv", argv)
+
 let localConfig = {}
 
 try {
     log("info", "Loading config file")
-    localConfig = require("../../local-config")
+    if (!argv.config) {
+        localConfig = require("../../local-config")
+    } else {
+        localConfig = require("../../" + argv.config)
+    }
 } catch (e) {
     if (e.code === "MODULE_NOT_FOUND") {
         log("info", "No config file found -- using defaults")
