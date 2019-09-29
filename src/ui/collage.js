@@ -77,31 +77,10 @@ function userIDChange(event) {
     localStorage.setItem("userID", userID)
 }
 
-/* 
-// For debugging -- does not work
-const mOld = m
-m = function(...args) {
-    for (let i = 0; i < arguments.length; i++) {
-        if (args[i] === undefined) throw new Error("undefined arg #" + i)
-    }
-    mOld(...args)
-}
-m.mount = mOld.mount
-*/
-
 /*
-
-let diagram = {
-    width: 800,
-    height: 500,
-    diagramName: "Untitled IBIS Diagram",
-    elements: [],
-    textLocation: "right"
-}
 
 let isItemPanelDisplayed = false
 
-let diagramJSON = JSON.stringify(diagram, null, 4)
 let isJSONPanelDisplayed = false
 
 let outlineText = ""
@@ -114,10 +93,6 @@ let laterDraggedItem = null
 let draggedItem = null
 let dragStart = {x: 0, y: 0}
 let objectStart = {x: 0, y: 0}
-
-const messages = []
-
-let unsaved = false
 
 const delta = 60
 
@@ -160,10 +135,6 @@ function onmouseupBackground(event) {
         lastClickPosition = { x: event.clientX - rect.left, y: event.clientY - rect.top }
     }
     draggedItem = null
-}
-
-function onkeydown(event) {
-    console.log("onkeydown", event)
 }
 
 function addElement(type, name, parentId) {
@@ -210,16 +181,6 @@ function deleteElement() {
 }
 
 const findURLRegex = /(http[s]?:\/\/)([\da-z.-]+)\.([a-z.]{2,6})([/\w.-]*)*\/?/
-
-function updateJSONFromDiagram() {
-    diagramJSON = JSON.stringify(diagram, null, 4)
-    unsaved = true
-}
-
-function updateDiagramFromJSON() {
-    const newDiagram = JSON.parse(diagramJSON)
-    diagram = newDiagram
-}
 
 function viewItemPanel() {
     const element = laterDraggedItem
