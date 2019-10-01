@@ -25,6 +25,10 @@ const TwirlipAppList = {
                 m("a.ma3", {href: "chat.html"}, "Chat"),
             ),
             m("div.ma3",
+                m("a.ma3", {href: "collage.html"}, "Collage/Compendum"),
+                "(intended to eventually support all of Compendium's functionality)",
+            ),
+            m("div.ma3",
                 m("a.ma3", {href: "notebook.html"}, "Programmable Notebook"),
                 "(can run without a server)"
             ),
