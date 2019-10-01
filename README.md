@@ -7,7 +7,7 @@ The Twirlip project helps you organize information you find interesting and make
 Right now, there are a few experimental applications to play with:
 
 * a programmable notebook (with some examples including plugins)
-* an IBIS diagramming tool for Dialogue Mapping
+* an IBIS diagramming tool for Dialogue Mapping (with full Compendium support as additional work-in progress called "Collage")
 * a chat app (which can also serve as a personal journal)
 * a "tables" spreadsheet app
 * a filer app that emulates a hierarchical file system
