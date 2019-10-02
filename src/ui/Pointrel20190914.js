@@ -87,6 +87,7 @@ export class Pointrel20190914 {
     }
 
     addTripleToTripleIndex(triple) {
+        // console.log("addTripleToTripleIndex", triple)
         const aKey = makeKey(triple.a)
         let aIndex = this.tripleIndex[aKey]
         if (!aIndex) {
@@ -134,7 +135,8 @@ export class Pointrel20190914 {
     addTriple(a, b, c) {
         // console.log("addTriple", a, b, c)
     
-        const triple = {a, b, c, t: new Date().toISOString(), u: userID}
+        const timestamp = new Date().toISOString()
+        const triple = {a, b, c, t: timestamp, u: userID}
 
         // Cache it locally first even if the server will echo it back eventually
         this.addTripleToTripleIndex(triple)
@@ -142,7 +144,8 @@ export class Pointrel20190914 {
         this.backend.addItem(triple, a)
 
         if (reverseLookupBs[b]) {
-            const reverseTriple = {a: {__reverseLookup: true, c: c, b: b}, b: {instance: a}, c: a}
+            // console.log("ADD reverse lookup for", b)
+            const reverseTriple = {a: {__reverseLookup: true, c: c, b: b}, b: {instance: a}, c: a, t: timestamp, u: userID}
             this.addTripleToTripleIndex(reverseTriple)
             this.backend.addItem(reverseTriple, reverseTriple.a)
         }
@@ -184,6 +187,8 @@ export class Pointrel20190914 {
     }
 
     findAs(b, c) {
+        if (!reverseLookupBs[b]) throw new Error("findAs: reverse lookup not suported for: " +  CanonicalJSON.stringify(b))
+
         // Caution: objects that once matched (C B ?) may no longer match,
         // so you should ideally filter afterards for current matches if C could change for A B
         return Object.values(this.findBC({__reverseLookup: true, c: c, b: b}, "instance"))
@@ -192,7 +197,7 @@ export class Pointrel20190914 {
     connect(responder) {
         this.backend.connect({
             onAddItem: (item) => {
-                // console.log("onAddItem", item)
+                // console.log("Pointrel20190914 onAddItem", item)
                 if (item.a !== undefined && item.b !== undefined && item.c !== undefined && item.t !== undefined) {
                     this.addTripleToTripleIndex(item)
                 }
