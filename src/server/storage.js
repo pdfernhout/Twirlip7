@@ -107,6 +107,7 @@ async function writeNextMessage() {
     const key = keyForStreamId(message.streamId)
     const sha256 = calculateSha256(key)
     const fileName = getStorageFileNameForSHA256(sha256)
+    log("info", "writeNextMessage: " + key + " sha256: " + sha256)
     await ensureFilePathForSHA256(sha256)
     // TODO: Do we need to do this with a fd and datasync to be really sure data is written to storage?
     try {

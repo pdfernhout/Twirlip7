@@ -126,7 +126,7 @@ function listen(clientId, message) {
     let messageCount = 0
     let messagesSent = 0
 
-    log("debug", "listen", clientId, JSON.stringify(streamId), fromIndex)
+    log("info", "listen", clientId, JSON.stringify(streamId), fromIndex, storage.calculateSha256(storage.keyForStreamId(streamId)))
 
     setListenerState(clientId, streamId, "listening")
 
