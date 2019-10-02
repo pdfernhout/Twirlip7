@@ -158,10 +158,11 @@ export function StoreUsingServer(redrawCallback, streamId = "common", userId = "
     }
 
     // bypasses stream configuration
-    function openStream(streamId) {
-        streamId = JSON.parse(CanonicalJSON.stringify(streamId))
-        listeningOnStreams[CanonicalJSON.stringify(streamId)] = true
-        sendMessage({command: "listen", streamId: streamId, fromIndex: 0})
+    function openStream(alternateStreamId) {
+        // console.log("alternateStreamId", alternateStreamId)
+        alternateStreamId = JSON.parse(CanonicalJSON.stringify(alternateStreamId))
+        listeningOnStreams[CanonicalJSON.stringify(alternateStreamId)] = true
+        sendMessage({command: "listen", streamId: alternateStreamId, fromIndex: 0})
     }
 
     function configure(streamIdNew, userIdNew) {
