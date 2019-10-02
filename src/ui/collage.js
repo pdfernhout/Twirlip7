@@ -362,7 +362,7 @@ function viewArrowhead() {
 }
 
 function myWrap(offset, itemText, maxWidth) {
-    const lineHeight_rem = 0.9
+    const lineHeight_em = 0.9
     const words = itemText.split(/\s+/)
     const lines = []
     let line = ""
@@ -386,7 +386,7 @@ function myWrap(offset, itemText, maxWidth) {
         return m("tspan", {
             x: offset.x,
             y: offset.y,
-            dy: (lineNumber++) * lineHeight_rem  + "rem",
+            dy: (lineNumber++) * lineHeight_em  + "em",
         }, line)
     }) 
 }
