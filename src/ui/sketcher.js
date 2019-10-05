@@ -24,28 +24,6 @@ function getSketchName() {
 
 let sketch = null
 
-let selectedItems
-let draggedHandle
-let isDragging 
-let dragStart
-let dragDelta
-let wasMouseDownOnItemOrHandle
-
-function initDragInformation() {
-    selectedItems = []
-    draggedHandle = null // { item: null, handleName: "x1y1", originalBounds: null }
-    isDragging = false
-    dragStart = { x: 0, y:0 }
-    dragDelta = { x: 0, y:0 }
-    wasMouseDownOnItemOrHandle = false
-}
-
-initDragInformation()
-
-let isScribbling = false
-let scribblePoints = null
-let scribbleSegments = []
-
 let sketchViewportHeight = 500
 
 // Rounding choices to reduce noise in JSON files...
@@ -74,6 +52,28 @@ async function updateSketch() {
     resetForSketchChange()
     m.redraw()
 }
+
+let selectedItems
+let draggedHandle
+let isDragging 
+let dragStart
+let dragDelta
+let wasMouseDownOnItemOrHandle
+
+function initDragInformation() {
+    selectedItems = []
+    draggedHandle = null // { item: null, handleName: "x1y1", originalBounds: null }
+    isDragging = false
+    dragStart = { x: 0, y:0 }
+    dragDelta = { x: 0, y:0 }
+    wasMouseDownOnItemOrHandle = false
+}
+
+initDragInformation()
+
+let isScribbling = false
+let scribblePoints = null
+let scribbleSegments = []
 
 function isItemSelected(item) {
     return selectedItems.some(selectedItem => selectedItem.uuid === item.uuid)
@@ -234,6 +234,103 @@ function areRectsIntersecting(rect1, rect2) {
     return (rect1.x1 <= rect2.x2 && rect1.x2 >= rect2.x1 && rect1.y1 <= rect2.y2 && rect1.y2 >= rect2.y1) 
 }
 
+function rectForGroupSelection() {
+    const x = Math.max(0, Math.min(dragStart.x, dragStart.x + dragDelta.x))
+    const y = Math.max(0, Math.min(dragStart.y, dragStart.y + dragDelta.y))
+    return {
+        x1: x,
+        y1: y,
+        x2: x + Math.abs(dragDelta.x),
+        y2: y + Math.abs(dragDelta.y)
+    }
+}
+
+function drawItems(items, deltaForExport) {
+    function compare(a, b) {
+        const aLayer = a.getLayer()
+        const bLayer = b.getLayer()
+        if (aLayer < bLayer) return -1
+        if (aLayer > bLayer) return 1
+        if (a.uuid < b.uuid) return -1
+        if (a.uuid > b.uuid) return 1
+        throw new Error("uuids of different items in list should not be the same")
+    }
+
+    function drawHandle(item, name, x, y) {
+        if (y === undefined) throw new Error("bug")
+        return  m("circle", {
+            cx: x,
+            cy: y,
+            r: 5, 
+            style: {
+                stroke: "#006600",
+                fill: "#000000"
+            },
+            onpointerdown: mouseDownInHandle.bind(null, item, name)
+        })
+    }
+
+    function drawSelections() {
+        return selectedItems.map(item => {
+            const itemBounds = item.getBounds()
+            const bounds = (isDragging && wasMouseDownOnItemOrHandle)
+                ? (draggedHandle 
+                    ? copyRectWithHandleDelta(itemBounds, draggedHandle.handleName, dragDelta, item.getType() === "line")
+                    : copyRectWithDelta(itemBounds, dragDelta))
+                : itemBounds
+            const type = item.getType()
+            return m("g", [
+                drawHandle(item, "x1y1", bounds.x1, bounds.y1),
+                (type !== "line") ? drawHandle(item, "x1y2", bounds.x1, bounds.y2) : [],
+                (type !== "line") ? drawHandle(item, "x2y1", bounds.x2, bounds.y1) : [],
+                drawHandle(item, "x2y2", bounds.x2, bounds.y2),
+            ])
+        })
+    }
+
+    function drawGroupSelection() {
+        if (isDragging && !wasMouseDownOnItemOrHandle) {
+            const selectionRect = rectForGroupSelection()
+            return m("rect", {
+                x: selectionRect.x1,
+                y: selectionRect.y1,
+                width: selectionRect.x2 - selectionRect.x1,
+                height: selectionRect.y2 - selectionRect.y1,
+                style: { fill: "grey", stroke: "#000000", "fill-opacity": 0.1, "stroke-opacity": 0.5 } 
+            })
+        }
+        return []
+    }
+
+    const sortedItems = items.sort(compare)
+    const drawnItems = sortedItems.map((item) => {
+        const isItemDragged = isDragging && wasMouseDownOnItemOrHandle && (isItemSelected(item) || (draggedHandle && draggedHandle.item.uuid === item.uuid))
+        return item.draw(isItemDragged ? dragDelta : deltaForExport, isItemDragged && draggedHandle && draggedHandle.handleName)
+    })
+
+    return [
+        drawnItems,
+        !deltaForExport && drawSelections(),
+        !deltaForExport && drawGroupSelection(),
+        !deltaForExport && isScribbling ? drawPolylines(scribbleSegments) : []
+    ]
+}
+
+function raiseItem() {
+    selectedItems.forEach(item => item.setLayer(item.getLayer() + 1))
+}
+
+function lowerItem() {
+    selectedItems.forEach(item => item.setLayer(item.getLayer() - 1))
+}
+
+function deleteItem() {
+    if (!selectedItems.length) return
+    if (!confirm("Delete " + selectedItems.length + " item(s)?")) return
+    selectedItems.forEach(item => sketch.deleteItem(item))
+    deselectAllItems()
+}
+
 function sketchMouseUp(event) {
     if (isScribbling) {
         scribblePoints = null
@@ -263,6 +360,88 @@ function sketchMouseUp(event) {
     wasMouseDownOnItemOrHandle = false
     isDragging = false
     draggedHandle = null
+}
+
+function calculateBoundsForItems(items) {
+    if (!items.length) return {x1: 0, y1: 0, x2: 0, y2: 0}
+    const totalBounds = items[0].getBounds()
+    items.forEach(item => {
+        const itemBounds = item.getBounds()
+        // LInes can be reversed, so need to consider both extents
+        totalBounds.x1 = Math.min(totalBounds.x1, itemBounds.x1, itemBounds.x2)
+        totalBounds.y1 = Math.min(totalBounds.y1, itemBounds.y1, itemBounds.y2)
+        totalBounds.x2 = Math.max(totalBounds.x2, itemBounds.x1, itemBounds.x2)
+        totalBounds.y2 = Math.max(totalBounds.y2, itemBounds.y1, itemBounds.y2)
+    })
+    /* If wanted to have integert bounds
+    totalBounds.x1 = Math.floor(totalBounds.x1)
+    totalBounds.y1 = Math.floor(totalBounds.y1)
+    totalBounds.x2 = Math.ceil(totalBounds.x2)
+    totalBounds.y2 = Math.ceil(totalBounds.y2)
+    */
+    return totalBounds
+}
+
+function calculateBoundsForScribble(segments) {
+    const bounds = { x1: 0, y1: 0, x2: 50, y2: 50 }
+    if (segments.length && segments[0].length) {
+        const firstPoint = segments[0][0]
+        bounds.x1 = firstPoint.x
+        bounds.x2 = firstPoint.x
+        bounds.y1 = firstPoint.y
+        bounds.y2 = firstPoint.y
+    }
+    for (let segment of segments) {
+        for (let point of segment) {
+            bounds.x1 = point.x < bounds.x1 ? point.x : bounds.x1
+            bounds.x2 = point.x > bounds.x2 ? point.x : bounds.x2
+            bounds.y1 = point.y < bounds.y1 ? point.y : bounds.y1
+            bounds.y2 = point.y > bounds.y2 ? point.y : bounds.y2
+        }
+    }
+    return bounds
+}
+
+function adjustPointsForScribble(segments, offset) {
+    for (let segment of segments) {
+        for (let point of segment) {
+            point.x -= offset.x
+            point.y -= offset.y
+        }
+    }
+}
+
+function svgMarkers() {
+    return [
+        m("marker", {
+            id: "arrow-start",
+            markerHeight: "10",
+            markerUnits: "strokeWidth",
+            markerWidth: "10",
+            orient: "auto",
+            refX: "2",
+            refY: "1.5"
+        }, [
+            m("path", {
+                d: "M0,0 L0,3 L3,1.5 z",
+                fill: "black"
+            })
+        ]),
+        m("marker", {
+            id: "arrow-end",
+            markerHeight: "10",
+            markerUnits: "strokeWidth",
+            markerWidth: "10",
+            orient: "auto",
+            refX: "1",
+            refY: "1.5"
+        }, [
+            m("path", {
+                d: "M3,0 L3,3 L0,1.5 z",
+                fill: "black"
+            })
+        ])
+    ]
 }
 
 function insertLinksIntoText(text) {
@@ -535,35 +714,6 @@ function calculateBounds() {
     return { x1: 0, y1: 0, x2: 50, y2: 50 }
 }
 
-function calculateBoundsForScribble(segments) {
-    const bounds = { x1: 0, y1: 0, x2: 50, y2: 50 }
-    if (segments.length && segments[0].length) {
-        const firstPoint = segments[0][0]
-        bounds.x1 = firstPoint.x
-        bounds.x2 = firstPoint.x
-        bounds.y1 = firstPoint.y
-        bounds.y2 = firstPoint.y
-    }
-    for (let segment of segments) {
-        for (let point of segment) {
-            bounds.x1 = point.x < bounds.x1 ? point.x : bounds.x1
-            bounds.x2 = point.x > bounds.x2 ? point.x : bounds.x2
-            bounds.y1 = point.y < bounds.y1 ? point.y : bounds.y1
-            bounds.y2 = point.y > bounds.y2 ? point.y : bounds.y2
-        }
-    }
-    return bounds
-}
-
-function adjustPointsForScribble(segments, offset) {
-    for (let segment of segments) {
-        for (let point of segment) {
-            point.x -= offset.x
-            point.y -= offset.y
-        }
-    }
-}
-
 function addRectangle() {
     p.newTransaction("sketcher/addRectangle")
     const item = new Item()
@@ -629,103 +779,6 @@ function addText() {
     p.sendCurrentTransaction()
 }
 
-function rectForGroupSelection() {
-    const x = Math.max(0, Math.min(dragStart.x, dragStart.x + dragDelta.x))
-    const y = Math.max(0, Math.min(dragStart.y, dragStart.y + dragDelta.y))
-    return {
-        x1: x,
-        y1: y,
-        x2: x + Math.abs(dragDelta.x),
-        y2: y + Math.abs(dragDelta.y)
-    }
-}
-
-function drawItems(items, deltaForExport) {
-    function compare(a, b) {
-        const aLayer = a.getLayer()
-        const bLayer = b.getLayer()
-        if (aLayer < bLayer) return -1
-        if (aLayer > bLayer) return 1
-        if (a.uuid < b.uuid) return -1
-        if (a.uuid > b.uuid) return 1
-        throw new Error("uuids of different items in list should not be the same")
-    }
-
-    function drawHandle(item, name, x, y) {
-        if (y === undefined) throw new Error("bug")
-        return  m("circle", {
-            cx: x,
-            cy: y,
-            r: 5, 
-            style: {
-                stroke: "#006600",
-                fill: "#000000"
-            },
-            onpointerdown: mouseDownInHandle.bind(null, item, name)
-        })
-    }
-
-    function drawSelections() {
-        return selectedItems.map(item => {
-            const itemBounds = item.getBounds()
-            const bounds = (isDragging && wasMouseDownOnItemOrHandle)
-                ? (draggedHandle 
-                    ? copyRectWithHandleDelta(itemBounds, draggedHandle.handleName, dragDelta, item.getType() === "line")
-                    : copyRectWithDelta(itemBounds, dragDelta))
-                : itemBounds
-            const type = item.getType()
-            return m("g", [
-                drawHandle(item, "x1y1", bounds.x1, bounds.y1),
-                (type !== "line") ? drawHandle(item, "x1y2", bounds.x1, bounds.y2) : [],
-                (type !== "line") ? drawHandle(item, "x2y1", bounds.x2, bounds.y1) : [],
-                drawHandle(item, "x2y2", bounds.x2, bounds.y2),
-            ])
-        })
-    }
-
-    function drawGroupSelection() {
-        if (isDragging && !wasMouseDownOnItemOrHandle) {
-            const selectionRect = rectForGroupSelection()
-            return m("rect", {
-                x: selectionRect.x1,
-                y: selectionRect.y1,
-                width: selectionRect.x2 - selectionRect.x1,
-                height: selectionRect.y2 - selectionRect.y1,
-                style: { fill: "grey", stroke: "#000000", "fill-opacity": 0.1, "stroke-opacity": 0.5 } 
-            })
-        }
-        return []
-    }
-
-    const sortedItems = items.sort(compare)
-    const drawnItems = sortedItems.map((item) => {
-        const isItemDragged = isDragging && wasMouseDownOnItemOrHandle && (isItemSelected(item) || (draggedHandle && draggedHandle.item.uuid === item.uuid))
-        return item.draw(isItemDragged ? dragDelta : deltaForExport, isItemDragged && draggedHandle && draggedHandle.handleName)
-    })
-
-    return [
-        drawnItems,
-        !deltaForExport && drawSelections(),
-        !deltaForExport && drawGroupSelection(),
-        !deltaForExport && isScribbling ? drawPolylines(scribbleSegments) : []
-    ]
-}
-
-function raiseItem() {
-    selectedItems.forEach(item => item.setLayer(item.getLayer() + 1))
-}
-
-function lowerItem() {
-    selectedItems.forEach(item => item.setLayer(item.getLayer() - 1))
-}
-
-function deleteItem() {
-    if (!selectedItems.length) return
-    if (!confirm("Delete " + selectedItems.length + " item(s)?")) return
-    selectedItems.forEach(item => sketch.deleteItem(item))
-    deselectAllItems()
-}
-
 function exportSketchText() {
     function textForItem(item) {
         if (item.getType() === "text") return JSON.stringify(item.getBounds()) + "\n" + item.getText()
@@ -748,26 +801,6 @@ function exportSketchText() {
     const texts = items.map(item => "==== " + item.uuid + " ====\n" + textForItem(item))
     console.log("texts", texts.join("\n\n"))
     alert("Exported text to console")
-}
-
-function calculateBoundsForItems(items) {
-    if (!items.length) return {x1: 0, y1: 0, x2: 0, y2: 0}
-    const totalBounds = items[0].getBounds()
-    items.forEach(item => {
-        const itemBounds = item.getBounds()
-        // LInes can be reversed, so need to consider both extents
-        totalBounds.x1 = Math.min(totalBounds.x1, itemBounds.x1, itemBounds.x2)
-        totalBounds.y1 = Math.min(totalBounds.y1, itemBounds.y1, itemBounds.y2)
-        totalBounds.x2 = Math.max(totalBounds.x2, itemBounds.x1, itemBounds.x2)
-        totalBounds.y2 = Math.max(totalBounds.y2, itemBounds.y1, itemBounds.y2)
-    })
-    /* If wanted to have integert bounds
-    totalBounds.x1 = Math.floor(totalBounds.x1)
-    totalBounds.y1 = Math.floor(totalBounds.y1)
-    totalBounds.x2 = Math.ceil(totalBounds.x2)
-    totalBounds.y2 = Math.ceil(totalBounds.y2)
-    */
-    return totalBounds
 }
 
 // From: https://stackoverflow.com/questions/31593297/using-execcommand-javascript-to-copy-hidden-text-to-clipboard#
@@ -846,39 +879,6 @@ function displayActions() {
         m("button.ml3", { onclick: exportSketchText }, "Export Text"),
         m("button.ml3", { onclick: copySVG, title: "Copy selected SVG into clipboard"}, "Copy SVG"),
     ])
-}
-
-function svgMarkers() {
-    return [
-        m("marker", {
-            id: "arrow-start",
-            markerHeight: "10",
-            markerUnits: "strokeWidth",
-            markerWidth: "10",
-            orient: "auto",
-            refX: "2",
-            refY: "1.5"
-        }, [
-            m("path", {
-                d: "M0,0 L0,3 L3,1.5 z",
-                fill: "black"
-            })
-        ]),
-        m("marker", {
-            id: "arrow-end",
-            markerHeight: "10",
-            markerUnits: "strokeWidth",
-            markerWidth: "10",
-            orient: "auto",
-            refX: "1",
-            refY: "1.5"
-        }, [
-            m("path", {
-                d: "M3,0 L3,3 L0,1.5 z",
-                fill: "black"
-            })
-        ])
-    ]
 }
 
 function displaySketch() {
