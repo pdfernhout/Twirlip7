@@ -465,7 +465,7 @@ function viewMapItem(mapItem, origin) {
             width: 32,
             height: 32,
             alt: mapItem.type,
-            onclick: () => {
+            ondblclick: () => {
                 changeCollageUUID(mapItem.id.collageUUID)
             }
             // onmousedown: (event) => onmousedown(mapItem, event),
