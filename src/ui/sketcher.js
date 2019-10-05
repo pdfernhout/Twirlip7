@@ -505,32 +505,7 @@ function displaySketch() {
                     overflow: "scroll",
                 }
             },
-            m("svg.sketch", 
-                {
-                    width: extent.width,
-                    height: extent.height,
-                    onpointerdown: itemMap.mouseDownInSketch,
-                    onpointermove: itemMap.sketchMouseMove,
-                    onpointerup: (event) => itemMap.sketchMouseUp(() => sketch.getItems(), event),
-                    "font-family": "Times New Roman",
-                    "font-style": "normal",
-                    "font-variant": "normal",
-                    "font-weight": "400",
-                    "font-size": "16px",
-                    "font-size-adjust": "none",
-                    "font-stretch": "100%",
-                    style: {
-                        "touch-action": "none"
-                    },
-                },
-                m("defs", itemMap.svgMarkers()),
-                m("rect", {
-                    width: extent.width,
-                    height: extent.height,
-                    style: { fill: "none", stroke: itemMap.getIsScribbling() ? "#33FFFF" : "#006600" } 
-                }),
-                itemMap.drawItems(sketch.getItems())
-            )
+            itemMap.viewItemMap(sketch.getItems(), extent)
         ),
         displaySelectedItemProperties()
     )

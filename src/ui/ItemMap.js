@@ -281,7 +281,7 @@ export function ItemMap() {
         ]
     }
 
-    function sketchMouseUp(getSketchItemsCallback, event) {
+    function sketchMouseUp(items, event) {
         if (isScribbling) {
             scribblePoints = null
         } else if (isDragging && dragDelta.x !== 0 && dragDelta.y !== 0) {
@@ -297,7 +297,6 @@ export function ItemMap() {
                 })
             } else {
                 // Group selection
-                const items = getSketchItemsCallback()
                 const selectionRect = rectForGroupSelection()
                 items.forEach(item => {
                     const itemBounds = item.getBounds()
@@ -412,23 +411,49 @@ export function ItemMap() {
         }
     }
 
+    function viewItemMap(items, extent) {
+        return m("svg.ItemMap", 
+            {
+                width: extent.width,
+                height: extent.height,
+                onpointerdown: mouseDownInSketch,
+                onpointermove: sketchMouseMove,
+                onpointerup: (event) => sketchMouseUp(items, event),
+                "font-family": "Times New Roman",
+                "font-style": "normal",
+                "font-variant": "normal",
+                "font-weight": "400",
+                "font-size": "16px",
+                "font-size-adjust": "none",
+                "font-stretch": "100%",
+                style: {
+                    "touch-action": "none"
+                },
+            },
+            m("defs", svgMarkers()),
+            m("rect", {
+                width: extent.width,
+                height: extent.height,
+                style: { fill: "none", stroke: isScribbling ? "#33FFFF" : "#006600" } 
+            }),
+            drawItems(items)
+        )
+    }
+
     initDragInformation()
 
     return {
         initDragInformation,
         mouseDownInItem,
-        mouseDownInSketch,
-        sketchMouseMove,
-        sketchMouseUp,
         copyRectWithDelta,
         copyRectWithHandleDelta,
-        svgMarkers,
         getSelectedItems: () => selectedItems,
         drawItems,
         calculateBoundsForItems,
         deselectAllItems,
         toggleFreehandScribble,
-        getIsScribbling: () => isScribbling
+        getIsScribbling: () => isScribbling,
+        viewItemMap,
     }
 
 }
