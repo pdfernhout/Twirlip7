@@ -32,9 +32,9 @@ const { config } = require("./configLoader")
 
 function ipForRequest(request) {
     return request.headers["x-forwarded-for"]
-        || request.connection.remoteAddress
-        || request.socket.remoteAddress
-        || request.connection.socket.remoteAddress
+        || (request.connection && request.connection.remoteAddress)
+        || (request.socket && request.socket.remoteAddress)
+        || (request.connection && request.connection.socket && request.connection.socket.remoteAddress)
 }
 
 function logger(request, response, next) {
