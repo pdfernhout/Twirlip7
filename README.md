@@ -59,9 +59,9 @@ the server storage option will be greyed out in the UI.
 Also, proxy support is not available without the server, so the proxying examples won't work.
 The other applications besides the notebook generally won't be useable withotu the server. You may be able to play with them, but any changes you make will be lost when you reload the page.
 
-### Startup params
+### Startup params for Notebook
 
-See [Startup params](README-startup.md)
+See [Startup params for Notebook](README-startup-for-notebook.md)
 
 ### Storage design using streams of items
 
