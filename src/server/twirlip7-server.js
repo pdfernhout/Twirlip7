@@ -22,6 +22,8 @@ const pem = require("pem")
 const proxyRequest = require("./proxyRequest")
 const storage = require("./storage")
 const log = require("./log")
+
+// messageStreams.io will handle most Twirlip data requests via websockets
 const messageStreams = require("./messageStreams")
 
 const app = express()
