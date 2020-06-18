@@ -1,4 +1,4 @@
-## Startup options
+## Startup options for Notebook
 
 ### Launching a saved item
 
