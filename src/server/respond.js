@@ -1,4 +1,4 @@
-// Routines to return standardized responses
+// Routines to return standardized responses as JSON
 
 "use strict"
 
