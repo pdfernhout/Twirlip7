@@ -1,5 +1,16 @@
 // Handle socket.io processing
 
+// The processMessage function will typically handle the bulk of client requests.
+// These requests concern streams of messages.
+// The first request is typically to "listen" on a stream
+// (which can result in being sent all the messages in the stream so far).
+// Then the client can "insert" a new message to the stream (and then typically stored to disk).
+// That new message is then sent to all listeners on the stream.
+// If a client is no longer interested in a stream they can "unlisten" to it.
+
+// A stream is usually stored on disk, but one can also be "ephemeral" and stored in memory.
+// Ephemeral memory streams are named as strings starting with a special prefix.
+
 "use strict"
 /* eslint-env node */
 /* jslint node: true */
@@ -92,6 +103,7 @@ function setListenerState(clientId, streamId, state) {
     insert -- add a message to a stream
     remove -- remove one specific message from a stream (or act as if that happened)
     reset -- remove everything stored in stream to start over (or act as if that happened)
+    streamStatus -- get some information about a stream (like how big it is and if it exists)
 */
 
 function processMessage(clientId, message) {

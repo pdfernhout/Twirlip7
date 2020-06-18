@@ -127,6 +127,7 @@ Commands for messages (which are all sent on the "twirlip" channel):
 * insert -- add a message to a stream
 * remove -- remove one specific message from a stream (or act as if that happened)
 * reset -- remove everything stored in stream to start over (or act as if that happened)
+* streamStatus -- get some information about a stream (like how big it is and if it exists)
 
 The "remove" and "reset" commands aren't fully implemented yet.
 
