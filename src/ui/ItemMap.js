@@ -15,7 +15,7 @@ export function drawPolylines(segments, style) {
     })
 }
 
-// Items passed to ItemMap need to have these attributs and methods:
+// Items passed to ItemMap need to have these attributes and methods:
 // uuid, getBounds(), setBounds(), getType(), getLayer(), setLayer(), draw()
 
 export function ItemMap() {
