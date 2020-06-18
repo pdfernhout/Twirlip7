@@ -1,3 +1,7 @@
 Authors ordered by first contribution.
 
+Adding your name here signifies your agreement that your contributions
+to this project may be released under the project's MIT license
+and that you know of no restrictions that could prevent such.
+
 Paul D. Fernhout <pdfernhout@kurtz-fernhout.com>
