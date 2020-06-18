@@ -6,7 +6,7 @@ There are also a couple of supplemental server-side APIs. One is for proxying re
 
 ### POST /api/proxy
 
-Request data from another server via GET.
+Request data relayed from another server via a GET request to that other server.
 
 The body should include url field and proxyKey (i.e. password) field. See proxy-rss-reader.js for an example.
 
@@ -34,7 +34,7 @@ Retrieve a stream referenced by sha256 as a file with a specific content-type, t
 
 Example URL: http://localhost:8080/sha256/somesha?content-type=image/png&title=some%20title
 
-Resources must have been created with a specific format. The resource files must also be names in a certain way -- specifically as {sha256: sha256Requested}. See chat.js uploadDocumentClicked for an example.
+Resources must have been created with a specific format. The resource files must also be named in a certain way -- specifically as {sha256: sha256Requested}. See chat.js uploadDocumentClicked for an example.
 
     function uploadDocumentClicked() {
         FileUtils.loadFromFile(true, (filename, contents, bytes) => {
@@ -120,13 +120,15 @@ Resources must have been created with a specific format. The resource files must
 
 ### Socket.io messages
 
-Commands for messages (all on "twirlip" channel):
+Commands for messages (which are all sent on the "twirlip" channel):
 
 * listen -- start listening for messages after (optionally) getting all previous messages from a stream
 * unlisten -- stop getting messages from a stream
 * insert -- add a message to a stream
 * remove -- remove one specific message from a stream (or act as if that happened)
 * reset -- remove everything stored in stream to start over (or act as if that happened)
+
+The "remove" and "reset" commands aren't fully implemented yet.
 
 See StoreUsingServer.js for API details:
 
