@@ -37,6 +37,6 @@
     "requirejs": "2.3.6",
     "requirejs-text": "2.0.15",
     "tachyons": "4.11.1",
-    "three": "0.107.0"
+    "three": "0.137.0"
   }
 }
