@@ -17,6 +17,6 @@ Hello <b>bold</b> world
 `
 
     Twirlip7.show(() => {
-        return m("div", m.trust(marked(markdownString)))
+        return m("div", m.trust(marked.marked(markdownString)))
     }, ".bg-green.br4")
 })

@@ -145,7 +145,7 @@ function textAreaKeyDown(event) {
 }
 
 function formatChatMessage(text) {
-    return m.trust(marked(text))
+    return m.trust(marked.marked(text))
 }
 
 function getSortedMessages() {

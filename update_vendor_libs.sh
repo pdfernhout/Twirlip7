@@ -23,7 +23,7 @@ mkdir -p src/ui/vendor/font-awesome/fonts
 cp -R node_modules/font-awesome/css/font-awesome.css src/ui/vendor/font-awesome/css
 cp -R node_modules/font-awesome/fonts/* src/ui/vendor/font-awesome/fonts
 
-cp node_modules/marked/lib/marked.js src/ui/vendor/
+cp node_modules/marked/lib/marked.umd.js src/ui/vendor/marked.js 
 
 cp node_modules/pepjs/dist/pep.js src/ui/vendor/
 
@@ -33,7 +33,7 @@ cp node_modules/requirejs/require.js src/ui/vendor/
 
 cp node_modules/requirejs-text/text.js src/ui/vendor/
 
-cp node_modules/socket.io-client/dist/socket.io.js src/ui/vendor/
+cp node_modules/socket.io/client-dist/socket.io.js src/ui/vendor/
 
 cp node_modules/tachyons/css/tachyons.css src/ui/vendor/
 

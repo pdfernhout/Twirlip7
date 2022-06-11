@@ -17,8 +17,6 @@
 
 const ephemeralStreamPrefix = "__EPHEMERAL:"
 
-const SocketIOServer = require("socket.io")
-
 const log = require("./log")
 const storage = require("./storage")
 const forEachLineInFile = require("./forEachLineInFile")
@@ -27,7 +25,8 @@ const streamToListenerMap = {}
 const listenerToStreamsMap = {}
 // TODO: const backloggedMessages = {}
 
-const io = new SocketIOServer()
+const { Server } = require("socket.io")
+const io = new Server()
 
 io.on("connection", function(socket) {
     const clientId = socket.id

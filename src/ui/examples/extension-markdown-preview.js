@@ -5,7 +5,7 @@ requirejs(["vendor/marked"], function(marked) {
     function markdownPreview() {
         const markdownString = Twirlip7.notebookView.getEditorContents()
         Twirlip7.show(() => {
-            return m("div", m.trust(marked(markdownString)))
+            return m("div", m.trust(marked.marked(markdownString)))
         })
     }
     
