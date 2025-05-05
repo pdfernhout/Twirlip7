@@ -68,7 +68,7 @@ app.get("/sha256/:sha256", storage.respondWithReconstructedFile)
 
 const ip = process.env.IP || config.ip || "0.0.0.0"
 
-const port = process.env.PORT || config.port || 8080 
+const port = process.env.PORT || config.port || 8080
 
 const sshPort = config.sshPort || parseInt(port) + 1
 
@@ -82,6 +82,10 @@ const httpServer = http.createServer(app).listen(port, ip, function () {
 
 // Create an HTTPS service
 pem.createCertificate({ days: 365, selfSigned: true }, function(err, keys) {
+    if (err) {
+        log("error", "Error creating certificate: ", err)
+        return
+    }
     const httpsServer = https.createServer({ key: keys.serviceKey, cert: keys.certificate }, app).listen(sshPort, ip, function () {
         messageStreams.io.attach(httpsServer)
         const host = httpsServer.address().address
